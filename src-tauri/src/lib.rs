@@ -3,25 +3,20 @@ mod tray;
 mod session_window;
 mod session_timer;
 mod pretty_time;
+mod model;
 
+use specta_typescript::Typescript;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
 use crate::session_timer::SessionTimer;
-use tauri::{App, Manager, State, WebviewWindow, WindowEvent};
+use tauri::{App, Manager, State, WindowEvent};
+use tauri_plugin_log::Target;
+use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!!", name)
-}
-
-#[tauri::command]
-fn answer(number: i32) -> String {
-    number.to_string()
-}
-
+#[specta::specta]
 #[tauri::command]
 fn close_app(app_handle: tauri::AppHandle, state: State<TimerState>) {
     session_window::close(&app_handle).unwrap();
@@ -32,19 +27,30 @@ struct TimerState(Arc<Mutex<SessionTimer>>);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let builder = build_typescript_interfaces(
+        collect_commands![close_app,],
+        collect_events![model::event::SessionStart,],
+    ).unwrap();
+
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .targets([
+                    Target::new(tauri_plugin_log::TargetKind::Stdout),
+                    Target::new(tauri_plugin_log::TargetKind::Webview)]
+                )
+                .level(log::LevelFilter::Info)
+                .build()
+        )
+        .invoke_handler(builder.invoke_handler())
         .manage(TimerState(Arc::new(Mutex::new(SessionTimer::new()))))
-        .plugin(tauri_plugin_log::Builder::new().build())
-        .setup(|app| {
+        .setup(move |app| {
+            builder.mount_events(app.app_handle());
             session_window::new(app)?;
             tray::create_tray(app.handle())?;
-
             setup_timer(app).unwrap();
-
             Ok(())
         })
-        .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, answer, close_app])
         .on_window_event(|window, event| match event {
             WindowEvent::CloseRequested { api, .. } => {
                 window.hide().unwrap();
@@ -55,13 +61,26 @@ pub fn run() {
             WindowEvent::ScaleFactorChanged { .. } => {}
             WindowEvent::DragDrop(_) => {}
             WindowEvent::ThemeChanged(_) => {}
-            WindowEvent::Resized(size) => {
-                log::info!("size x:{}, y:{}", size.width, size.height);
-            }
             _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+fn build_typescript_interfaces(
+    commands: Commands<tauri::Wry>,
+    events: Events,
+) -> Result<Builder, Box<dyn std::error::Error>> {
+    let builder = Builder::<tauri::Wry>::new()
+        // Then register them (separated by a comma)
+        .events(events)
+        .commands(commands);
+
+    #[cfg(debug_assertions)] // <- Only export on non-release builds
+    builder
+        .export(Typescript::default(), "../src/bindings.ts")?;
+
+    Ok(builder)
 }
 
 fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
@@ -80,10 +99,9 @@ fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
             session_window::show(&app_handle_end)
                 .map_err(|e| log::error!("Failed to show session window: {}", e))
                 .ok();
-            log::info!("ended!");
         },
     );
 
-    timer.start(Duration::from_secs(30 * 61));
+    timer.start(Duration::from_secs(5));
     Ok(())
 }

@@ -65,16 +65,19 @@ impl SessionTimer {
         }
     }
 
+    #[allow(dead_code)]
     pub fn stop(&mut self) {
         let mut is_running = self.is_running.lock().unwrap();
         *is_running = false;
         self.start_time = None;
     }
 
+    #[allow(dead_code)]
     pub fn is_running(&self) -> bool {
         *self.is_running.lock().unwrap()
     }
 
+    #[allow(dead_code)]
     pub fn remaining_time(&self) -> Option<Duration> {
         self.start_time.map(|start| {
             let elapsed = start.elapsed();

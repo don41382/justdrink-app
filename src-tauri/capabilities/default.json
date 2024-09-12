@@ -3,20 +3,19 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": [
-    "main"
+    "session"
   ],
   "permissions": [
     "core:default",
     "core:window:default",
-    "core:window:allow-start-dragging",
+    "core:window:allow-show",
     "core:window:allow-set-fullscreen",
     "core:window:allow-is-fullscreen",
+    "core:window:allow-set-focus",
     "global-shortcut:allow-is-registered",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
-    "shell:allow-open",
     "log:allow-log",
     "log:default"
-  ],
-  "capabilities": []
+  ]
 }

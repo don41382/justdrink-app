@@ -1,7 +1,10 @@
 use crate::menubar::set_persistent_presentation_mode;
+use crate::model::event::SessionStart;
+use crate::model::session::SessionDetail;
 use tauri::{ActivationPolicy, App, AppHandle, Manager, WebviewWindow};
+use tauri_specta::Event;
 
-const WINDOW_LABEL: &'static str = "main";
+const WINDOW_LABEL: &'static str = "session";
 
 pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
     set_persistent_presentation_mode(true);
@@ -11,6 +14,7 @@ pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
         WINDOW_LABEL,
         tauri::WebviewUrl::App("index.html".into()),
     )
+        .title("Motion Minute Session")
         .visible(false)
         //.always_on_top(true)
         .decorations(false)
@@ -35,8 +39,16 @@ where
             #[cfg(target_os = "macos")]
             app.app_handle().set_activation_policy(ActivationPolicy::Regular).unwrap();
             set_persistent_presentation_mode(true);
-            window.show().unwrap();
-            window.set_focus().unwrap();
+
+            let start = SessionStart {
+                details: SessionDetail {
+                    title: "Hello".to_string(),
+                    subtitle: "You!".to_string(),
+                    duration_s: 20,
+                }
+            };
+
+            start.emit(&window.app_handle().clone()).unwrap();
             Ok(())
         }
     }

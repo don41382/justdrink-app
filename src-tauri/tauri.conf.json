@@ -1,5 +1,5 @@
 {
-  "productName": "minutemotion-app",
+  "productName": "Motion Minute",
   "version": "0.1.0",
   "identifier": "com.rocketsolutions.minutemotion",
   "build": {
@@ -7,11 +7,6 @@
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../build"
-  },
-  "app": {
-    "security": {
-      "csp": null
-    }
   },
   "bundle": {
     "active": true,

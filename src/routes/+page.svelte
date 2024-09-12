@@ -1,17 +1,36 @@
 <script lang="ts">
-    import {invoke} from "@tauri-apps/api/core";
-    import {info} from '@tauri-apps/plugin-log';
+    import {error} from '@tauri-apps/plugin-log';
+    import {commands, events} from '../bindings';
+    import {Window} from '@tauri-apps/api/window';
+    import {onDestroy, onMount} from 'svelte';
+    import type {UnlistenFn} from '@tauri-apps/api/event';
 
-    let number: number = 42;
-    let greetMsg = "";
+    let sessionStartListener: UnlistenFn;
 
-    async function greet() {
-        await info('sending a greeting');
-        greetMsg = await invoke("answer", {number});
-    }
+    onMount(async () => {
+        sessionStartListener = await events.sessionStart.listen(async (e) => {
+            try {
+                const sessionWindow = new Window('session');
+                await sessionWindow.show();
+                await sessionWindow.setFocus();
+            } catch (e) {
+                if (e instanceof Error) {
+                    await error(e.message);
+                } else {
+                    await error(String(e))
+                }
+            }
+        });
+    });
+
+    onDestroy(() => {
+        if (sessionStartListener) {
+            sessionStartListener();
+        }
+    });
 
     function closeApp() {
-        invoke("close_app");
+        commands.closeApp()
     }
 
 
@@ -25,10 +44,9 @@
         <h1 class="text-4xl mb-14"><b class="font-bold">Motion Minute</b></h1>
 
         <button on:click={closeApp}
-                class="btn mb-4 bg-blue-500 bg-opacity-50 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl border border-white">
+                class="bg-blue-500 bg-opacity-50 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl border border-white">
             Feeling much better
         </button>
 
-        <p>{greetMsg}</p>
     </div>
 </div>

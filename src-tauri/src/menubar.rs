@@ -1,6 +1,5 @@
 #[cfg(target_os = "macos")]
 use cocoa::appkit::{NSApplication, NSApplicationPresentationOptions};
-#[macro_use]
 #[cfg(target_os = "macos")]
 use cocoa::base::id;
 #[cfg(target_os = "macos")]
@@ -13,10 +12,10 @@ pub fn set_persistent_presentation_mode(hide: bool) {
     unsafe {
         let ns_app: id = msg_send![class!(NSApplication), sharedApplication];
         let option = if hide {
-            (NSApplicationPresentationOptions::NSApplicationPresentationHideDock
+            NSApplicationPresentationOptions::NSApplicationPresentationHideDock
                 | NSApplicationPresentationOptions::NSApplicationPresentationHideMenuBar
                 | NSApplicationPresentationOptions::NSApplicationPresentationDisableProcessSwitching
-                | NSApplicationPresentationOptions::NSApplicationPresentationDisableHideApplication)
+                | NSApplicationPresentationOptions::NSApplicationPresentationDisableHideApplication
         } else {
             NSApplicationPresentationOptions::NSApplicationPresentationDefault
         };

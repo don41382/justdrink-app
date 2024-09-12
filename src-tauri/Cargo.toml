@@ -15,13 +15,15 @@ crate-type = ["lib", "cdylib", "staticlib"]
 tauri-build = { version = "2.0.0-rc", features = [] }
 
 [dependencies]
-tauri = { version = "2.0.0-rc", features = ["tray-icon"] }
-tauri-plugin-shell = "2.0.0-rc"
+tauri = { version = "=2.0.0-rc.10", features = ["tray-icon"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 log = "0.4.22"
 tauri-plugin-log = "2.0.0-rc"
 tokio = { version = "1.40.0", features = ["full"] }
+specta = "=2.0.0-rc.20"
+specta-typescript = "0.0.7"
+tauri-specta = { version = "=2.0.0-rc.19", features = ["derive", "typescript"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.26.0"
