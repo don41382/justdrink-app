@@ -2,6 +2,10 @@ mod menubar;
 mod tray;
 
 use crate::menubar::set_persistent_presentation_mode;
+
+#[cfg(target_os = "macos")]
+use tauri::ActivationPolicy;
+
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
@@ -52,10 +56,13 @@ pub fn run() {
             let ctrl_n_shortcut = Shortcut::new(Some(Modifiers::CONTROL), Code::KeyN);
 
             app.handle().plugin(
-                tauri_plugin_global_shortcut::Builder::new().with_handler(move |_app, shortcut, event| {
+                tauri_plugin_global_shortcut::Builder::new().with_handler(move |app, shortcut, event| {
                     if shortcut == &ctrl_n_shortcut {
                         match event.state() {
                             ShortcutState::Pressed => {
+                                #[cfg(target_os = "macos")]
+                                app.app_handle().set_activation_policy(ActivationPolicy::Regular).unwrap();
+                                set_persistent_presentation_mode(true);
                                 window.show().unwrap();
                                 window.set_focus().unwrap();
                             }
@@ -75,6 +82,8 @@ pub fn run() {
         .on_window_event(|window, event| match event {
             WindowEvent::CloseRequested { api, .. } => {
                 window.hide().unwrap();
+                #[cfg(target_os = "macos")]
+                window.app_handle().set_activation_policy(ActivationPolicy::Accessory).unwrap();
                 api.prevent_close();
             }
             WindowEvent::ScaleFactorChanged { .. } => {}
