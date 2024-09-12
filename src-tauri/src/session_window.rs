@@ -1,7 +1,11 @@
 use crate::menubar::set_persistent_presentation_mode;
 use crate::model::event::SessionStart;
 use crate::model::session::SessionDetail;
-use tauri::{ActivationPolicy, App, AppHandle, Manager, WebviewWindow};
+
+#[cfg(target_os = "macos")]
+use tauri::ActivationPolicy;
+
+use tauri::{App, AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
 
 const WINDOW_LABEL: &'static str = "session";

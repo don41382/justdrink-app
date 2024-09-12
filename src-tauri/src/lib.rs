@@ -5,9 +5,12 @@ mod session_timer;
 mod pretty_time;
 mod model;
 
-use specta_typescript::Typescript;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+
+#[cfg(debug_assertions)]
+use specta_typescript::Typescript;
+
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
