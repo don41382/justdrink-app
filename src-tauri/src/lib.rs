@@ -4,6 +4,7 @@ mod session_window;
 mod session_timer;
 mod pretty_time;
 mod model;
+mod session_repository;
 
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -14,6 +15,7 @@ use specta_typescript::Typescript;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
+use crate::session_repository::SessionRepository;
 use crate::session_timer::SessionTimer;
 use tauri::{App, Manager, State, WindowEvent};
 use tauri_plugin_log::Target;
@@ -47,6 +49,7 @@ pub fn run() {
         )
         .invoke_handler(builder.invoke_handler())
         .manage(TimerState(Arc::new(Mutex::new(SessionTimer::new()))))
+        .manage(SessionRepository::new())
         .setup(move |app| {
             builder.mount_events(app.app_handle());
             session_window::new(app)?;
@@ -89,6 +92,7 @@ fn build_typescript_interfaces(
 fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle_tick = app.handle().clone();
     let app_handle_end = app.handle().clone();
+    let app_handle_session = app.handle().clone();
     let timer_state = app.state::<TimerState>();
     let mut timer = timer_state.0.lock().map_err(|e| format!("Failed to lock timer state: {}", e))?;
 
@@ -99,7 +103,9 @@ fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
                 .ok();
         },
         move || {
-            session_window::show(&app_handle_end)
+            let session_repository = app_handle_session.state::<SessionRepository>().clone();
+            let session = session_repository.pick_random_session().unwrap();
+            session_window::show(&app_handle_end, session)
                 .map_err(|e| log::error!("Failed to show session window: {}", e))
                 .ok();
         },

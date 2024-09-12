@@ -1,7 +1,7 @@
 <script>
-
+    export let title;
 </script>
 
 <div id="session">
-    <h1>This is the session component</h1>
+    <h1>{title}</h1>
 </div>

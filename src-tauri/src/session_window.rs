@@ -33,7 +33,7 @@ pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
     Ok(window)
 }
 
-pub fn show<R>(app: &AppHandle<R>) -> Result<(), String>
+pub fn show<R>(app: &AppHandle<R>, session: &SessionDetail) -> Result<(), String>
 where
     R: tauri::Runtime,
 {
@@ -44,15 +44,10 @@ where
             app.app_handle().set_activation_policy(ActivationPolicy::Regular).unwrap();
             set_persistent_presentation_mode(true);
 
-            let start = SessionStart {
-                details: SessionDetail {
-                    title: "Hello".to_string(),
-                    subtitle: "You!".to_string(),
-                    duration_s: 20,
-                }
-            };
-
-            start.emit(&window.app_handle().clone()).unwrap();
+            SessionStart {
+                details: session.clone(),
+            }.emit(&window.app_handle().clone()).unwrap();
+            
             Ok(())
         }
     }

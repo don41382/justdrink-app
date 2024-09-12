@@ -1,7 +1,8 @@
 use crate::pretty_time::PrettyTime;
+use crate::session_repository::SessionRepository;
 use crate::session_window;
 use std::time::Duration;
-use tauri::{menu::{Menu, MenuItem}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, Runtime};
+use tauri::{menu::{Menu, MenuItem}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, Manager, Runtime};
 
 const TRAY_ID: &'static str = "tray";
 
@@ -27,7 +28,9 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
                 button_state: MouseButtonState::Up,
                 ..
             } = event {
-                session_window::show(tray.app_handle()).unwrap();
+                let session_repository = tray.app_handle().state::<SessionRepository>();
+                let session = session_repository.pick_random_session().unwrap();
+                session_window::show(tray.app_handle(), session).unwrap();
             }
         })
         .build(main_app);

@@ -23,6 +23,7 @@ tauri-plugin-log = "2.0.0-rc"
 specta = "=2.0.0-rc.20"
 specta-typescript = "0.0.7"
 tauri-specta = { version = "=2.0.0-rc.19", features = ["derive", "typescript"] }
+rand = "0.8.5"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.26.0"
