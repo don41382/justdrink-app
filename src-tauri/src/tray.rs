@@ -1,3 +1,4 @@
+use crate::pretty_time::PrettyTime;
 use crate::session_window;
 use std::time::Duration;
 use tauri::{menu::{Menu, MenuItem}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, Runtime};
@@ -36,7 +37,7 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
 
 pub fn update_tray_title<R: Runtime>(app_handle: &tauri::AppHandle<R>, duration: Duration) -> tauri::Result<()> {
     if let Some(tray) = app_handle.tray_by_id(TRAY_ID) {
-        tray.set_title(Some(duration.as_secs().to_string()))?;
+        tray.set_title(Some(duration.to_pretty_time()))?;
     }
     Ok(())
 }
