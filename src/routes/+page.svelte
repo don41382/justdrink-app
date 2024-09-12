@@ -5,8 +5,8 @@
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
     import {fade} from 'svelte/transition';
+    import {IconPlayerTrackNext} from '@tabler/icons-svelte';
 
-    const delayS = 1
 
     let sessionStartListener: UnlistenFn;
     let session: SessionDetail | undefined = undefined;
@@ -18,7 +18,7 @@
             try {
                 await info("new session started");
                 session = e.payload.details
-                countdownSeconds = e.payload.details.duration_s + delayS
+                countdownSeconds = e.payload.details.duration_s
 
                 const sessionWindow = new Window('session');
                 await sessionWindow.show();
@@ -72,18 +72,19 @@
 <div class="flex items-center justify-center h-screen gradient-background select-none cursor-default">
     <div class="text-center">
         {#if session && countdownSeconds}
-            <h1 class="text-4xl mb-4" in:fade={{ delay: 500, duration: 1000 }}>It's time for your</h1>
-            <h1 class="text-4xl mb-14 font-bold" in:fade={{ delay: 1000, duration: 1000 }}>Motion Minute</h1>
+            <h1 class="text-4xl mb-4">It's time for your</h1>
+            <h1 class="text-4xl mb-14 font-bold">Motion Minute</h1>
 
-            <h1 class="text-4xl mb-4" in:fade={{ delay: 1500, duration: 1000 }}>{session.title}</h1>
+            <h1 class="text-4xl mb-4" in:fade={{ delay: 100, duration: 1000 }}>{session.title}</h1>
 
-            <div class="text-2xl mb-8">
-                <span in:fade={{ delay: 1500, duration: 1000 + delayS }}>{formatCountdown(countdownSeconds)}</span>
+            <div class="text-2xl mb-14">
+                <span in:fade={{ delay: 100, duration: 1000 }}>{formatCountdown(countdownSeconds)}</span>
             </div>
 
             <button on:click={closeApp}
-                    class="bg-white bg-opacity-10 hover:bg-white hover:bg-opacity-20 text-white font-bold py-2 px-4 rounded-2xl border border-gray-700">
-                Feeling much better
+                    class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 text-white font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center">
+                <IconPlayerTrackNext class="mr-2"/>
+                Skip
             </button>
         {/if}
 

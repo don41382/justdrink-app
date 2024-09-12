@@ -13,6 +13,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@tabler/icons-svelte": "^3.16.0",
     "@tauri-apps/api": ">=2.0.0-rc.0",
     "@tauri-apps/plugin-global-shortcut": "^2.0.0-rc",
     "@tauri-apps/plugin-log": "^2.0.0-rc",
