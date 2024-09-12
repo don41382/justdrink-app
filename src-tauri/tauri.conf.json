@@ -9,13 +9,6 @@
     "frontendDist": "../build"
   },
   "app": {
-    "windows": [
-      {
-        "title": "minutemotion-app",
-        "width": 800,
-        "height": 600
-      }
-    ],
     "security": {
       "csp": null
     }

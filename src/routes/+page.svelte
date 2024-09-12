@@ -1,5 +1,6 @@
 <script lang="ts">
     import {invoke} from "@tauri-apps/api/core";
+    import {info} from '@tauri-apps/plugin-log';
     import Session from "./Session.svelte";
 
     let number: number = 42;
@@ -10,8 +11,12 @@
     }
 
     function closeApp() {
+        info('close')
         invoke("close_app");
+        //hide();
+        //alert('buh');
     }
+
 </script>
 
 <div class="flex items-center justify-center h-screen gradient-background">
@@ -20,7 +25,8 @@
         <Session/>
 
         <form class="row mt-4" on:submit|preventDefault={greet}>
-            <input id="greet-input" type="number" placeholder="Enter a name..." bind:value={number} class="mr-2"/>
+            <input id="greet-input" type="number" placeholder="Enter a name..." bind:value={number}
+                   class="mr-2 text-black border border-gray-300 p-2 rounded shadow-sm focus:outline-none focus:border-blue-500"/>
             <button type="submit" class="btn">Greet</button>
         </form>
 
