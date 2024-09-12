@@ -1,12 +1,15 @@
-use crate::menubar::set_persistent_presentation_mode;
-use tauri::{menu::{Menu, MenuItem}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, Manager, PhysicalSize, Runtime, Size};
+use crate::session_window;
+use std::time::Duration;
+use tauri::{menu::{Menu, MenuItem}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, Runtime};
 
-pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
-    let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&quit_i])?;
+const TRAY_ID: &'static str = "tray";
 
-    let _ = TrayIconBuilder::with_id("tray")
-        .icon(app.default_window_icon().unwrap().clone())
+pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<()> {
+    let quit_i = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
+    let menu = Menu::with_items(main_app, &[&quit_i])?;
+
+    let _ = TrayIconBuilder::with_id(TRAY_ID)
+        .icon(main_app.default_window_icon().unwrap().clone())
         .title("10min")
         .menu(&menu)
         .menu_on_left_click(false)
@@ -22,22 +25,18 @@ pub fn create_tray<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
                 ..
-            } = event
-            {
-                let app = tray.app_handle();
-
-                match app.get_webview_window("main") {
-                    None => {}
-                    Some(window) => {
-                        window.show().unwrap();
-                        window.maximize().unwrap();
-                        window.set_focus().unwrap();
-                        log::info!("it's already here")
-                    }
-                }
+            } = event {
+                session_window::show(tray.app_handle()).unwrap();
             }
         })
-        .build(app);
+        .build(main_app);
 
+    Ok(())
+}
+
+pub fn update_tray_title<R: Runtime>(app_handle: &tauri::AppHandle<R>, duration: Duration) -> tauri::Result<()> {
+    if let Some(tray) = app_handle.tray_by_id(TRAY_ID) {
+        tray.set_title(Some(duration.as_secs().to_string()))?;
+    }
     Ok(())
 }

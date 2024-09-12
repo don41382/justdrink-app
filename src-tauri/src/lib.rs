@@ -1,13 +1,15 @@
 mod menubar;
 mod tray;
+mod session_window;
+mod session_timer;
 
-use crate::menubar::set_persistent_presentation_mode;
-
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use tauri::{Manager, WindowEvent};
-use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+use crate::session_timer::SessionTimer;
+use tauri::{App, Manager, State, WebviewWindow, WindowEvent};
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -21,59 +23,35 @@ fn answer(number: i32) -> String {
 }
 
 #[tauri::command]
-fn close_app(app_handle: tauri::AppHandle) {
-    if let Some(window) = app_handle.webview_windows().get("main") {
-        window.close().unwrap()
-    }
+fn close_app(app_handle: tauri::AppHandle, state: State<TimerState>) {
+    session_window::close(&app_handle).unwrap();
+    state.0.lock().unwrap().start(Duration::from_secs(20));
 }
+
+struct TimerState(Arc<Mutex<SessionTimer>>);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        //.enable_macos_default_menu(false)
+        .manage(TimerState(Arc::new(Mutex::new(SessionTimer::new()))))
         .plugin(tauri_plugin_log::Builder::new().build())
         .setup(|app| {
-            set_persistent_presentation_mode(true);
+            session_window::new(app)?;
+            tray::create_tray(app.handle())?;
 
-            let window = tauri::WebviewWindowBuilder::new(
-                app,
-                "main",
-                tauri::WebviewUrl::App("index.html".into()),
-            )
-                .visible(false)
-                //.always_on_top(true)
-                .decorations(false)
-                .skip_taskbar(true)
-                .maximized(true)
-                .resizable(true)
-                .build()
-                .unwrap();
+            let app_handle_tick = app.handle().clone();
+            let app_handle_end = app.handle().clone();
+            let timer_state = app.state::<TimerState>();
+            let mut timer = timer_state.0.lock().unwrap();
+            timer.register(move |time| {
+                tray::update_tray_title(&app_handle_tick, time).unwrap();
+            }, move || {
+                session_window::show(&app_handle_end).unwrap();
+                log::info!("ended!");
+            });
 
+            timer.start(Duration::from_secs(10));
 
-            let handle = app.handle();
-            tray::create_tray(handle)?;
-
-            let ctrl_n_shortcut = Shortcut::new(Some(Modifiers::CONTROL), Code::KeyN);
-
-            app.handle().plugin(
-                tauri_plugin_global_shortcut::Builder::new().with_handler(move |app, shortcut, event| {
-                    if shortcut == &ctrl_n_shortcut {
-                        match event.state() {
-                            ShortcutState::Pressed => {
-                                #[cfg(target_os = "macos")]
-                                app.app_handle().set_activation_policy(ActivationPolicy::Regular).unwrap();
-                                set_persistent_presentation_mode(true);
-                                window.show().unwrap();
-                                window.set_focus().unwrap();
-                            }
-                            ShortcutState::Released => {}
-                        }
-                    }
-                })
-                    .build(),
-            )?;
-
-            app.global_shortcut().register(ctrl_n_shortcut)?;
 
             Ok(())
         })
