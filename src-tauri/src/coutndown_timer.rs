@@ -7,6 +7,7 @@ pub struct CountdownTimer {
     finish_callback: Arc<Mutex<Option<Box<dyn Fn() + Send + 'static>>>>,
     is_paused: Arc<AtomicBool>,
     is_stopped: Arc<AtomicBool>,
+    elapsed: Arc<Mutex<Duration>>,
     current_thread: Arc<Mutex<Option<thread::JoinHandle<()>>>>,
 }
 
@@ -17,6 +18,7 @@ impl CountdownTimer {
             finish_callback: Arc::new(Mutex::new(None)),
             is_paused: Arc::new(AtomicBool::new(false)),
             is_stopped: Arc::new(AtomicBool::new(false)),
+            elapsed: Arc::new(Mutex::new(Duration::new(0, 0))),
             current_thread: Arc::new(Mutex::new(None)),
         }
     }
@@ -37,24 +39,34 @@ impl CountdownTimer {
         let is_paused = Arc::clone(&self.is_paused);
         let is_stopped = Arc::clone(&self.is_stopped);
         let current_thread = Arc::clone(&self.current_thread);
+        let elapsed = Arc::clone(&self.elapsed);
 
         is_paused.store(false, Ordering::SeqCst);
         is_stopped.store(false, Ordering::SeqCst);
+        *elapsed.lock().unwrap() = Duration::new(0, 0);
 
         let handle = thread::spawn(move || {
             let start_time = Instant::now();
-            let mut elapsed = Duration::new(0, 0);
+            let mut pause_duration = Duration::new(0, 0);
+            let mut pause_start: Option<Instant> = None;
 
-            while elapsed < duration && !is_stopped.load(Ordering::SeqCst) {
+            while *elapsed.lock().unwrap() < duration && !is_stopped.load(Ordering::SeqCst) {
                 if is_paused.load(Ordering::SeqCst) {
+                    if pause_start.is_none() {
+                        pause_start = Some(Instant::now());
+                    }
                     thread::sleep(Duration::from_millis(100));
                     continue;
                 }
 
-                elapsed = Instant::now() - start_time;
+                if let Some(pause_time) = pause_start.take() {
+                    pause_duration += Instant::now() - pause_time;
+                }
+
+                *elapsed.lock().unwrap() = Instant::now() - start_time - pause_duration;
 
                 if let Some(ref callback) = *tick_callback.lock().unwrap() {
-                    callback(duration - elapsed);
+                    callback(duration - *elapsed.lock().unwrap());
                 }
 
                 thread::sleep(Duration::from_millis(1000));
@@ -75,18 +87,19 @@ impl CountdownTimer {
     }
 
     pub fn resume(&self) {
+        println!("resume on: {:?}", *self.elapsed.lock().unwrap());
         self.is_paused.store(false, Ordering::SeqCst);
     }
 
     pub fn stop(&self) {
         self.is_stopped.store(true, Ordering::SeqCst);
+        self.is_paused.store(false, Ordering::SeqCst);
 
         if let Some(handle) = self.current_thread.lock().unwrap().take() {
             handle.join().unwrap();
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -118,15 +131,19 @@ mod tests {
     fn test_pause_resume() {
         let (tx, rx): (Sender<u64>, Receiver<u64>) = channel();
 
+        println!("new");
         let timer = CountdownTimer::new();
         timer.set_tick_callback(Box::new(move |remaining_time| {
             tx.send(remaining_time.as_secs()).unwrap();
         }));
 
+        println!("start");
         timer.start(Duration::from_secs(5));
         sleep(Duration::from_secs(2));
+        println!("pause");
         timer.pause();
         sleep(Duration::from_secs(2));
+        println!("resume");
         timer.resume();
         sleep(Duration::from_secs(4));
 
