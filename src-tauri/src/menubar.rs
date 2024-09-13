@@ -23,6 +23,17 @@ pub fn set_persistent_presentation_mode(hide: bool) {
     }
 }
 
+#[cfg(target_os = "macos")]
+pub fn hide_application() {
+    unsafe {
+        let ns_app: id = msg_send![class!(NSApplication), sharedApplication];
+        ns_app.setPresentationOptions_(NSApplicationPresentationOptions::NSApplicationPresentationDisableHideApplication);
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn hide_application() {}
+
 #[cfg(not(target_os = "macos"))]
 pub fn set_persistent_presentation_mode(hide: bool) {
     // No-op for non-macOS platforms

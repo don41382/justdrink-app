@@ -1,159 +1,145 @@
 <script lang="ts">
-    import {commands, events} from '../../bindings';
+    import {commands, events, type Settings} from '../../bindings';
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
-    import {Window} from "@tauri-apps/api/window";
-    import {fade} from 'svelte/transition';
+    import {getCurrentWindow} from "@tauri-apps/api/window";
+    import {slide} from 'svelte/transition';
     import {info} from "@tauri-apps/plugin-log";
-
+    import {IconSettings} from "@tabler/icons-svelte";
 
     let sessionStartListenerUnregister: UnlistenFn;
-    let show: boolean = false;
+    let closeRequestUnregister: UnlistenFn;
 
-    info("Initialized Setting Window")
+    let settings: Settings | undefined = undefined;
+
 
     onMount(async () => {
-        show = true
         await info("mounted settings window");
         sessionStartListenerUnregister = await events.settingsEvent.listen(async ({payload}) => {
             await info("show settings");
-            const window = new Window('settings');
+
+            settings = payload.settings
+            const window = getCurrentWindow();
             await window.show();
             await window.setFocus();
-            show = true;
         });
+        closeRequestUnregister = await getCurrentWindow().listen("tauri://close-requested", (e) => {
+            info("close settings window")
+        })
     });
 
     onDestroy(() => {
         if (sessionStartListenerUnregister) {
             sessionStartListenerUnregister();
         }
+        if (closeRequestUnregister) {
+            closeRequestUnregister();
+        }
+        settings = undefined;
     });
 
-    function closeApp() {
-        show = false;
-        commands.closeWindow();
+    function updateNextBreakDuration(event: Event) {
+        if (settings) {
+            const target = event.target as HTMLInputElement;
+            settings.next_break_duration_minutes = parseInt(target.value);
+            commands.updateSettings(settings);
+        }
     }
 
     // allows no context menu
     document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
-{#if show}
-    <div in:fade={{ duration: 500 }} class="cursor-default bg-gray-100 font-sans rounded-2xl h-full">
-        <div class="flex">
-            <!-- Sidebar -->
-            <div class="w-64 bg-white border-r border-gray-200">
-                <div class="p-4">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <ul>
-                        <li class="px-4 py-2 bg-gray-200 text-gray-900 flex items-center space-x-2">
-                            <i class="fas fa-cog"></i>
-                            <span>General</span>
-                        </li>
-                        <li class="px-4 py-2 text-gray-700 flex items-center space-x-2">
-                            <i class="fas fa-moon"></i>
-                            <span>Focus mode</span>
-                        </li>
-                        <li class="px-4 py-2 text-gray-700 flex items-center space-x-2">
-                            <i class="fas fa-bed"></i>
-                            <span>Rest mode</span>
-                        </li>
-                        <li class="px-4 py-2 text-gray-700 flex items-center space-x-2">
-                            <i class="fas fa-bell"></i>
-                            <span>Notifications</span>
-                        </li>
-                        <li class="px-4 py-2 text-gray-700 flex items-center space-x-2">
-                            <i class="fas fa-bars"></i>
-                            <span>Menu bar</span>
-                        </li>
-                        <li class="px-4 py-2 text-gray-700 flex items-center space-x-2">
-                            <i class="fas fa-keyboard"></i>
-                            <span>Keyboard shortcuts</span>
-                        </li>
-                        <li class="px-4 py-2 text-gray-700 flex items-center space-x-2">
-                            <i class="fas fa-info-circle"></i>
-                            <span>About LookAway</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="absolute bottom-0 w-full p-4">
-                    <button class="text-gray-700 flex items-center space-x-2">
-                        <i class="fas fa-key"></i>
-                        <span>Manage license</span>
-                    </button>
-                </div>
+{#if settings}
+    <div in:slide={{ duration: 1000, axis: 'y' }}
+         class="cursor-default bg-gray-100 font-sans rounded-b-2xl h-screen flex overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <div class="flex-grow overflow-y-auto">
+                <ul>
+                    <li class="px-6 py-4 bg-gray-200 text-gray-900 flex items-center space-x-2">
+                        <IconSettings/>
+                        <span>Session</span>
+                    </li>
+                </ul>
             </div>
-            <!-- Main Content -->
-            <div class="flex-1 p-8">
-                <div class="space-y-6">
-                    <!-- Startup Section -->
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-900">Startup</h2>
-                        <div class="mt-2 space-y-2">
-                            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-                                <span class="text-gray-700">Launch at login</span>
-                                <input type="checkbox" class="toggle-checkbox" checked>
-                            </div>
-                            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-                                <span class="text-gray-700">Start timer automatically on launch</span>
-                                <input type="checkbox" class="toggle-checkbox" checked>
-                            </div>
-                        </div>
+            <div class="p-4">
+                <button class="text-gray-700 flex items-center space-x-2">
+                    <i class="fas fa-key"></i>
+                    <span>Manage license</span>
+                </button>
+            </div>
+        </div>
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="p-8 space-y-6">
+                <!-- Startup Section -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Next Session</h2>
+                    <div class="mt-2 space-y-2">
+                        <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
+                            <span class="text-gray-700">Active</span>
+                            <input type="checkbox" class="toggle-checkbox" checked>
+                        </label>
+                        <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
+                            <span class="text-gray-700">Minutes to next session</span>
+                            <input type="number"
+                                   class="p-2 border rounded-l shadow-sm text-right placeholder-right text-black w-24"
+                                   maxlength="2" pattern="\d{1,2}" required inputmode="numeric" placeholder="min"
+                                   on:change={updateNextBreakDuration}
+                                   value="{settings.next_break_duration_minutes}">
+                        </label>
                     </div>
-                    <!-- Work Schedule Section -->
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-900">Work schedule</h2>
-                        <div class="mt-2 space-y-2">
-                            <div class="bg-white p-4 rounded-lg shadow-sm">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-700">Enable work schedule</span>
-                                    <input type="checkbox" class="toggle-checkbox">
-                                </div>
-                                <p class="text-gray-500 text-sm mt-1">When enabled, LookAway will only show breaks
-                                    during the set schedule</p>
+                </div>
+                <!-- Work Schedule Section -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Work schedule</h2>
+                    <div class="mt-2 space-y-2">
+                        <label class="block bg-white p-4 rounded-lg shadow-sm cursor-pointer">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">Enable work schedule</span>
+                                <input type="checkbox" class="toggle-checkbox" disabled>
                             </div>
-                        </div>
-                    </div>
-                    <!-- Updates Section -->
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-900">Updates</h2>
-                        <div class="mt-2 space-y-2">
-                            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-                                <span class="text-gray-700">Automatically check for updates</span>
-                                <input type="checkbox" class="toggle-checkbox" checked>
-                            </div>
-                            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-                                <span class="text-gray-700">Automatically download updates</span>
-                                <input type="checkbox" class="toggle-checkbox">
-                            </div>
-                            <div class="bg-white p-4 rounded-lg shadow-sm">
-                                <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded">Check for updates</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Analytics Section -->
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-900">Analytics</h2>
-                        <div class="mt-2 space-y-2">
-                            <div class="bg-white p-4 rounded-lg shadow-sm">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-700">Share my usage statistics</span>
-                                    <input type="checkbox" class="toggle-checkbox" checked>
-                                </div>
-                                <p class="text-gray-500 text-sm mt-1">Help us improve LookAway by allowing us to collect
-                                    completely anonymous usage data</p>
-                            </div>
-                        </div>
+                            <p class="text-gray-500 text-sm mt-1">When enabled, LookAway will only show breaks during
+                                the set schedule</p>
+                        </label>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 {/if}
+
+<style>
+    .toggle-checkbox {
+        appearance: none;
+        width: 2.5rem;
+        height: 1.25rem;
+        background-color: #d1d5db;
+        border-radius: 9999px;
+        position: relative;
+        cursor: pointer;
+        outline: none;
+        transition: background-color 0.2s;
+    }
+
+    .toggle-checkbox:checked {
+        background-color: #3b82f6;
+    }
+
+    .toggle-checkbox:checked::before {
+        transform: translateX(1.25rem);
+    }
+
+    .toggle-checkbox::before {
+        content: '';
+        position: absolute;
+        top: 0.125rem;
+        left: 0.125rem;
+        width: 1rem;
+        height: 1rem;
+        background-color: #fff;
+        border-radius: 9999px;
+        transition: transform 0.2s;
+    }
+</style>

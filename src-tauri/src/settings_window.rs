@@ -1,9 +1,11 @@
 use crate::menubar::set_persistent_presentation_mode;
 use crate::model::event::{SessionStartEvent, SettingsEvent};
 use crate::model::session::SessionDetail;
+use crate::model::settings::Settings;
 use log::info;
+use std::time::Duration;
 use tauri::utils::config::WindowEffectsConfig;
-use tauri::{ActivationPolicy, App, AppHandle, Manager, WebviewWindow};
+use tauri::{App, AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
 
 const WINDOW_LABEL: &'static str = "settings";
@@ -15,13 +17,14 @@ pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/settings".into()),
     )
-        .title("Motion Minute Settings")
+        .title("Settings")
         .inner_size(800.0, 600.0)
+        .center()
         .visible(false)
         .always_on_top(true)
         .transparent(true)
-        .decorations(false)
-        .skip_taskbar(true)
+        .decorations(true)
+        .skip_taskbar(false)
         .effects(WindowEffectsConfig::default())
         .resizable(false)
         .build()
@@ -39,13 +42,10 @@ where
     match app.get_webview_window(WINDOW_LABEL) {
         None => Err("Can't show session window, because it does not exist.".to_string()),
         Some(window) => {
-            #[cfg(target_os = "macos")]
-            app.app_handle().set_activation_policy(ActivationPolicy::Regular).unwrap();
-
-            info!("open settings ...");
-
             SettingsEvent {
-                name: "Felix".to_string()
+                settings: Settings {
+                    next_break_duration_minutes: 30,
+                }
             }.emit(&window.app_handle().clone()).unwrap();
 
             Ok(())

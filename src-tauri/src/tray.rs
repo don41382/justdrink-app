@@ -2,13 +2,13 @@ use crate::pretty_time::PrettyTime;
 use crate::session_repository::SessionRepository;
 use crate::{session_window, settings_window};
 use std::time::Duration;
-use tauri::menu::PredefinedMenuItem;
+use tauri::menu::{IconMenuItem, PredefinedMenuItem};
 use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, Runtime};
 
 const TRAY_ID: &'static str = "tray";
 
 pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<()> {
-    let settings = MenuItem::with_id(main_app, "settings", "Settings...", true, None::<&str>)?;
+    let settings = IconMenuItem::with_id(main_app, "settings", "Settings...", true, None, None::<&str>)?;
     let quit_i = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
     let session_start = MenuItem::with_id(main_app, "start", "Start session ...", true, None::<&str>)?;
 

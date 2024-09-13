@@ -7,6 +7,9 @@
 export const commands = {
 async closeWindow() : Promise<void> {
     await TAURI_INVOKE("close_window");
+},
+async updateSettings(settings: Settings) : Promise<void> {
+    await TAURI_INVOKE("update_settings", { settings });
 }
 }
 
@@ -29,7 +32,8 @@ settingsEvent: "settings-event"
 
 export type SessionDetail = { title: string; subtitle: string; duration_s: number }
 export type SessionStartEvent = { details: SessionDetail }
-export type SettingsEvent = { name: string }
+export type Settings = { next_break_duration_minutes: number }
+export type SettingsEvent = { settings: Settings }
 
 /** tauri-specta globals **/
 
