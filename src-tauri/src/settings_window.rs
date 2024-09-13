@@ -45,6 +45,7 @@ where
             SettingsEvent {
                 settings: Settings {
                     next_break_duration_minutes: 30,
+                    active: true,
                 }
             }.emit(&window.app_handle().clone()).unwrap();
 

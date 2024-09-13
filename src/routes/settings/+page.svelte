@@ -3,7 +3,6 @@
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
     import {getCurrentWindow} from "@tauri-apps/api/window";
-    import {slide} from 'svelte/transition';
     import {info} from "@tauri-apps/plugin-log";
     import {IconSettings} from "@tabler/icons-svelte";
 
@@ -35,24 +34,22 @@
         if (closeRequestUnregister) {
             closeRequestUnregister();
         }
-        settings = undefined;
     });
 
-    function updateNextBreakDuration(event: Event) {
+    function submit() {
         if (settings) {
-            const target = event.target as HTMLInputElement;
-            settings.next_break_duration_minutes = parseInt(target.value);
+            info(`submit: ${settings.active}`);
             commands.updateSettings(settings);
         }
     }
+
 
     // allows no context menu
     document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
 {#if settings}
-    <div in:slide={{ duration: 1000, axis: 'y' }}
-         class="cursor-default bg-gray-100 font-sans rounded-b-2xl h-screen flex overflow-hidden">
+    <div class="cursor-default bg-gray-100 font-sans rounded-b-2xl h-screen flex overflow-hidden">
         <!-- Sidebar -->
         <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
             <div class="flex-grow overflow-y-auto">
@@ -78,16 +75,20 @@
                     <h2 class="text-lg font-semibold text-gray-900">Next Session</h2>
                     <div class="mt-2 space-y-2">
                         <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
-                            <span class="text-gray-700">Active</span>
-                            <input type="checkbox" class="toggle-checkbox" checked>
-                        </label>
-                        <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
-                            <span class="text-gray-700">Minutes to next session</span>
-                            <input type="number"
-                                   class="p-2 border rounded-l shadow-sm text-right placeholder-right text-black w-24"
-                                   maxlength="2" pattern="\d{1,2}" required inputmode="numeric" placeholder="min"
-                                   on:change={updateNextBreakDuration}
-                                   value="{settings.next_break_duration_minutes}">
+                            <span class="text-gray-700">Active</span><input bind:checked={settings.active}
+                                                                            on:change={submit} type="checkbox"
+                                                                            class="toggle-checkbox"></label>
+                        <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700">Next session</span>
+                                <input type="number"
+                                       class="p-2 border rounded-l shadow-sm text-right placeholder-right text-black w-24"
+                                       maxlength="2" pattern="\d{1,2}" required inputmode="numeric" placeholder="min"
+                                       on:change={submit}
+                                       bind:value="{settings.next_break_duration_minutes}">
+                            </div>
+                            <p class="text-gray-500 text-sm mt-1">Minutes until next session</p>
+
                         </label>
                     </div>
                 </div>

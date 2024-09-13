@@ -48,7 +48,11 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
 
 pub fn update_tray_title<R: Runtime>(app_handle: &tauri::AppHandle<R>, duration: Duration) -> tauri::Result<()> {
     if let Some(tray) = app_handle.tray_by_id(TRAY_ID) {
-        tray.set_title(Some(duration.to_pretty_time()))?;
+        if duration > Duration::from_secs(1) {
+            tray.set_title(Some(duration.to_pretty_time()))?;
+        } else {
+            tray.set_title(Some("".to_string()))?;
+        }
     }
     Ok(())
 }

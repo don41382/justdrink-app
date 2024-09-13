@@ -26,9 +26,12 @@ use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 #[specta::specta]
 #[tauri::command]
 fn update_settings(settings: Settings, state: State<TimerState>) {
-    info!("duration: {}", settings.next_break_duration_minutes);
     let mut session_timer = state.0.lock().unwrap();
-    session_timer.start(Duration::from_secs(settings.next_break_duration_minutes.into()));
+    if settings.active {
+        session_timer.start(Duration::from_secs(settings.next_break_duration_minutes.into()));
+    } else {
+        session_timer.stop();
+    }
 }
 
 
@@ -107,26 +110,30 @@ fn build_typescript_interfaces(
 }
 
 fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
-    let app_handle_tick = app.handle().clone();
-    let app_handle_end = app.handle().clone();
-    let app_handle_session = app.handle().clone();
+    let app_handle = app.handle();
     let timer_state = app.state::<TimerState>();
     let mut timer = timer_state.0.lock().map_err(|e| format!("Failed to lock timer state: {}", e))?;
 
-    timer.set_tick_callback(Box::new(move |time| {
-        tray::update_tray_title(&app_handle_tick, time)
-            .map_err(|e| log::error!("Failed to update tray title: {}", e))
-            .ok();
+    timer.set_tick_callback(Box::new({
+        let app_handle = app_handle.clone();
+        move |time| {
+            tray::update_tray_title(&app_handle, time)
+                .map_err(|e| log::error!("Failed to update tray title: {}", e))
+                .ok();
+        }
     }));
 
-    timer.set_finish_callback(Box::new(move || {
-        let session_repository = app_handle_session.state::<SessionRepository>().clone();
-        let session = session_repository.pick_random_session().unwrap();
-        session_window::show(&app_handle_end, session)
-            .map_err(|e| log::error!("Failed to show session window: {}", e))
-            .ok();
-    })
-    );
+    timer.set_finish_callback(Box::new({
+        let app_handle = app_handle.clone();
+        move || {
+            let session_repository = app_handle.state::<SessionRepository>();
+            if let Some(session) = session_repository.pick_random_session() {
+                session_window::show(&app_handle, session)
+                    .map_err(|e| log::error!("Failed to show session window: {}", e))
+                    .ok();
+            }
+        }
+    }));
 
     Ok(())
 }

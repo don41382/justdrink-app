@@ -32,7 +32,7 @@ settingsEvent: "settings-event"
 
 export type SessionDetail = { title: string; subtitle: string; duration_s: number }
 export type SessionStartEvent = { details: SessionDetail }
-export type Settings = { next_break_duration_minutes: number }
+export type Settings = { next_break_duration_minutes: number; active: boolean }
 export type SettingsEvent = { settings: Settings }
 
 /** tauri-specta globals **/
