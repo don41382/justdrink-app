@@ -10,7 +10,7 @@ const TRAY_ID: &'static str = "tray";
 pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<()> {
     let settings_menu = IconMenuItem::with_id(main_app, "settings", "Settings...", true, None, None::<&str>)?;
     let quit_menu = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
-    let session_start_menu = MenuItem::with_id(main_app, "start", "Start session ...", true, None::<&str>)?;
+    let session_start_menu = MenuItem::with_id(main_app, "start", "Start session", true, None::<&str>)?;
 
     let separator = PredefinedMenuItem::separator(main_app)?;
 

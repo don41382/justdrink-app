@@ -10,7 +10,7 @@ mod coutndown_timer;
 use log::info;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
 
 #[cfg(target_os = "macos")]
@@ -25,24 +25,29 @@ use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
 #[specta::specta]
 #[tauri::command]
-fn update_settings(settings: Settings, state: State<TimerState>, store_settings: State<Mutex<Settings>>) {
-    let mut session_timer = state.0.lock().unwrap();
+fn update_settings(settings: Settings, timer: State<TimerState>, store_settings: State<Mutex<Settings>>) {
+    let mut session_timer = timer.0.lock().unwrap();
     *store_settings.lock().unwrap() = settings.clone();
+    sync_settings(settings, session_timer);
+}
+
+#[specta::specta]
+#[tauri::command]
+fn close_window(window: Window, timer: State<TimerState>, store_settings: State<Mutex<Settings>>) {
+    let mut session_timer = timer.0.lock().unwrap();
+    sync_settings(store_settings.lock().unwrap().clone(), session_timer);
+    window.close().unwrap();
+}
+
+struct TimerState(Arc<Mutex<CountdownTimer>>);
+
+fn sync_settings(settings: Settings, session_timer: MutexGuard<CountdownTimer>) {
     if settings.active {
         session_timer.start(Duration::from_secs(settings.next_break_duration_minutes.into()));
     } else {
         session_timer.stop();
     }
 }
-
-
-#[specta::specta]
-#[tauri::command]
-fn close_window(window: Window, state: State<TimerState>) {
-    window.close().unwrap();
-}
-
-struct TimerState(Arc<Mutex<CountdownTimer>>);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
