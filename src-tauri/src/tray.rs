@@ -1,37 +1,45 @@
 use crate::pretty_time::PrettyTime;
 use crate::session_repository::SessionRepository;
-use crate::session_window;
+use crate::{session_window, settings_window};
 use std::time::Duration;
-use tauri::{menu::{Menu, MenuItem}, tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, Manager, Runtime};
+use tauri::menu::PredefinedMenuItem;
+use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, Runtime};
 
 const TRAY_ID: &'static str = "tray";
 
 pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<()> {
+    let settings = MenuItem::with_id(main_app, "settings", "Settings...", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
-    let menu = Menu::with_items(main_app, &[&quit_i])?;
+    let session_start = MenuItem::with_id(main_app, "start", "Start session ...", true, None::<&str>)?;
+
+    let separator = PredefinedMenuItem::separator(main_app)?;
+
+    let menu = Menu::with_items(main_app, &[
+        &session_start,
+        &separator,
+        &settings,
+        &separator,
+        &quit_i
+    ])?;
+
 
     let _ = TrayIconBuilder::with_id(TRAY_ID)
         .icon(main_app.default_window_icon().unwrap().clone())
-        .title("10min")
         .menu(&menu)
-        .menu_on_left_click(false)
+        .menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
+            "start" => {
+                let session_repository = app.app_handle().state::<SessionRepository>();
+                let session = session_repository.pick_random_session().unwrap();
+                session_window::show(app.app_handle(), session).unwrap();
+            }
+            "settings" => {
+                settings_window::show(app).unwrap();
+            }
             "quit" => {
                 app.exit(0);
             }
-            // Add more events here
             _ => {}
-        })
-        .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click {
-                button: MouseButton::Left,
-                button_state: MouseButtonState::Up,
-                ..
-            } = event {
-                let session_repository = tray.app_handle().state::<SessionRepository>();
-                let session = session_repository.pick_random_session().unwrap();
-                session_window::show(tray.app_handle(), session).unwrap();
-            }
         })
         .build(main_app);
 

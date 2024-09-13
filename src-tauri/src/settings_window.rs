@@ -1,30 +1,29 @@
 use crate::menubar::set_persistent_presentation_mode;
-use crate::model::event::SessionStartEvent;
+use crate::model::event::{SessionStartEvent, SettingsEvent};
 use crate::model::session::SessionDetail;
-
-#[cfg(target_os = "macos")]
-use tauri::ActivationPolicy;
-
-use tauri::{App, AppHandle, Manager, WebviewWindow};
+use log::info;
+use tauri::utils::config::WindowEffectsConfig;
+use tauri::{ActivationPolicy, App, AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
 
-const WINDOW_LABEL: &'static str = "session";
+const WINDOW_LABEL: &'static str = "settings";
+
 
 pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
-    set_persistent_presentation_mode(true);
-
     let window = tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
-        tauri::WebviewUrl::App("/session".into()),
+        tauri::WebviewUrl::App("/settings".into()),
     )
-        .title("Motion Minute Session")
+        .title("Motion Minute Settings")
+        .inner_size(800.0, 600.0)
         .visible(false)
-        //.always_on_top(true)
+        .always_on_top(true)
+        .transparent(true)
         .decorations(false)
         .skip_taskbar(true)
-        .maximized(true)
-        .resizable(true)
+        .effects(WindowEffectsConfig::default())
+        .resizable(false)
         .build()
         .map_err(|e| {
             log::error!("Failed to build WebviewWindow: {:?}", e);
@@ -33,7 +32,7 @@ pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
     Ok(window)
 }
 
-pub fn show<R>(app: &AppHandle<R>, session: &SessionDetail) -> Result<(), String>
+pub fn show<R>(app: &AppHandle<R>) -> Result<(), String>
 where
     R: tauri::Runtime,
 {
@@ -42,10 +41,11 @@ where
         Some(window) => {
             #[cfg(target_os = "macos")]
             app.app_handle().set_activation_policy(ActivationPolicy::Regular).unwrap();
-            set_persistent_presentation_mode(true);
 
-            SessionStartEvent {
-                details: session.clone(),
+            info!("open settings ...");
+
+            SettingsEvent {
+                name: "Felix".to_string()
             }.emit(&window.app_handle().clone()).unwrap();
 
             Ok(())

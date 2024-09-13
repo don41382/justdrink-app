@@ -5,26 +5,27 @@ mod session_timer;
 mod pretty_time;
 mod model;
 mod session_repository;
+mod settings_window;
 
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-
+use log::info;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
 use crate::session_repository::SessionRepository;
 use crate::session_timer::SessionTimer;
-use tauri::{App, Manager, State, WindowEvent};
+use tauri::{App, Manager, State, Window, WindowEvent};
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
 #[specta::specta]
 #[tauri::command]
-fn close_app(app_handle: tauri::AppHandle, state: State<TimerState>) {
-    session_window::close(&app_handle).unwrap();
+fn close_window(window: Window, state: State<TimerState>) {
+    window.close().unwrap();
     state.0.lock().unwrap().start(Duration::from_secs(30 * 60));
 }
 
@@ -33,8 +34,8 @@ struct TimerState(Arc<Mutex<SessionTimer>>);
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = build_typescript_interfaces(
-        collect_commands![close_app,],
-        collect_events![model::event::SessionStart,],
+        collect_commands![close_window,],
+        collect_events![model::event::SessionStartEvent, model::event::SettingsEvent, ],
     ).unwrap();
 
     tauri::Builder::default()
@@ -52,9 +53,14 @@ pub fn run() {
         .manage(SessionRepository::new())
         .setup(move |app| {
             builder.mount_events(app.app_handle());
+
             session_window::new(app)?;
+            settings_window::new(app)?;
+
             tray::create_tray(app.handle())?;
+
             setup_timer(app).unwrap();
+
             Ok(())
         })
         .on_window_event(|window, event| match event {
@@ -78,7 +84,6 @@ fn build_typescript_interfaces(
     events: Events,
 ) -> Result<Builder, Box<dyn std::error::Error>> {
     let builder = Builder::<tauri::Wry>::new()
-        // Then register them (separated by a comma)
         .events(events)
         .commands(commands);
 
@@ -111,6 +116,6 @@ fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         },
     );
 
-    timer.start(Duration::from_secs(5));
+    timer.start(Duration::from_secs(30 * 60));
     Ok(())
 }

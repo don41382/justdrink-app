@@ -5,8 +5,8 @@
 
 
 export const commands = {
-async closeApp() : Promise<void> {
-    await TAURI_INVOKE("close_app");
+async closeWindow() : Promise<void> {
+    await TAURI_INVOKE("close_window");
 }
 }
 
@@ -14,9 +14,11 @@ async closeApp() : Promise<void> {
 
 
 export const events = __makeEvents__<{
-sessionStart: SessionStart
+sessionStartEvent: SessionStartEvent,
+settingsEvent: SettingsEvent
 }>({
-sessionStart: "session-start"
+sessionStartEvent: "session-start-event",
+settingsEvent: "settings-event"
 })
 
 /** user-defined constants **/
@@ -26,7 +28,8 @@ sessionStart: "session-start"
 /** user-defined types **/
 
 export type SessionDetail = { title: string; subtitle: string; duration_s: number }
-export type SessionStart = { details: SessionDetail }
+export type SessionStartEvent = { details: SessionDetail }
+export type SettingsEvent = { name: string }
 
 /** tauri-specta globals **/
 
