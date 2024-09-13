@@ -8,18 +8,18 @@ use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, Runtime};
 const TRAY_ID: &'static str = "tray";
 
 pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<()> {
-    let settings = IconMenuItem::with_id(main_app, "settings", "Settings...", true, None, None::<&str>)?;
-    let quit_i = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
-    let session_start = MenuItem::with_id(main_app, "start", "Start session ...", true, None::<&str>)?;
+    let settings_menu = IconMenuItem::with_id(main_app, "settings", "Settings...", true, None, None::<&str>)?;
+    let quit_menu = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
+    let session_start_menu = MenuItem::with_id(main_app, "start", "Start session ...", true, None::<&str>)?;
 
     let separator = PredefinedMenuItem::separator(main_app)?;
 
     let menu = Menu::with_items(main_app, &[
-        &session_start,
+        &session_start_menu,
         &separator,
-        &settings,
+        &settings_menu,
         &separator,
-        &quit_i
+        &quit_menu
     ])?;
 
 

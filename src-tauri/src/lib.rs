@@ -25,8 +25,9 @@ use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
 #[specta::specta]
 #[tauri::command]
-fn update_settings(settings: Settings, state: State<TimerState>) {
+fn update_settings(settings: Settings, state: State<TimerState>, store_settings: State<Mutex<Settings>>) {
     let mut session_timer = state.0.lock().unwrap();
+    *store_settings.lock().unwrap() = settings.clone();
     if settings.active {
         session_timer.start(Duration::from_secs(settings.next_break_duration_minutes.into()));
     } else {
@@ -63,6 +64,10 @@ pub fn run() {
         .invoke_handler(builder.invoke_handler())
         .manage(TimerState(Arc::new(Mutex::new(CountdownTimer::new()))))
         .manage(SessionRepository::new())
+        .manage(Mutex::new(Settings {
+            active: false,
+            next_break_duration_minutes: 30,
+        }))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
 

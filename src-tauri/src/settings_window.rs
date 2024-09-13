@@ -3,6 +3,7 @@ use crate::model::event::{SessionStartEvent, SettingsEvent};
 use crate::model::session::SessionDetail;
 use crate::model::settings::Settings;
 use log::info;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{App, AppHandle, Manager, WebviewWindow};
@@ -42,11 +43,9 @@ where
     match app.get_webview_window(WINDOW_LABEL) {
         None => Err("Can't show session window, because it does not exist.".to_string()),
         Some(window) => {
+            let settings = app.state::<Mutex<Settings>>();
             SettingsEvent {
-                settings: Settings {
-                    next_break_duration_minutes: 30,
-                    active: true,
-                }
+                settings: settings.lock().unwrap().clone(),
             }.emit(&window.app_handle().clone()).unwrap();
 
             Ok(())
