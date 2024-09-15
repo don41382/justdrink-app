@@ -1,7 +1,7 @@
 <script lang="ts">
     import {error, info} from '@tauri-apps/plugin-log';
     import {commands, events, type SessionDetail} from '../../bindings';
-    import {Window} from '@tauri-apps/api/window';
+    import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
     import {fade} from 'svelte/transition';
@@ -14,27 +14,33 @@
 
     info("Initialized Session Window")
 
+    function setup(details: SessionDetail) {
+        session = details
+        countdownSeconds = details.duration_s
+
+        countdownInterval = window.setInterval(() => {
+            if (countdownSeconds) {
+                countdownSeconds -= 1;
+                if (countdownSeconds <= 0) {
+                    countdownSeconds = 0
+                    clearInterval(countdownInterval);
+                }
+            }
+        }, 1000);
+    }
+
     onMount(async () => {
+        setup(await commands.loadSessionDetails());
+
         sessionStartListenerUnregister = await events.sessionStartEvent.listen(async ({payload}) => {
             try {
-                await info("new session started");
-                session = payload.details
-                countdownSeconds = payload.details.duration_s
+                await info("new session started")
+                setup(payload.details)
 
-                const sessionWindow = new Window('session');
-                await sessionWindow.show();
-                await sessionWindow.setFocus();
+                const sessionWindow = getCurrentWindow()
+                await sessionWindow.show()
+                await sessionWindow.setFocus()
 
-                // Start the countdown
-                countdownInterval = window.setInterval(() => {
-                    if (countdownSeconds) {
-                        countdownSeconds -= 1;
-                        if (countdownSeconds <= 0) {
-                            countdownSeconds = 0
-                            clearInterval(countdownInterval);
-                        }
-                    }
-                }, 1000);
             } catch (e) {
                 if (e instanceof Error) {
                     await error(e.message);
@@ -76,28 +82,46 @@
     // document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
-<div class="flex items-center justify-center h-screen gradient-background select-none cursor-default">
-    <div class="text-center">
+<div class="h-screen flex flex-col justify-between items-center overflow-hidden">
+
+    <!-- background video -->
+    <video class="absolute w-full h-full object-cover opacity-80" autoplay loop muted playsinline
+           preload="auto">
+        <source src="/videos/bg-h264.mov" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="relative z-10 flex flex-col justify-between items-center h-full">
         {#if session !== undefined && countdownSeconds !== undefined}
-            <h1 class="text-4xl mb-4">It's time for your</h1>
-            <h1 class="text-4xl mb-14 font-bold">Motion Minute</h1>
-
-            <h1 class="text-4xl mb-4" in:fade={{ delay: 100, duration: 1000 }}>{session.title}</h1>
-
-            <div class="text-2xl mb-14">
-                <span in:fade={{ delay: 100, duration: 1000 }}>{formatCountdown(countdownSeconds)}</span>
+            <div class="text-center mt-24 px-48 z-10">
+                <h1 class="text-8xl mb-8">{session.title}</h1>
+                <p class="text-4xl font-thin leading-normal text-black">{session.subtitle}</p>
+            </div>
+            <div class="flex flex-col items-center w-full">
+                <video class="w-full max-w-[400px]" autoplay loop muted playsinline preload="metadata">
+                    <source
+                            src="/videos/shoulder-hvc1.mov"
+                            type='video/mp4; codecs="hvc1"'>
+                    Your browser does not support the video tag.
+                </video>
             </div>
 
-            <button on:click={closeApp}
-                    class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 text-white font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center">
-                {#if countdownSeconds > 0}
-                    <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
-                    Skip
-                {:else}
-                    <Icon icon="mdi-light:home" class="mr-2" height="32"/>
-                    Finished
-                {/if}
-            </button>
+            <div class="absolute bottom-14 right-14 text-gray-600 flex flex-col items-center">
+                <div class="text-3xl mb-6">
+                    <span in:fade={{ delay: 100, duration: 1000 }}>{formatCountdown(countdownSeconds)}</span>
+                </div>
+
+                <button on:click={closeApp}
+                        class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center">
+                    {#if countdownSeconds > 0}
+                        <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
+                        Skip
+                    {:else}
+                        <Icon icon="material-symbols-light:check-circle-outline" class="mr-2" height="32"/>
+                        Finished
+                    {/if}
+                </button>
+            </div>
         {/if}
 
     </div>

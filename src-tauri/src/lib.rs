@@ -50,6 +50,12 @@ fn close_window(
     window.close().unwrap();
 }
 
+#[specta::specta]
+#[tauri::command]
+fn load_session_details(session_repository: State<SessionRepository>) -> SessionDetail {
+    session_repository.pick_random_session().unwrap().clone()
+}
+
 struct TimerState(Arc<Mutex<CountdownTimer>>);
 
 fn sync_settings(settings: SettingsDetails, session_timer: MutexGuard<CountdownTimer>) {
@@ -65,7 +71,7 @@ fn sync_settings(settings: SettingsDetails, session_timer: MutexGuard<CountdownT
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = build_typescript_interfaces(
-        collect_commands![close_window, update_settings,],
+        collect_commands![close_window, update_settings, load_session_details, ],
         collect_events![model::event::SessionStartEvent, model::event::SettingsEvent],
     )
         .unwrap();

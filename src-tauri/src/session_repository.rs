@@ -9,55 +9,10 @@ impl SessionRepository {
     pub fn new() -> Self {
         let initial_sessions = vec![
             SessionDetail {
-                title: "Morgenyoga".to_string(),
-                subtitle: "Sanfter Start in den Tag".to_string(),
-                duration_s: 5,
-            },
-            SessionDetail {
-                title: "HIIT-Training".to_string(),
-                subtitle: "Hochintensives Intervalltraining".to_string(),
-                duration_s: 5,
-            },
-            SessionDetail {
-                title: "Meditation".to_string(),
-                subtitle: "Achtsamkeit und innere Ruhe".to_string(),
-                duration_s: 5,
-            },
-            SessionDetail {
-                title: "Pilates".to_string(),
-                subtitle: "Körperkontrolle und Flexibilität".to_string(),
-                duration_s: 5,
-            },
-            SessionDetail {
-                title: "Krafttraining".to_string(),
-                subtitle: "Muskelaufbau und Stärkung".to_string(),
-                duration_s: 5,
-            },
-            SessionDetail {
-                title: "Lauftraining".to_string(),
-                subtitle: "Ausdauer und Cardio".to_string(),
-                duration_s: 5,
-            },
-            SessionDetail {
-                title: "Stretching".to_string(),
-                subtitle: "Dehnen und Entspannen".to_string(),
+                title: "Rotate your head".to_string(),
+                subtitle: "You can perform this mobility exercise either sitting or standing. Relax your shoulders and begin to slowly circle your head. Start with a smaller range of motion. Decide for yourself how far you want to go into the stretch. Very important: Perform the head circles very slowly and consciously, and avoid hasty, thoughtless movements.".to_string(),
                 duration_s: 10,
-            },
-            SessionDetail {
-                title: "Rückenfit".to_string(),
-                subtitle: "Stärkung der Rückenmuskulatur".to_string(),
-                duration_s: 5,
-            },
-            SessionDetail {
-                title: "Zumba".to_string(),
-                subtitle: "Tanzen und Fitness".to_string(),
-                duration_s: 5,
-            },
-            SessionDetail {
-                title: "Entspannungsübungen".to_string(),
-                subtitle: "Progressive Muskelentspannung".to_string(),
-                duration_s: 5,
-            },
+            }
         ];
 
         SessionRepository {
