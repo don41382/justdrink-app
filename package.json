@@ -13,7 +13,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@tabler/icons-svelte": "^3.16.0",
     "@tauri-apps/api": ">=2.0.0-rc.0",
     "@tauri-apps/plugin-fs": "^2.0.0-rc",
     "@tauri-apps/plugin-global-shortcut": "^2.0.0-rc",
@@ -21,6 +20,7 @@
     "@tauri-apps/plugin-shell": ">=2.0.0-rc.0"
   },
   "devDependencies": {
+    "@iconify/svelte": "^4.0.2",
     "@sveltejs/adapter-static": "^3.0.1",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^3.0.0",

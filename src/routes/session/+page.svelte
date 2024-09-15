@@ -5,7 +5,7 @@
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
     import {fade} from 'svelte/transition';
-    import {IconHome, IconPlayerTrackNext} from '@tabler/icons-svelte';
+    import Icon from '@iconify/svelte';
 
     let sessionStartListenerUnregister: UnlistenFn;
     let session: SessionDetail | undefined = undefined;
@@ -91,10 +91,10 @@
             <button on:click={closeApp}
                     class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 text-white font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center">
                 {#if countdownSeconds > 0}
-                    <IconPlayerTrackNext class="mr-2"/>
+                    <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
                     Skip
                 {:else}
-                    <IconHome class="mr-2"/>
+                    <Icon icon="mdi-light:home" class="mr-2" height="32"/>
                     Finished
                 {/if}
             </button>

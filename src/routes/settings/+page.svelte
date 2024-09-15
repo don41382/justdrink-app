@@ -4,7 +4,7 @@
     import type {UnlistenFn} from '@tauri-apps/api/event';
     import {getCurrentWindow} from "@tauri-apps/api/window";
     import {info} from "@tauri-apps/plugin-log";
-    import {IconSettings} from "@tabler/icons-svelte";
+    import Icon from '@iconify/svelte';
 
     let sessionStartListenerUnregister: UnlistenFn;
     let closeRequestUnregister: UnlistenFn;
@@ -55,7 +55,7 @@
             <div class="flex-grow overflow-y-auto">
                 <ul>
                     <li class="px-6 py-4 bg-gray-200 text-gray-900 flex items-center space-x-2">
-                        <IconSettings/>
+                        <Icon icon="mdi-light:settings" height="24"/>
                         <span>Session</span>
                     </li>
                 </ul>
