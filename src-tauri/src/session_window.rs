@@ -18,18 +18,18 @@ pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/session".into()),
     )
-        .title("Motion Minute Session")
-        .visible(false)
-        //.always_on_top(true)
-        .decorations(false)
-        .skip_taskbar(true)
-        .maximized(true)
-        .resizable(true)
-        .build()
-        .map_err(|e| {
-            log::error!("Failed to build WebviewWindow: {:?}", e);
-            "Failed to build WebviewWindow".to_string()
-        })?;
+    .title("Motion Minute Session")
+    .visible(false)
+    //.always_on_top(true)
+    .decorations(false)
+    .skip_taskbar(true)
+    .maximized(true)
+    .resizable(true)
+    .build()
+    .map_err(|e| {
+        log::error!("Failed to build WebviewWindow: {:?}", e);
+        "Failed to build WebviewWindow".to_string()
+    })?;
     Ok(window)
 }
 
@@ -41,12 +41,16 @@ where
         None => Err("Can't show session window, because it does not exist.".to_string()),
         Some(window) => {
             #[cfg(target_os = "macos")]
-            app.app_handle().set_activation_policy(ActivationPolicy::Regular).unwrap();
+            app.app_handle()
+                .set_activation_policy(ActivationPolicy::Regular)
+                .unwrap();
             set_persistent_presentation_mode(true);
 
             SessionStartEvent {
                 details: session.clone(),
-            }.emit(&window.app_handle().clone()).unwrap();
+            }
+            .emit(&window.app_handle().clone())
+            .unwrap();
 
             Ok(())
         }

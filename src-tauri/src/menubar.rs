@@ -27,7 +27,9 @@ pub fn set_persistent_presentation_mode(hide: bool) {
 pub fn hide_application() {
     unsafe {
         let ns_app: id = msg_send![class!(NSApplication), sharedApplication];
-        ns_app.setPresentationOptions_(NSApplicationPresentationOptions::NSApplicationPresentationDisableHideApplication);
+        ns_app.setPresentationOptions_(
+            NSApplicationPresentationOptions::NSApplicationPresentationDisableHideApplication,
+        );
     }
 }
 

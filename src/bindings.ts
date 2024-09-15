@@ -10,9 +10,6 @@ async closeWindow() : Promise<void> {
 },
 async updateSettings(settings: SettingsDetails) : Promise<void> {
     await TAURI_INVOKE("update_settings", { settings });
-},
-async loadSession() : Promise<SessionDetail> {
-    return await TAURI_INVOKE("load_session");
 }
 }
 

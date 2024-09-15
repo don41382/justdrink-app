@@ -17,6 +17,7 @@
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
     "log:allow-log",
-    "log:default"
+    "log:default",
+    "fs:default"
   ]
 }

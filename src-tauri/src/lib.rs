@@ -1,11 +1,11 @@
-mod menubar;
-mod tray;
-mod session_window;
-mod pretty_time;
-mod model;
-mod session_repository;
-mod settings_window;
 mod coutndown_timer;
+mod menubar;
+mod model;
+mod pretty_time;
+mod session_repository;
+mod session_window;
+mod settings_window;
+mod tray;
 
 use log::info;
 #[cfg(debug_assertions)]
@@ -22,12 +22,17 @@ use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsDetails;
 use crate::session_repository::SessionRepository;
 use tauri::{App, Manager, State, Window, WindowEvent};
+use tauri_plugin_fs::FsExt;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
 #[specta::specta]
 #[tauri::command]
-fn update_settings(settings: SettingsDetails, timer: State<TimerState>, store_settings: State<Mutex<SettingsDetails>>) {
+fn update_settings(
+    settings: SettingsDetails,
+    timer: State<TimerState>,
+    store_settings: State<Mutex<SettingsDetails>>,
+) {
     let mut session_timer = timer.0.lock().unwrap();
     *store_settings.lock().unwrap() = settings.clone();
     sync_settings(settings, session_timer);
@@ -35,23 +40,23 @@ fn update_settings(settings: SettingsDetails, timer: State<TimerState>, store_se
 
 #[specta::specta]
 #[tauri::command]
-fn close_window(window: Window, timer: State<TimerState>, store_settings: State<Mutex<SettingsDetails>>) {
+fn close_window(
+    window: Window,
+    timer: State<TimerState>,
+    store_settings: State<Mutex<SettingsDetails>>,
+) {
     let mut session_timer = timer.0.lock().unwrap();
     sync_settings(store_settings.lock().unwrap().clone(), session_timer);
     window.close().unwrap();
-}
-
-#[specta::specta]
-#[tauri::command]
-fn load_session(session_repository: State<SessionRepository>) -> SessionDetail {
-    session_repository.pick_random_session().unwrap().clone()
 }
 
 struct TimerState(Arc<Mutex<CountdownTimer>>);
 
 fn sync_settings(settings: SettingsDetails, session_timer: MutexGuard<CountdownTimer>) {
     if settings.active {
-        session_timer.start(Duration::from_secs(settings.next_break_duration_minutes.into()));
+        session_timer.start(Duration::from_secs(
+            settings.next_break_duration_minutes.into(),
+        ));
     } else {
         session_timer.stop();
     }
@@ -60,19 +65,21 @@ fn sync_settings(settings: SettingsDetails, session_timer: MutexGuard<CountdownT
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = build_typescript_interfaces(
-        collect_commands![close_window, update_settings, load_session, ],
+        collect_commands![close_window, update_settings,],
         collect_events![model::event::SessionStartEvent, model::event::SettingsEvent],
-    ).unwrap();
+    )
+        .unwrap();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(
             tauri_plugin_log::Builder::default()
                 .targets([
                     Target::new(tauri_plugin_log::TargetKind::Stdout),
-                    Target::new(tauri_plugin_log::TargetKind::Webview)]
-                )
+                    Target::new(tauri_plugin_log::TargetKind::Webview),
+                ])
                 .level(log::LevelFilter::Info)
-                .build()
+                .build(),
         )
         .invoke_handler(builder.invoke_handler())
         .manage(TimerState(Arc::new(Mutex::new(CountdownTimer::new()))))
@@ -100,7 +107,10 @@ pub fn run() {
             WindowEvent::CloseRequested { api, .. } => {
                 window.hide().unwrap();
                 #[cfg(target_os = "macos")]
-                window.app_handle().set_activation_policy(ActivationPolicy::Accessory).unwrap();
+                window
+                    .app_handle()
+                    .set_activation_policy(ActivationPolicy::Accessory)
+                    .unwrap();
                 api.prevent_close();
             }
             WindowEvent::ScaleFactorChanged { .. } => {}
@@ -121,8 +131,7 @@ fn build_typescript_interfaces(
         .commands(commands);
 
     #[cfg(debug_assertions)] // <- Only export on non-release builds
-    builder
-        .export(Typescript::default(), "../src/bindings.ts")?;
+    builder.export(Typescript::default(), "../src/bindings.ts")?;
 
     Ok(builder)
 }
@@ -130,7 +139,10 @@ fn build_typescript_interfaces(
 fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.handle();
     let timer_state = app.state::<TimerState>();
-    let mut timer = timer_state.0.lock().map_err(|e| format!("Failed to lock timer state: {}", e))?;
+    let mut timer = timer_state
+        .0
+        .lock()
+        .map_err(|e| format!("Failed to lock timer state: {}", e))?;
 
     timer.set_tick_callback(Box::new({
         let app_handle = app_handle.clone();

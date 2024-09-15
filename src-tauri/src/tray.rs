@@ -3,25 +3,39 @@ use crate::session_repository::SessionRepository;
 use crate::{session_window, settings_window};
 use std::time::Duration;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem};
-use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, Runtime};
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::TrayIconBuilder,
+    Manager, Runtime,
+};
 
 const TRAY_ID: &'static str = "tray";
 
 pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<()> {
-    let settings_menu = IconMenuItem::with_id(main_app, "settings", "Settings...", true, None, None::<&str>)?;
+    let settings_menu = IconMenuItem::with_id(
+        main_app,
+        "settings",
+        "Settings...",
+        true,
+        None,
+        None::<&str>,
+    )?;
     let quit_menu = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
-    let session_start_menu = MenuItem::with_id(main_app, "start", "Start session", true, None::<&str>)?;
+    let session_start_menu =
+        MenuItem::with_id(main_app, "start", "Start session", true, None::<&str>)?;
 
     let separator = PredefinedMenuItem::separator(main_app)?;
 
-    let menu = Menu::with_items(main_app, &[
-        &session_start_menu,
-        &separator,
-        &settings_menu,
-        &separator,
-        &quit_menu
-    ])?;
-
+    let menu = Menu::with_items(
+        main_app,
+        &[
+            &session_start_menu,
+            &separator,
+            &settings_menu,
+            &separator,
+            &quit_menu,
+        ],
+    )?;
 
     let _ = TrayIconBuilder::with_id(TRAY_ID)
         .icon(main_app.default_window_icon().unwrap().clone())
@@ -46,7 +60,10 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
     Ok(())
 }
 
-pub fn update_tray_title<R: Runtime>(app_handle: &tauri::AppHandle<R>, duration: Duration) -> tauri::Result<()> {
+pub fn update_tray_title<R: Runtime>(
+    app_handle: &tauri::AppHandle<R>,
+    duration: Duration,
+) -> tauri::Result<()> {
     if let Some(tray) = app_handle.tray_by_id(TRAY_ID) {
         if duration > Duration::from_secs(1) {
             tray.set_title(Some(duration.to_pretty_time()))?;

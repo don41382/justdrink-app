@@ -49,34 +49,36 @@ impl CountdownTimer {
         let guard_arc = Arc::clone(&self.guard);
 
         // Schedule the repeating task
-        let guard = self.timer.schedule_repeating(chrono::Duration::seconds(1), move || {
-            // Check if paused
-            let paused = is_paused.lock().unwrap();
-            if *paused {
-                return;
-            }
-            drop(paused); // Release the lock before proceeding
-
-            // Decrement the remaining time
-            let mut rem_time = rem_time.lock().unwrap();
-            *rem_time = *rem_time - Duration::from_secs(1);
-
-            if *rem_time <= Duration::ZERO {
-                // Time's up
-                if let Some(ref callback) = *finish_cb.lock().unwrap() {
-                    callback();
+        let guard = self
+            .timer
+            .schedule_repeating(chrono::Duration::seconds(1), move || {
+                // Check if paused
+                let paused = is_paused.lock().unwrap();
+                if *paused {
+                    return;
                 }
+                drop(paused); // Release the lock before proceeding
 
-                // Stop the timer by dropping the guard
-                let mut guard_lock = guard_arc.lock().unwrap();
-                guard_lock.take(); // Dropping the guard cancels the timer
-            } else {
-                // Call the tick callback with the remaining time
-                if let Some(ref callback) = *tick_cb.lock().unwrap() {
-                    callback(*rem_time);
+                // Decrement the remaining time
+                let mut rem_time = rem_time.lock().unwrap();
+                *rem_time = *rem_time - Duration::from_secs(1);
+
+                if *rem_time <= Duration::ZERO {
+                    // Time's up
+                    if let Some(ref callback) = *finish_cb.lock().unwrap() {
+                        callback();
+                    }
+
+                    // Stop the timer by dropping the guard
+                    let mut guard_lock = guard_arc.lock().unwrap();
+                    guard_lock.take(); // Dropping the guard cancels the timer
+                } else {
+                    // Call the tick callback with the remaining time
+                    if let Some(ref callback) = *tick_cb.lock().unwrap() {
+                        callback(*rem_time);
+                    }
                 }
-            }
-        });
+            });
 
         // Store the guard to keep the scheduled task alive
         let mut guard_lock = self.guard.lock().unwrap();

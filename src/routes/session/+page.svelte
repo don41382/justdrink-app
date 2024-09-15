@@ -52,6 +52,7 @@
         session = undefined;
     }
 
+
     onDestroy(() => {
         if (sessionStartListenerUnregister) {
             sessionStartListenerUnregister();
