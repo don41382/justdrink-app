@@ -17,7 +17,7 @@
         sessionStartListenerUnregister = await events.settingsEvent.listen(async ({payload}) => {
             await info("show settings");
 
-            settings = payload.settings
+            settings = payload.details
             const window = getCurrentWindow();
             await window.show();
             await window.setFocus();

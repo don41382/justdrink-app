@@ -1,7 +1,7 @@
 use crate::menubar::set_persistent_presentation_mode;
 use crate::model::event::{SessionStartEvent, SettingsEvent};
 use crate::model::session::SessionDetail;
-use crate::model::settings::Settings;
+use crate::model::settings::SettingsDetails;
 use log::info;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -43,9 +43,9 @@ where
     match app.get_webview_window(WINDOW_LABEL) {
         None => Err("Can't show session window, because it does not exist.".to_string()),
         Some(window) => {
-            let settings = app.state::<Mutex<Settings>>();
+            let settings = app.state::<Mutex<SettingsDetails>>();
             SettingsEvent {
-                settings: settings.lock().unwrap().clone(),
+                details: settings.lock().unwrap().clone(),
             }.emit(&window.app_handle().clone()).unwrap();
 
             Ok(())

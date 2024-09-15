@@ -17,7 +17,9 @@ use std::time::Duration;
 use tauri::ActivationPolicy;
 
 use crate::coutndown_timer::CountdownTimer;
-use crate::model::settings::Settings;
+use crate::model::event::{EventType, SessionStartEvent, SettingsEvent};
+use crate::model::session::SessionDetail;
+use crate::model::settings::SettingsDetails;
 use crate::session_repository::SessionRepository;
 use tauri::{App, Manager, State, Window, WindowEvent};
 use tauri_plugin_log::Target;
@@ -25,7 +27,7 @@ use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
 #[specta::specta]
 #[tauri::command]
-fn update_settings(settings: Settings, timer: State<TimerState>, store_settings: State<Mutex<Settings>>) {
+fn update_settings(settings: SettingsDetails, timer: State<TimerState>, store_settings: State<Mutex<SettingsDetails>>) {
     let mut session_timer = timer.0.lock().unwrap();
     *store_settings.lock().unwrap() = settings.clone();
     sync_settings(settings, session_timer);
@@ -33,15 +35,21 @@ fn update_settings(settings: Settings, timer: State<TimerState>, store_settings:
 
 #[specta::specta]
 #[tauri::command]
-fn close_window(window: Window, timer: State<TimerState>, store_settings: State<Mutex<Settings>>) {
+fn close_window(window: Window, timer: State<TimerState>, store_settings: State<Mutex<SettingsDetails>>) {
     let mut session_timer = timer.0.lock().unwrap();
     sync_settings(store_settings.lock().unwrap().clone(), session_timer);
     window.close().unwrap();
 }
 
+#[specta::specta]
+#[tauri::command]
+fn load_session(session_repository: State<SessionRepository>) -> SessionDetail {
+    session_repository.pick_random_session().unwrap().clone()
+}
+
 struct TimerState(Arc<Mutex<CountdownTimer>>);
 
-fn sync_settings(settings: Settings, session_timer: MutexGuard<CountdownTimer>) {
+fn sync_settings(settings: SettingsDetails, session_timer: MutexGuard<CountdownTimer>) {
     if settings.active {
         session_timer.start(Duration::from_secs(settings.next_break_duration_minutes.into()));
     } else {
@@ -52,8 +60,8 @@ fn sync_settings(settings: Settings, session_timer: MutexGuard<CountdownTimer>) 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = build_typescript_interfaces(
-        collect_commands![close_window, update_settings,],
-        collect_events![model::event::SessionStartEvent, model::event::SettingsEvent, ],
+        collect_commands![close_window, update_settings, load_session, ],
+        collect_events![model::event::SessionStartEvent, model::event::SettingsEvent],
     ).unwrap();
 
     tauri::Builder::default()
@@ -69,7 +77,7 @@ pub fn run() {
         .invoke_handler(builder.invoke_handler())
         .manage(TimerState(Arc::new(Mutex::new(CountdownTimer::new()))))
         .manage(SessionRepository::new())
-        .manage(Mutex::new(Settings {
+        .manage(Mutex::new(SettingsDetails {
             active: false,
             next_break_duration_minutes: 30,
         }))
