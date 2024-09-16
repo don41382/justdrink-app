@@ -98,7 +98,6 @@ pub fn run() {
         .setup(move |app| {
             builder.mount_events(app.app_handle());
 
-            session_window::new(app)?;
             settings_window::new(app)?;
 
             #[cfg(target_os = "macos")]
@@ -108,17 +107,21 @@ pub fn run() {
 
             setup_timer(app).unwrap();
 
+            tauri::async_runtime::spawn(async move {
+                loop {
+                    std::thread::sleep(std::time::Duration::from_secs(1));
+                }
+            });
+
             Ok(())
         })
         .on_window_event(|window, event| match event {
             WindowEvent::CloseRequested { api, .. } => {
-                window.hide().unwrap();
                 #[cfg(target_os = "macos")]
                 window
                     .app_handle()
                     .set_activation_policy(ActivationPolicy::Accessory)
                     .unwrap();
-                api.prevent_close();
             }
             WindowEvent::ScaleFactorChanged { .. } => {}
             WindowEvent::DragDrop(_) => {}

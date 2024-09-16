@@ -39,28 +39,8 @@
     onMount(async () => {
         setup(await commands.loadSessionDetails());
 
-        sessionStartListenerUnregister = await events.sessionStartEvent.listen(async ({payload}) => {
-            try {
-                await info("new session started")
-
-                if (!session) {
-                    setup(payload.details)
-                }
-
-                const sessionWindow = getCurrentWindow()
-                await sessionWindow.show()
-
-                await sessionWindow.setFocus()
-
-            } catch (e) {
-                if (e instanceof Error) {
-                    await error(e.message);
-                } else {
-                    await error(String(e))
-                }
-            }
-        });
-
+        const window = getCurrentWindow()
+        await window.setFocus()
     });
 
     function setTeacherVideoReady() {
