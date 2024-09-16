@@ -18,6 +18,8 @@
     "global-shortcut:allow-unregister",
     "log:allow-log",
     "log:default",
-    "fs:default"
+    "fs:default",
+    "os:default",
+    "os:allow-platform"
   ]
 }

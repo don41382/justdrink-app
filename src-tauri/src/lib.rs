@@ -71,12 +71,13 @@ fn sync_settings(settings: SettingsDetails, session_timer: MutexGuard<CountdownT
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = build_typescript_interfaces(
-        collect_commands![close_window, update_settings, load_session_details, ],
+        collect_commands![close_window, update_settings, load_session_details,],
         collect_events![model::event::SessionStartEvent, model::event::SettingsEvent],
     )
-        .unwrap();
+    .unwrap();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(
             tauri_plugin_log::Builder::default()

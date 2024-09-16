@@ -4,6 +4,7 @@
     import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
+    import { platform } from '@tauri-apps/plugin-os';
     import {fade} from 'svelte/transition';
     import Icon from '@iconify/svelte';
 
@@ -39,9 +40,15 @@
                     setup(payload.details)
                 }
 
+                const currentPlatform = await platform();
                 const sessionWindow = getCurrentWindow()
                 await sessionWindow.show()
+
+                if (currentPlatform === "windows") {
+                    await sessionWindow.setFullscreen(true);
+                }
                 await sessionWindow.setFocus()
+
 
             } catch (e) {
                 if (e instanceof Error) {
