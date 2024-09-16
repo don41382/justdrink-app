@@ -4,7 +4,7 @@
     import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
-    import { platform } from '@tauri-apps/plugin-os';
+    import {platform} from '@tauri-apps/plugin-os';
     import {fade} from 'svelte/transition';
     import Icon from '@iconify/svelte';
 
@@ -12,6 +12,12 @@
     let session: SessionDetail | undefined = undefined;
     let countdownSeconds: number | undefined = undefined;
     let countdownInterval: number | undefined;
+
+    let backgroundVideo: HTMLVideoElement;
+    let backgroundVideoReady = false;
+
+    let teacherVideo: HTMLVideoElement;
+    let teacherVideoReady = false;
 
     info("Initialized Session Window")
 
@@ -36,19 +42,15 @@
         sessionStartListenerUnregister = await events.sessionStartEvent.listen(async ({payload}) => {
             try {
                 await info("new session started")
+
                 if (!session) {
                     setup(payload.details)
                 }
 
-                const currentPlatform = await platform();
                 const sessionWindow = getCurrentWindow()
                 await sessionWindow.show()
 
-                if (currentPlatform === "windows") {
-                    await sessionWindow.setFullscreen(true);
-                }
                 await sessionWindow.setFocus()
-
 
             } catch (e) {
                 if (e instanceof Error) {
@@ -60,6 +62,18 @@
         });
 
     });
+
+    function setTeacherVideoReady() {
+        if (teacherVideo.readyState === 4) {
+            teacherVideoReady = true;
+        }
+    }
+
+    function setBackgroundVideoReady() {
+        if (backgroundVideo.readyState === 4) {
+            backgroundVideoReady = true
+        }
+    }
 
     function cleanup() {
         if (countdownInterval) {
@@ -95,10 +109,13 @@
 
 <div class="bg-white h-screen flex flex-col justify-between items-center overflow-hidden">
 
-
     <!-- background video -->
-    <video class="absolute w-full h-full object-cover opacity-80 blur-sm" autoplay loop muted playsinline
-           preload="auto" in:fade={{ duration: 500 }}>
+    <video
+            bind:this={backgroundVideo}
+            on:canplay={setBackgroundVideoReady}
+            class="absolute w-full h-full object-cover blur-sm {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'}"
+            autoplay loop muted playsinline
+            preload="auto">
         <source src="/videos/bg-h264.mov" type="video/mp4">
         Your browser does not support the video tag.
     </video>
@@ -110,7 +127,11 @@
                 <p class="text-4xl font-thin leading-normal text-black">{session.subtitle}</p>
             </div>
             <div class="flex flex-col items-center w-full">
-                <video class="w-full max-w-[500px]" autoplay loop muted playsinline preload="metadata">
+                <video
+                        bind:this={teacherVideo}
+                        on:canplay={setTeacherVideoReady}
+                        class="w-full max-w-[500px] {teacherVideoReady ? 'video-teacher-ready' : 'video-not-ready'}"
+                        autoplay loop muted playsinline preload="metadata">
                     <source
                             src="/videos/shoulder-hvc1.mov"
                             type='video/mp4; codecs="hvc1"'>
@@ -141,3 +162,19 @@
 
     </div>
 </div>
+
+<style>
+    .video-teacher-ready {
+        opacity: 1.0;
+        transition: opacity 4s;
+    }
+
+    .video-background-ready {
+        opacity: 0.8;
+        transition: opacity 1s;
+    }
+
+    .video-not-ready {
+        opacity: 0;
+    }
+</style>

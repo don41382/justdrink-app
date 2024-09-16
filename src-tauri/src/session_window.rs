@@ -54,6 +54,9 @@ where
             .emit(&window.app_handle().clone())
             .unwrap();
 
+            #[cfg(target_os = "windows")]
+            window.set_fullscreen(true).unwrap();
+
             Ok(())
         }
     }
