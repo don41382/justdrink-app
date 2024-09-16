@@ -35,7 +35,9 @@
         sessionStartListenerUnregister = await events.sessionStartEvent.listen(async ({payload}) => {
             try {
                 await info("new session started")
-                setup(payload.details)
+                if (!session) {
+                    setup(payload.details)
+                }
 
                 const sessionWindow = getCurrentWindow()
                 await sessionWindow.show()
@@ -49,6 +51,7 @@
                 }
             }
         });
+
     });
 
     function cleanup() {
@@ -71,6 +74,7 @@
         commands.closeWindow();
     }
 
+
     function formatCountdown(seconds: number): string {
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -82,11 +86,12 @@
     // document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
-<div class="h-screen flex flex-col justify-between items-center overflow-hidden">
+<div class="bg-white h-screen flex flex-col justify-between items-center overflow-hidden">
+
 
     <!-- background video -->
-    <video class="absolute w-full h-full object-cover opacity-80" autoplay loop muted playsinline
-           preload="auto">
+    <video class="absolute w-full h-full object-cover opacity-80 blur-sm" autoplay loop muted playsinline
+           preload="auto" in:fade={{ duration: 500 }}>
         <source src="/videos/bg-h264.mov" type="video/mp4">
         Your browser does not support the video tag.
     </video>
@@ -98,10 +103,13 @@
                 <p class="text-4xl font-thin leading-normal text-black">{session.subtitle}</p>
             </div>
             <div class="flex flex-col items-center w-full">
-                <video class="w-full max-w-[400px]" autoplay loop muted playsinline preload="metadata">
+                <video class="w-full max-w-[500px]" autoplay loop muted playsinline preload="metadata">
                     <source
                             src="/videos/shoulder-hvc1.mov"
                             type='video/mp4; codecs="hvc1"'>
+                    <source
+                            src="/videos/shoulder.webm"
+                            type="video/webm">
                     Your browser does not support the video tag.
                 </video>
             </div>

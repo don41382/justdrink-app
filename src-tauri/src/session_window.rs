@@ -18,18 +18,20 @@ pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/session".into()),
     )
-    .title("Motion Minute Session")
-    .visible(false)
-    //.always_on_top(true)
-    .decorations(false)
-    .skip_taskbar(true)
-    .maximized(true)
-    .resizable(true)
-    .build()
-    .map_err(|e| {
-        log::error!("Failed to build WebviewWindow: {:?}", e);
-        "Failed to build WebviewWindow".to_string()
-    })?;
+        .title("Motion Minute Session")
+        .transparent(true)
+        .visible(false)
+        //.always_on_top(true)
+        .decorations(false)
+        .skip_taskbar(true)
+        .maximized(true)
+        .resizable(true)
+        .build()
+        .map_err(|e| {
+            log::error!("Failed to build WebviewWindow: {:?}", e);
+            "Failed to build WebviewWindow".to_string()
+        })?;
+
     Ok(window)
 }
 
@@ -49,8 +51,11 @@ where
             SessionStartEvent {
                 details: session.clone(),
             }
-            .emit(&window.app_handle().clone())
-            .unwrap();
+                .emit(&window.app_handle().clone())
+                .unwrap();
+
+            #[cfg(target_os = "windows")]
+            window.set_fullscreen(true).unwrap();
 
             Ok(())
         }
