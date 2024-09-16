@@ -4,13 +4,13 @@
     import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
-    import {platform} from '@tauri-apps/plugin-os';
     import {fade} from 'svelte/transition';
     import Icon from '@iconify/svelte';
+    import AdviceMessage from "./AdviceMessage.svelte";
 
     let sessionStartListenerUnregister: UnlistenFn;
     let session: SessionDetail | undefined = undefined;
-    let countdownSeconds: number | undefined = undefined;
+    let countdownSeconds: number;
     let countdownInterval: number | undefined;
 
     let backgroundVideo: HTMLVideoElement;
@@ -100,17 +100,20 @@
         Your browser does not support the video tag.
     </video>
 
-    <div class="relative z-10 flex flex-col justify-between items-center h-full">
+    <div class="relative z-10 flex flex-col h-full">
         {#if session !== undefined && countdownSeconds !== undefined}
-            <div class="text-center mt-24 px-48 z-10">
-                <h1 class="text-8xl mb-8">{session.title}</h1>
-                <p class="text-4xl font-thin leading-normal text-black">{session.subtitle}</p>
+            <div class="flex-none text-center mt-20 px-48">
+                <h1 class="text-8xl font-bold mb-4">{session.title}</h1>
+                <h1 class="text-4xl font-normal mb-16">{session.description}</h1>
             </div>
-            <div class="flex flex-col items-center w-full">
+            <div class="flex flex-grow items-center w-full px-48 {(teacherVideoReady && teacherVideo) ? '' : 'hidden'}">
+                <AdviceMessage advices={session.advices}/>
+            </div>
+            <div class="flex-none w-full flex items-center justify-center">
                 <video
                         bind:this={teacherVideo}
                         on:canplay={setTeacherVideoReady}
-                        class="w-full max-w-[500px] {teacherVideoReady ? 'video-teacher-ready' : 'video-not-ready'}"
+                        class="max-w-[500px] {teacherVideoReady ? 'video-teacher-ready' : 'video-not-ready'}"
                         autoplay loop muted playsinline preload="metadata">
                     <source
                             src="/videos/shoulder-hvc1.mov"
@@ -121,25 +124,23 @@
                     Your browser does not support the video tag.
                 </video>
             </div>
-
-            <div class="absolute bottom-14 right-14 text-gray-600 flex flex-col items-center">
-                <div class="text-3xl mb-6">
-                    <span in:fade={{ delay: 100, duration: 1000 }}>{formatCountdown(countdownSeconds)}</span>
-                </div>
-
-                <button on:click={closeApp}
-                        class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center">
-                    {#if countdownSeconds > 0}
-                        <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
-                        Skip
-                    {:else}
-                        <Icon icon="material-symbols-light:check-circle-outline" class="mr-2" height="32"/>
-                        Finished
-                    {/if}
-                </button>
-            </div>
         {/if}
+    </div>
+    <div class="absolute bottom-14 right-14 z-50 text-gray-600 flex flex-col items-center">
+        <div class="text-3xl mb-6">
+            <span in:fade={{ delay: 100, duration: 1000 }}>{formatCountdown(countdownSeconds)}</span>
+        </div>
 
+        <button on:click={closeApp}
+                class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center">
+            {#if countdownSeconds && countdownSeconds > 0}
+                <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
+                Skip
+            {:else}
+                <Icon icon="material-symbols-light:check-circle-outline" class="mr-2" height="32"/>
+                Finished
+            {/if}
+        </button>
     </div>
 </div>
 
