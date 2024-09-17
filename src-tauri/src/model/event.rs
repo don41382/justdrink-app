@@ -11,37 +11,12 @@ pub enum EventType {
     Settings,
 }
 
-pub trait Event {
-    fn event_type(&self) -> EventType;
-    fn details(&self) -> &dyn std::any::Any;
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, Type, tauri_specta::Event)]
 pub struct SessionStartEvent {
     pub(crate) details: SessionDetail,
 }
 
-impl Event for SessionStartEvent {
-    fn event_type(&self) -> EventType {
-        SessionStart
-    }
-
-    fn details(&self) -> &dyn std::any::Any {
-        &self.details
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, Type, tauri_specta::Event)]
 pub struct SettingsEvent {
     pub(crate) details: SettingsDetails,
-}
-
-impl Event for SettingsEvent {
-    fn event_type(&self) -> EventType {
-        Settings
-    }
-
-    fn details(&self) -> &dyn std::any::Any {
-        &self.details
-    }
 }
