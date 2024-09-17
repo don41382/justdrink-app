@@ -31,13 +31,18 @@ where
         tauri::WebviewUrl::App("/session".into()),
     )
         .title("Motion Minute Session")
+        .transparent(true)
         .visible(true)
         .always_on_top(true)
         .decorations(false)
+        .maximized(true)
         .skip_taskbar(true)
         .resizable(false)
-        .fullscreen(true)
         .build()
+        .map(|window| {
+            #[cfg(target_os = "windows")]
+            window.fullscreen(true)
+        })
         .map_err(|e| {
             log::error!("Failed to build WebviewWindow: {:?}", e);
             "Failed to build WebviewWindow".to_string()

@@ -7,6 +7,7 @@
     import {fade} from 'svelte/transition';
     import Icon from '@iconify/svelte';
     import AdviceMessage from "./AdviceMessage.svelte";
+    import VideoPlayer from "./VideoPlayer.svelte";
 
     let sessionStartListenerUnregister: UnlistenFn;
     let session: SessionDetail | undefined = undefined;
@@ -15,9 +16,6 @@
 
     let backgroundVideo: HTMLVideoElement;
     let backgroundVideoReady = false;
-
-    let teacherVideo: HTMLVideoElement;
-    let teacherVideoReady = false;
 
     info("Initialized Session Window")
 
@@ -42,12 +40,6 @@
         const window = getCurrentWindow()
         await window.setFocus()
     });
-
-    function setTeacherVideoReady() {
-        if (teacherVideo.readyState === 4) {
-            teacherVideoReady = true;
-        }
-    }
 
     function setBackgroundVideoReady() {
         if (backgroundVideo.readyState === 4) {
@@ -87,8 +79,8 @@
     // document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
-<div class="bg-white h-screen flex flex-col justify-between items-center overflow-hidden">
-
+<div in:fade={{duration: 1000}}
+     class="bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'}">
     <!-- background video -->
     <video
             bind:this={backgroundVideo}
@@ -106,23 +98,11 @@
                 <h1 class="text-8xl font-bold mb-4">{session.title}</h1>
                 <h1 class="text-4xl font-normal mb-16">{session.description}</h1>
             </div>
-            <div class="flex flex-grow items-center w-full px-48 {(teacherVideoReady && teacherVideo) ? '' : 'hidden'}">
+            <div class="flex flex-grow items-center w-full px-48 {(backgroundVideoReady) ? '' : 'hidden'}">
                 <AdviceMessage advices={session.advices}/>
             </div>
             <div class="flex-none w-full flex items-center justify-center">
-                <video
-                        bind:this={teacherVideo}
-                        on:canplay={setTeacherVideoReady}
-                        class="max-w-[500px] {teacherVideoReady ? 'video-teacher-ready' : 'video-not-ready'}"
-                        autoplay loop muted playsinline preload="metadata">
-                    <source
-                            src="/videos/shoulder-hvc1.mov"
-                            type='video/mp4; codecs="hvc1"'>
-                    <source
-                            src="/videos/shoulder.webm"
-                            type="video/webm">
-                    Your browser does not support the video tag.
-                </video>
+                <VideoPlayer filename="shoulder" class="max-h-[500px]" />
             </div>
         {/if}
     </div>
@@ -151,7 +131,7 @@
     }
 
     .video-background-ready {
-        opacity: 0.8;
+        opacity: 1.0;
         transition: opacity 1s;
     }
 

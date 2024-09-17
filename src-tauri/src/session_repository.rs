@@ -62,7 +62,7 @@ impl SessionRepository {
                 description: "A simple exercise to improve neck muscle endurance, relieve tension, and promote better posture.".to_string(),
                 advices: vec![
                     "Stand in a comfortable, upright position with your shoulders relaxed",
-                    "Gently nod your head, bringing your chin towards your chest.",
+                    "Keep your head straight, look forward.",
                     "Retract your chin backward without tilting your head, as if making a double chin.",
                     "Focus on relaxing your jaw muscles as you hold this position.",
                     "Slowly return to the starting position, allowing your neck muscles to relax.",
