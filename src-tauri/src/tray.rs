@@ -1,5 +1,4 @@
 use crate::pretty_time::PrettyTime;
-use crate::session_repository::SessionRepository;
 use crate::{session_window, settings_window};
 use std::time::Duration;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem};
@@ -43,9 +42,7 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
         .menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "start" => {
-                let session_repository = app.app_handle().state::<SessionRepository>();
-                let session = session_repository.pick_random_session().unwrap();
-                session_window::show(app.app_handle(), session).unwrap();
+                session_window::show(app.app_handle()).unwrap();
             }
             "settings" => {
                 settings_window::show(app).unwrap();

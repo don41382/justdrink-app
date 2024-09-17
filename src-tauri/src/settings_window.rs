@@ -1,10 +1,6 @@
-use crate::menubar::set_persistent_presentation_mode;
-use crate::model::event::{SessionStartEvent, SettingsEvent};
-use crate::model::session::SessionDetail;
+use crate::model::event::{SettingsEvent};
 use crate::model::settings::SettingsDetails;
-use log::info;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::sync::{Mutex};
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{App, AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;

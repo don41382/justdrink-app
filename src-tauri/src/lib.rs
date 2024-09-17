@@ -8,7 +8,6 @@ mod settings_window;
 mod tray;
 mod start_soon_window;
 
-use log::info;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::{Arc, Mutex, MutexGuard};
@@ -18,12 +17,14 @@ use mouse_position::mouse_position::Mouse;
 use tauri::ActivationPolicy;
 
 use crate::coutndown_timer::CountdownTimer;
-use crate::model::event::{EventType, SessionStartEvent, SettingsEvent};
 use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsDetails;
 use crate::session_repository::SessionRepository;
-use tauri::{App, LogicalPosition, Manager, PhysicalPosition, State, Window, WindowEvent};
-use tauri_plugin_fs::FsExt;
+
+#[cfg(target_os = "windows")]
+use tauri::{PhysicalPosition};
+
+use tauri::{App, LogicalPosition, Manager, State, Window, WindowEvent};
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
@@ -34,7 +35,7 @@ fn update_settings(
     timer: State<TimerState>,
     store_settings: State<Mutex<SettingsDetails>>,
 ) {
-    let mut session_timer = timer.0.lock().unwrap();
+    let session_timer = timer.0.lock().unwrap();
     *store_settings.lock().unwrap() = settings.clone();
     sync_settings(settings, session_timer);
 }
@@ -46,7 +47,7 @@ fn close_window(
     timer: State<TimerState>,
     store_settings: State<Mutex<SettingsDetails>>,
 ) {
-    let mut session_timer = timer.0.lock().unwrap();
+    let session_timer = timer.0.lock().unwrap();
     sync_settings(store_settings.lock().unwrap().clone(), session_timer);
     window.close().unwrap();
 }
@@ -133,7 +134,7 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| match event {
-            WindowEvent::CloseRequested { api, .. } => {
+            WindowEvent::CloseRequested { .. } => {
                 #[cfg(target_os = "macos")]
                 window
                     .app_handle()
@@ -166,7 +167,7 @@ fn build_typescript_interfaces(
 fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.handle();
     let timer_state = app.state::<TimerState>();
-    let mut timer = timer_state
+    let timer = timer_state
         .0
         .lock()
         .map_err(|e| format!("Failed to lock timer state: {}", e))?;
@@ -183,12 +184,9 @@ fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     timer.set_finish_callback(Box::new({
         let app_handle = app_handle.clone();
         move || {
-            let session_repository = app_handle.state::<SessionRepository>();
-            if let Some(session) = session_repository.pick_random_session() {
-                session_window::show(&app_handle, session)
-                    .map_err(|e| log::error!("Failed to show session window: {}", e))
-                    .ok();
-            }
+            session_window::show(&app_handle)
+                .map_err(|e| log::error!("Failed to show session window: {}", e))
+                .ok();
         }
     }));
 

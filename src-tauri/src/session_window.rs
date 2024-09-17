@@ -1,22 +1,19 @@
 use crate::menubar::set_persistent_presentation_mode;
-use crate::model::event::SessionStartEvent;
-use crate::model::session::SessionDetail;
 
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use tauri::{App, AppHandle, Manager, WebviewWindow, WebviewWindowBuilder};
-use tauri_specta::Event;
+use tauri::{AppHandle, Manager, WebviewWindowBuilder};
 
 const WINDOW_LABEL: &'static str = "session";
 
 
-pub fn show<R>(app: &AppHandle<R>, session: &SessionDetail) -> Result<(), String>
+pub fn show<R>(app: &AppHandle<R>) -> Result<(), String>
 where
     R: tauri::Runtime,
 {
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
-        window.close().map_err(|e| "Failed to close window".to_string())?;
+        window.close().map_err(|_| "Failed to close window".to_string())?;
     }
 
     #[cfg(target_os = "macos")]

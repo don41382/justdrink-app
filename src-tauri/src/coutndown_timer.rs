@@ -84,19 +84,21 @@ impl CountdownTimer {
         let mut guard_lock = self.guard.lock().unwrap();
         *guard_lock = Some(guard);
     }
-
+    
     /// Pauses the countdown timer.
+    #[allow(dead_code)]
     pub fn pause(&self) {
         let mut paused = self.is_paused.lock().unwrap();
         *paused = true;
     }
-
+    
     /// Resumes the countdown timer if it was paused.
+    #[allow(dead_code)]
     pub fn resume(&self) {
         let mut paused = self.is_paused.lock().unwrap();
         *paused = false;
     }
-
+    
     /// Stops the countdown timer.
     pub fn stop(&self) {
         // Cancel the scheduled task by dropping the guard
