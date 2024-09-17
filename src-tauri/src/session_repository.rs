@@ -1,5 +1,5 @@
 use crate::model::session::SessionDetail;
-use rand::seq::SliceRandom;
+use rand::seq::IteratorRandom;
 
 pub struct SessionRepository {
     sessions: Vec<SessionDetail>,
@@ -9,6 +9,7 @@ impl SessionRepository {
     pub fn new() -> Self {
         let initial_sessions = vec![
             SessionDetail {
+                id: "rotate-your-head".to_string(),
                 title: "Rotate your head".to_string(),
                 description: "Slowly rotate your head".to_string(),
                 advices: vec![
@@ -19,8 +20,10 @@ impl SessionRepository {
                     .iter().map(|s| s.to_string()).collect()
                 ,
                 duration_s: 60,
+                active: false,
             },
             SessionDetail {
+                id: "shoulder-circles".to_string(),
                 title: "Shoulder Circles".to_string(),
                 description: "A gentle shoulder mobility exercise that relieves tension and promotes relaxation.".to_string(),
                 advices: vec![
@@ -31,8 +34,10 @@ impl SessionRepository {
                     .iter().map(|s| s.to_string()).collect()
                 ,
                 duration_s: 60,
+                active: true,
             },
             SessionDetail {
+                id: "seated-hip-mobility".to_string(),
                 title: "Seated Hip Mobility".to_string(),
                 description: "A seated exercise to improve hip flexibility and core engagement through controlled pelvic movements.".to_string(),
                 advices: vec![
@@ -41,11 +46,12 @@ impl SessionRepository {
                     "Engage your lower back by squeezing your glutes while simultaneously pulling your belly button inward.",
                     "Notice the tension in your core as the arch in your lower back flattens slightly.",
                     "Perform this movement in a steady, fluid rhythm, paying attention to your breathing."
-                ].iter().map(|s| s.to_string()).collect()
-                ,
+                ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 60,
+                active: false,
             },
             SessionDetail {
+                id: "chair-squat".to_string(),
                 title: "Chair Squat".to_string(),
                 description: "A effective bodyweight exercise to strengthen triceps, shoulders, and chest using a sturdy chair or bench.".to_string(),
                 advices: vec![
@@ -56,8 +62,10 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect()
                 ,
                 duration_s: 60,
+                active: false,
             },
             SessionDetail {
+                id: "chin-tucks".to_string(),
                 title: "Chin Tucks".to_string(),
                 description: "A simple exercise to improve neck muscle endurance, relieve tension, and promote better posture.".to_string(),
                 advices: vec![
@@ -68,9 +76,9 @@ impl SessionRepository {
                     "Slowly return to the starting position, allowing your neck muscles to relax.",
                     "You should feel a gentle stretch at the back of your neck and slight muscle engagement at the front.",
                     "This exercise may help relieve tension headaches, improve sitting posture, and reduce neck pain."
-                ].iter().map(|s| s.to_string()).collect()
-                ,
+                ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 60,
+                active: false,
             }
         ];
 
@@ -81,6 +89,6 @@ impl SessionRepository {
 
     pub fn pick_random_session(&self) -> Option<&SessionDetail> {
         let mut rng = rand::thread_rng();
-        self.sessions.choose(&mut rng)
+        self.sessions.iter().filter(|s| s.active).choose(&mut rng)
     }
 }

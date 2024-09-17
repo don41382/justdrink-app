@@ -33,7 +33,7 @@ settingsEvent: "settings-event"
 
 /** user-defined types **/
 
-export type SessionDetail = { title: string; description: string; advices: string[]; duration_s: number }
+export type SessionDetail = { id: string; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
 export type SessionStartEvent = { details: SessionDetail }
 export type SettingsDetails = { next_break_duration_minutes: number; active: boolean }
 export type SettingsEvent = { details: SettingsDetails }

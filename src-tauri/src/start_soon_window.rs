@@ -5,13 +5,13 @@ use crate::model::session::SessionDetail;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use tauri::{App, AppHandle, Manager, WebviewWindow, WebviewWindowBuilder};
+use tauri::{App, AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
 
-const WINDOW_LABEL: &'static str = "session";
+pub const WINDOW_LABEL: &'static str = "start_soon";
 
 
-pub fn show<R>(app: &AppHandle<R>, session: &SessionDetail) -> Result<(), String>
+pub fn show<R>(app: &AppHandle<R>) -> Result<(), String>
 where
     R: tauri::Runtime,
 {
@@ -19,30 +19,20 @@ where
         window.close().map_err(|e| "Failed to close window".to_string())?;
     }
 
-    #[cfg(target_os = "macos")]
-    app.app_handle()
-        .set_activation_policy(ActivationPolicy::Regular)
-        .unwrap();
-    set_persistent_presentation_mode(true);
-
-    let window = WebviewWindowBuilder::new(
+    tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
-        tauri::WebviewUrl::App("/session".into()),
+        tauri::WebviewUrl::App("/startsoon".into()),
     )
-        .title("Motion Minute Session")
         .transparent(true)
         .visible(true)
         .always_on_top(true)
         .decorations(false)
-        .maximized(true)
         .skip_taskbar(true)
-        .resizable(false);
-
-    #[cfg(target_os = "windows")]
-    let window = window.fullscreen(true);
-
-    window.build()
+        .accept_first_mouse(true)
+        .inner_size(200.0, 50.0)
+        .shadow(false)
+        .build()
         .map_err(|e| {
             log::error!("Failed to build WebviewWindow: {:?}", e);
             "Failed to build WebviewWindow".to_string()
@@ -50,4 +40,3 @@ where
 
     Ok(())
 }
-

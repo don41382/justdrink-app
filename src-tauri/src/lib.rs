@@ -6,13 +6,14 @@ mod session_repository;
 mod session_window;
 mod settings_window;
 mod tray;
+mod start_soon_window;
 
 use log::info;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
-
+use mouse_position::mouse_position::Mouse;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
@@ -21,7 +22,7 @@ use crate::model::event::{EventType, SessionStartEvent, SettingsEvent};
 use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsDetails;
 use crate::session_repository::SessionRepository;
-use tauri::{App, Manager, State, Window, WindowEvent};
+use tauri::{App, LogicalPosition, Manager, PhysicalPosition, State, Window, WindowEvent};
 use tauri_plugin_fs::FsExt;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
@@ -99,6 +100,7 @@ pub fn run() {
             builder.mount_events(app.app_handle());
 
             settings_window::new(app)?;
+            start_soon_window::show(app.app_handle())?;
 
             #[cfg(target_os = "macos")]
             app.set_activation_policy(ActivationPolicy::Accessory);
@@ -107,9 +109,24 @@ pub fn run() {
 
             setup_timer(app).unwrap();
 
+            let cursor_app_handler = app.app_handle().clone();
             tauri::async_runtime::spawn(async move {
                 loop {
-                    std::thread::sleep(std::time::Duration::from_secs(1));
+                    if let Some(window) = cursor_app_handler.get_webview_window(start_soon_window::WINDOW_LABEL) {
+                        let position = Mouse::get_mouse_position();
+                        match position  {
+                            Mouse::Position { x,y } => {
+                                #[cfg(target_os = "windows")]
+                                window.set_position(PhysicalPosition::new(x + 10,y - 30)).unwrap();
+                                #[cfg(target_os = "macos")]
+                                window.set_position(LogicalPosition::new(x + 10,y - 30)).unwrap();
+                                std::thread::sleep(std::time::Duration::from_millis(5));
+                            }
+                            Mouse::Error => {}
+                        }
+                    } else {
+                        std::thread::sleep(std::time::Duration::from_secs(1));
+                    }
                 }
             });
 

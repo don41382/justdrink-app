@@ -102,7 +102,7 @@
                 <AdviceMessage advices={session.advices}/>
             </div>
             <div class="flex-none w-full flex items-center justify-center">
-                <VideoPlayer filename="shoulder" class="max-h-[500px]" />
+                <VideoPlayer filename="{session.id}/{session.id}" class="max-h-[500px]" />
             </div>
         {/if}
     </div>
@@ -125,11 +125,6 @@
 </div>
 
 <style>
-    .video-teacher-ready {
-        opacity: 1.0;
-        transition: opacity 4s;
-    }
-
     .video-background-ready {
         opacity: 1.0;
         transition: opacity 1s;
