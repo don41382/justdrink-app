@@ -163,7 +163,6 @@ impl CountdownTimer {
 
     pub fn restart(&self) {
         if let Some(duration) = self.duration.lock().unwrap().take() {
-            self.stop();
             self.start(duration);
         }
     }
