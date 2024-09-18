@@ -3,10 +3,24 @@ use crate::menubar::set_persistent_presentation_mode;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use tauri::{AppHandle, Manager, WebviewWindowBuilder};
+use tauri::{AppHandle, EventId, Manager, WebviewWindowBuilder};
+use tauri_specta::Event;
+use crate::countdown_timer;
 
 const WINDOW_LABEL: &'static str = "session";
 
+pub fn init<R>(app: &AppHandle<R>) -> EventId
+where
+    R: tauri::Runtime + 'static,
+{
+    let app_handle = app.clone();
+    countdown_timer::EventTickerStatus::listen(app, move |status| {
+        if status.payload.status == countdown_timer::TickerStatus::FINISHED {
+            println!("show it: {:?}", status.payload);
+            show(&app_handle).unwrap();
+        }
+    })
+}
 
 pub fn show<R>(app: &AppHandle<R>) -> Result<(), String>
 where

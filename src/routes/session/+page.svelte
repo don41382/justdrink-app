@@ -3,13 +3,11 @@
     import {commands, events, type SessionDetail} from '../../bindings';
     import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
-    import type {UnlistenFn} from '@tauri-apps/api/event';
     import {fade} from 'svelte/transition';
     import Icon from '@iconify/svelte';
     import AdviceMessage from "./AdviceMessage.svelte";
     import VideoPlayer from "./VideoPlayer.svelte";
 
-    let sessionStartListenerUnregister: UnlistenFn;
     let session: SessionDetail | undefined = undefined;
     let countdownSeconds: number;
     let countdownInterval: number | undefined;
@@ -56,9 +54,6 @@
 
 
     onDestroy(() => {
-        if (sessionStartListenerUnregister) {
-            sessionStartListenerUnregister();
-        }
         cleanup();
     });
 
@@ -102,7 +97,7 @@
                 <AdviceMessage advices={session.advices}/>
             </div>
             <div class="flex-none w-full flex items-center justify-center">
-                <VideoPlayer filename="{session.id}/{session.id}" class="max-h-[500px]" />
+                <VideoPlayer filename="{session.id}/{session.id}" class="max-h-[500px]"/>
             </div>
         {/if}
     </div>

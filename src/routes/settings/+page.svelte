@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {commands, events, type Settings} from '../../bindings';
+    import {commands, events, type SettingsDetails} from '../../bindings';
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from '@tauri-apps/api/event';
     import {getCurrentWindow} from "@tauri-apps/api/window";
@@ -9,7 +9,7 @@
     let sessionStartListenerUnregister: UnlistenFn;
     let closeRequestUnregister: UnlistenFn;
 
-    let settings: Settings | undefined = undefined;
+    let settings: SettingsDetails | undefined = undefined;
 
 
     onMount(async () => {

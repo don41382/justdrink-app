@@ -1,4 +1,4 @@
-mod coutndown_timer;
+mod countdown_timer;
 mod menubar;
 mod model;
 mod pretty_time;
@@ -7,24 +7,25 @@ mod session_window;
 mod settings_window;
 mod tray;
 mod start_soon_window;
+mod detect_mouse_state;
 
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
-use mouse_position::mouse_position::Mouse;
+
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use crate::coutndown_timer::CountdownTimer;
+use crate::countdown_timer::CountdownTimer;
 use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsDetails;
 use crate::session_repository::SessionRepository;
 
 #[cfg(target_os = "windows")]
-use tauri::{PhysicalPosition};
+use tauri::PhysicalPosition;
 
-use tauri::{App, LogicalPosition, Manager, State, Window, WindowEvent};
+use tauri::{App, Manager, State, Window, WindowEvent};
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
@@ -74,9 +75,14 @@ fn sync_settings(settings: SettingsDetails, session_timer: MutexGuard<CountdownT
 pub fn run() {
     let builder = build_typescript_interfaces(
         collect_commands![close_window, update_settings, load_session_details,],
-        collect_events![model::event::SessionStartEvent, model::event::SettingsEvent],
+        collect_events![
+            model::event::SessionStartEvent,
+            model::event::SettingsEvent,
+            countdown_timer::EventTicker,
+            countdown_timer::EventTickerStatus,
+        ],
     )
-    .unwrap();
+        .unwrap();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
@@ -100,8 +106,9 @@ pub fn run() {
         .setup(move |app| {
             builder.mount_events(app.app_handle());
 
-            settings_window::new(app)?;
-            start_soon_window::show(app.app_handle())?;
+            session_window::init(app.app_handle());
+            start_soon_window::init(app.app_handle())?;
+            settings_window::new(app.app_handle())?;
 
             #[cfg(target_os = "macos")]
             app.set_activation_policy(ActivationPolicy::Accessory);
@@ -109,27 +116,6 @@ pub fn run() {
             tray::create_tray(app.handle())?;
 
             setup_timer(app).unwrap();
-
-            let cursor_app_handler = app.app_handle().clone();
-            tauri::async_runtime::spawn(async move {
-                loop {
-                    if let Some(window) = cursor_app_handler.get_webview_window(start_soon_window::WINDOW_LABEL) {
-                        let position = Mouse::get_mouse_position();
-                        match position  {
-                            Mouse::Position { x,y } => {
-                                #[cfg(target_os = "windows")]
-                                window.set_position(PhysicalPosition::new(x + 10,y - 30)).unwrap();
-                                #[cfg(target_os = "macos")]
-                                window.set_position(LogicalPosition::new(x + 10,y - 30)).unwrap();
-                                std::thread::sleep(std::time::Duration::from_millis(5));
-                            }
-                            Mouse::Error => {}
-                        }
-                    } else {
-                        std::thread::sleep(std::time::Duration::from_secs(1));
-                    }
-                }
-            });
 
             Ok(())
         })
@@ -140,6 +126,8 @@ pub fn run() {
                     .app_handle()
                     .set_activation_policy(ActivationPolicy::Accessory)
                     .unwrap();
+
+                window.hide().unwrap();
             }
             WindowEvent::ScaleFactorChanged { .. } => {}
             WindowEvent::DragDrop(_) => {}
@@ -165,13 +153,15 @@ fn build_typescript_interfaces(
 }
 
 fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
-    let app_handle = app.handle();
     let timer_state = app.state::<TimerState>();
     let timer = timer_state
         .0
         .lock()
         .map_err(|e| format!("Failed to lock timer state: {}", e))?;
 
+    timer.register_callback(app.app_handle().clone());
+
+    /*
     timer.set_tick_callback(Box::new({
         let app_handle = app_handle.clone();
         move |time| {
@@ -188,7 +178,7 @@ fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
                 .map_err(|e| log::error!("Failed to show session window: {}", e))
                 .ok();
         }
-    }));
+    }));*/
 
     Ok(())
 }

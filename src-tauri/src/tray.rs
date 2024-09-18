@@ -1,3 +1,4 @@
+use crate::countdown_timer::EventTicker;
 use crate::pretty_time::PrettyTime;
 use crate::{session_window, settings_window};
 use std::time::Duration;
@@ -7,6 +8,7 @@ use tauri::{
     tray::TrayIconBuilder,
     Manager, Runtime,
 };
+use tauri_specta::Event;
 
 const TRAY_ID: &'static str = "tray";
 
@@ -54,8 +56,16 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
         })
         .build(main_app);
 
+    let app_handle_tray_update = main_app.clone();
+    EventTicker::listen(main_app.app_handle(), move |event| {
+        update_tray_title(&app_handle_tray_update, Duration::from_secs(event.payload.countdown as u64))
+            .map_err(|e| log::error!("Failed to update tray title: {}", e))
+            .ok();
+    });
+
     Ok(())
 }
+
 
 pub fn update_tray_title<R: Runtime>(
     app_handle: &tauri::AppHandle<R>,
@@ -65,7 +75,7 @@ pub fn update_tray_title<R: Runtime>(
         if duration > Duration::from_secs(1) {
             tray.set_title(Some(duration.to_pretty_time()))?;
         } else {
-            tray.set_title(Some("".to_string()))?;
+            tray.set_title::<String>(None)?;
         }
     }
     Ok(())

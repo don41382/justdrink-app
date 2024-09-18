@@ -1,13 +1,15 @@
+use std::cmp::PartialEq;
 use crate::model::event::{SettingsEvent};
 use crate::model::settings::SettingsDetails;
 use std::sync::{Mutex};
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{App, AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
+use crate::countdown_timer;
 
 const WINDOW_LABEL: &'static str = "settings";
 
-pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
+pub fn new(app: &AppHandle) -> Result<WebviewWindow, String> {
     let window = tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
@@ -28,6 +30,7 @@ pub fn new(app: &mut App) -> Result<WebviewWindow, String> {
         log::error!("Failed to build WebviewWindow: {:?}", e);
         "Failed to build WebviewWindow".to_string()
     })?;
+
     Ok(window)
 }
 
