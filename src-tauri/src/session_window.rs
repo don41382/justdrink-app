@@ -1,4 +1,6 @@
 use crate::menubar::set_persistent_presentation_mode;
+use std::thread::sleep;
+use std::time::Duration;
 
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
@@ -47,7 +49,7 @@ where
     )
         .title("Motion Minute Session")
         .transparent(true)
-        .visible(true)
+        .visible(false)
         .always_on_top(true)
         .decorations(false)
         .maximized(true)
@@ -57,11 +59,13 @@ where
     #[cfg(target_os = "windows")]
     let window = window.fullscreen(true);
 
-    window.build()
+    let window = window.build()
         .map_err(|e| {
             log::error!("Failed to build WebviewWindow: {:?}", e);
             "Failed to build WebviewWindow".to_string()
         })?;
+
+    window.show().unwrap();
 
     Ok(())
 }

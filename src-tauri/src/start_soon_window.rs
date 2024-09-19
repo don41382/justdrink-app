@@ -66,11 +66,10 @@ where
                     let position = Mouse::get_mouse_position();
                     match position {
                         Mouse::Position { x, y } => {
-                            let y_correction = 90;
                             #[cfg(target_os = "windows")]
-                            window.set_position(PhysicalPosition::new(x + 10, y - y_correction)).unwrap();
+                            window.set_position(PhysicalPosition::new(x + 20, y - 130)).unwrap();
                             #[cfg(target_os = "macos")]
-                            window.set_position(LogicalPosition::new(x + 10, y - y_correction as i32)).unwrap();
+                            window.set_position(LogicalPosition::new(x + 10, y - 90)).unwrap();
                         }
                         Mouse::Error => {}
                     }
