@@ -22,7 +22,7 @@ pub fn init(on_shake: Box<dyn Fn(MouseState) + Send + 'static>) {
                     window.push_back(x);
 
                     let vec = window.iter().map(|&x| x).collect::<Vec<i32>>();
-                    if is_mouse_shaking(vec, 5, 4) {
+                    if is_mouse_shaking(vec, 5, 3) {
                         on_shake(MouseState::SHAKE);
                         window.clear();
                     }

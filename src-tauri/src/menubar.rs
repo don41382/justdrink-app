@@ -24,6 +24,6 @@ pub fn set_persistent_presentation_mode(hide: bool) {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn set_persistent_presentation_mode(hide: bool) {
+pub fn set_persistent_presentation_mode(_hide: bool) {
     // No-op for non-macOS platforms
 }

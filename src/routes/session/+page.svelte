@@ -1,6 +1,6 @@
 <script lang="ts">
-    import {error, info} from '@tauri-apps/plugin-log';
-    import {commands, events, type SessionDetail} from '../../bindings';
+    import {info} from '@tauri-apps/plugin-log';
+    import {commands, type SessionDetail} from '../../bindings';
     import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
     import {fade} from 'svelte/transition';
@@ -62,6 +62,14 @@
         commands.closeWindow();
     }
 
+    function onKeyDown(e: KeyboardEvent) {
+        switch (e.key) {
+            case "Escape":
+                closeApp();
+                break;
+        }
+    }
+
 
     function formatCountdown(seconds: number): string {
         const minutes = Math.floor(seconds / 60);
@@ -71,17 +79,20 @@
 
 
     // allows no context menu
-    // document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
-<div in:fade={{duration: 1000}}
-     class="bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'}">
+<svelte:window on:keydown|preventDefault={onKeyDown}/>
+
+<div aria-pressed="true"
+     class="bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} cursor-default"
+     in:fade={{duration: 1000}}>
     <!-- background video -->
     <video
+            autoplay
             bind:this={backgroundVideo}
-            on:canplay={setBackgroundVideoReady}
             class="absolute w-full h-full object-cover blur-sm {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'}"
-            autoplay loop muted playsinline
+            loop muted on:canplay={setBackgroundVideoReady} playsinline
             preload="auto">
         <source src="/videos/bg-h264.mov" type="video/mp4">
         Your browser does not support the video tag.
@@ -106,8 +117,8 @@
             <span in:fade={{ delay: 100, duration: 1000 }}>{formatCountdown(countdownSeconds)}</span>
         </div>
 
-        <button on:click={closeApp}
-                class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center">
+        <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center"
+                on:click={closeApp}>
             {#if countdownSeconds && countdownSeconds > 0}
                 <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
                 Skip

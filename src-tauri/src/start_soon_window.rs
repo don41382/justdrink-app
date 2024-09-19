@@ -3,7 +3,14 @@ use crate::{countdown_timer, detect_mouse_state, settings_window};
 use mouse_position::mouse_position::Mouse;
 use std::thread::sleep;
 use std::time::Duration;
-use tauri::{AppHandle, LogicalPosition, Manager, Runtime, WebviewWindow};
+use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
+
+#[cfg(target_os = "windows")]
+use tauri::PhysicalPosition;
+
+#[cfg(target_os = "macos")]
+use tauri::LogicalPosition;
+
 use tauri_specta::Event;
 
 pub const WINDOW_LABEL: &'static str = "start_soon";
@@ -19,7 +26,7 @@ where
 
     let app_handle_show = app.clone();
     countdown_timer::EventTicker::listen(app, move |event| {
-        if event.payload.countdown > 0 && event.payload.countdown < 10 &&
+        if event.payload.countdown > 0 && event.payload.countdown < 5 &&
             !app_handle_show.get_webview_window(settings_window::WINDOW_LABEL).unwrap().is_visible().unwrap() {
             if let Some(window) = app_handle_show.get_webview_window(WINDOW_LABEL) {
                 window.show().unwrap()
@@ -92,6 +99,7 @@ where
         .skip_taskbar(true)
         .resizable(true)
         .transparent(true)
+        .shadow(false)
         .build()
         .map_err(|e| {
             log::error!("Failed to build WebviewWindow: {:?}", e);

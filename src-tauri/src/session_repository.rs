@@ -23,7 +23,7 @@ impl SessionRepository {
                 active: true,
             },
             SessionDetail {
-                id: "shoulder-circles".to_string(),
+                id: "shoulder-circle".to_string(),
                 title: "Shoulder Circles".to_string(),
                 description: "A gentle shoulder mobility exercise that relieves tension and promotes relaxation.".to_string(),
                 advices: vec![
