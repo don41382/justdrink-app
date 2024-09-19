@@ -12,10 +12,7 @@ pub enum MouseState {
 }
 
 
-pub fn init<R>(on_shake: Box<dyn Fn(MouseState) + Send + 'static>)
-where
-    R: Runtime,
-{
+pub fn init(on_shake: Box<dyn Fn(MouseState) + Send + 'static>) {
     const MAX_WINDOW: usize = 30;
     tauri::async_runtime::spawn(async move {
         let mut window = VecDeque::with_capacity(MAX_WINDOW);
