@@ -20,7 +20,7 @@ impl SessionRepository {
                     .iter().map(|s| s.to_string()).collect()
                 ,
                 duration_s: 60,
-                active: false,
+                active: true,
             },
             SessionDetail {
                 id: "shoulder-circles".to_string(),
@@ -48,7 +48,7 @@ impl SessionRepository {
                     "Perform this movement in a steady, fluid rhythm, paying attention to your breathing."
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 60,
-                active: false,
+                active: true,
             },
             SessionDetail {
                 id: "chair-squat".to_string(),
@@ -62,10 +62,10 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect()
                 ,
                 duration_s: 60,
-                active: false,
+                active: true,
             },
             SessionDetail {
-                id: "chin-tucks".to_string(),
+                id: "chin-tuck".to_string(),
                 title: "Chin Tucks".to_string(),
                 description: "A simple exercise to improve neck muscle endurance, relieve tension, and promote better posture.".to_string(),
                 advices: vec![
@@ -78,7 +78,7 @@ impl SessionRepository {
                     "This exercise may help relieve tension headaches, improve sitting posture, and reduce neck pain."
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 60,
-                active: false,
+                active: true,
             }
         ];
 

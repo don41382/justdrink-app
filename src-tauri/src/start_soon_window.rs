@@ -1,11 +1,9 @@
 use crate::countdown_timer::CountdownTimer;
 use crate::{countdown_timer, detect_mouse_state, settings_window};
-use log::error;
 use mouse_position::mouse_position::Mouse;
-use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::Duration;
-use tauri::{App, AppHandle, Emitter, Listener, LogicalPosition, Manager, PhysicalPosition, Runtime, Size, WebviewWindow};
+use tauri::{AppHandle, LogicalPosition, Manager, Runtime, WebviewWindow};
 use tauri_specta::Event;
 
 pub const WINDOW_LABEL: &'static str = "start_soon";

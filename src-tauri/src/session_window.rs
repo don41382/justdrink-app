@@ -30,7 +30,7 @@ where
     // stop current running timer
     app.state::<CountdownTimer>().stop();
 
-    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+    if let Some(_window) = app.get_webview_window(WINDOW_LABEL) {
         return Ok(());
     }
 
@@ -39,8 +39,6 @@ where
         .set_activation_policy(ActivationPolicy::Regular)
         .unwrap();
     set_persistent_presentation_mode(true);
-
-    println!("start window");
 
     let window = WebviewWindowBuilder::new(
         app,

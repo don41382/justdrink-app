@@ -1,10 +1,8 @@
-use crate::countdown_timer;
 use crate::model::event::SettingsEvent;
 use crate::model::settings::SettingsDetails;
-use std::cmp::PartialEq;
 use std::sync::Mutex;
 use tauri::utils::config::WindowEffectsConfig;
-use tauri::{App, AppHandle, Manager, WebviewWindow};
+use tauri::{AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";

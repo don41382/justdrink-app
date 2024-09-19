@@ -1,11 +1,7 @@
 use mouse_position::mouse_position::Mouse;
-use serde::{Deserialize, Serialize};
-use specta::Type;
 use std::collections::VecDeque;
 use std::thread::sleep;
 use std::time::Duration;
-use tauri::Runtime;
-use tauri_specta::Event;
 
 pub enum MouseState {
     SHAKE

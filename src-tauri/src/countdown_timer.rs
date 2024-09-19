@@ -1,12 +1,11 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use std::sync::{Arc, Mutex, TryLockResult};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::AppHandle;
 use tauri_specta::Event;
 use timer::{Guard, Timer};
 
-pub const EVENT_FINISHED: &'static str = "event_finished";
 const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(500);
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
@@ -49,16 +48,6 @@ impl CountdownTimer {
         }
     }
 
-
-    fn set_tick_callback(&self, callback: Box<dyn Fn(Duration) + Send + 'static>) {
-        let mut tick_cb = self.tick_callback.lock().unwrap();
-        *tick_cb = Some(callback);
-    }
-
-    fn set_status_callback(&self, callback: Box<dyn Fn(TickerStatus) + Send + 'static>) {
-        let mut finish_cb = self.status_callback.lock().unwrap();
-        *finish_cb = Some(callback);
-    }
 
     pub fn register_callback(&self, app_handle: AppHandle) {
         let mut cb_finished = self.status_callback.lock().unwrap();
