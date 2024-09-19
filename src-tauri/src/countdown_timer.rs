@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, TryLockResult};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_specta::Event;
@@ -29,7 +29,7 @@ pub struct CountdownTimer {
     timer: Timer,
     tick_callback: Arc<Mutex<Option<Box<dyn Fn(Duration) + Send + 'static>>>>,
     status_callback: Arc<Mutex<Option<Box<dyn Fn(TickerStatus) + Send + 'static>>>>,
-    duration: Mutex<Option<Duration>>,
+    duration: Arc<Mutex<Option<Duration>>>,
     remaining_time: Arc<Mutex<Duration>>,
     guard: Arc<Mutex<Option<Guard>>>,
     is_paused: Arc<Mutex<bool>>,
@@ -41,7 +41,7 @@ impl CountdownTimer {
             timer: Timer::new(),
             tick_callback: Arc::new(Mutex::new(None)),
             status_callback: Arc::new(Mutex::new(None)),
-            duration: Mutex::new(None),
+            duration: Arc::new(Mutex::new(None)),
             remaining_time: Arc::new(Mutex::new(Duration::ZERO)),
             guard: Arc::new(Mutex::new(None)),
             is_paused: Arc::new(Mutex::new(false)),
@@ -85,9 +85,17 @@ impl CountdownTimer {
             *rem_time = duration;
         };
 
-        println!("start again");
-
-        *self.duration.lock().unwrap() = Some(duration.clone());
+        {
+            match self.duration.try_lock() {
+                Ok(mut d) => {
+                    println!("works");
+                    *d = Some(duration);
+                }
+                Err(e) => {
+                    println!("there is a lock on it {:?}", e);
+                }
+            }
+        }
 
         let tick_cb = Arc::clone(&self.tick_callback);
         let finish_cb = Arc::clone(&self.status_callback);
@@ -100,29 +108,36 @@ impl CountdownTimer {
             .timer
             .schedule_repeating(chrono::Duration::seconds(1), move || {
                 // Check if paused
-                let paused = is_paused.lock().unwrap();
-                if *paused {
-                    return;
+                {
+                    let paused = is_paused.lock().unwrap();
+                    if *paused {
+                        return;
+                    }
+                    drop(paused); // Release the lock before proceeding
                 }
-                drop(paused); // Release the lock before proceeding
 
-                // Decrement the remaining time
-                let mut rem_time = rem_time.lock().unwrap();
-                *rem_time = *rem_time - Duration::from_secs(1);
+                let rem_time: Duration = {
+                    let mut rem_time = rem_time.lock().unwrap();
+                    *rem_time = *rem_time - Duration::from_secs(1);
+                    rem_time.clone()
+                };
 
                 if let Some(ref callback) = *tick_cb.lock().unwrap() {
-                    callback(*rem_time);
+                    callback(rem_time);
                 }
 
-                if *rem_time <= Duration::ZERO {
+                if rem_time <= Duration::ZERO {
+                    {
+                        // Stop the timer by dropping the guard
+                        let mut guard_lock = guard_arc.lock().unwrap();
+                        guard_lock.take(); // Dropping the guard cancels the timer
+                    }
+
+
                     // Time's up
                     if let Some(ref callback) = *finish_cb.lock().unwrap() {
                         callback(TickerStatus::FINISHED);
                     }
-
-                    // Stop the timer by dropping the guard
-                    let mut guard_lock = guard_arc.lock().unwrap();
-                    guard_lock.take(); // Dropping the guard cancels the timer
                 }
             });
 
@@ -148,21 +163,31 @@ impl CountdownTimer {
     /// Stops the countdown timer.
     pub fn stop(&self) {
         // Cancel the scheduled task by dropping the guard
-        let mut guard_lock = self.guard.lock().unwrap();
-        guard_lock.take();
+        {
+            let mut guard_lock = self.guard.lock().unwrap();
+            guard_lock.take();
+        }
 
         // Reset the remaining time
-        let mut rem_time = self.remaining_time.lock().unwrap();
-        *rem_time = Duration::ZERO;
+        {
+            let mut rem_time = self.remaining_time.lock().unwrap();
+            *rem_time = Duration::ZERO;
+        }
 
         // send zero callback
-        if let Some(ref callback) = *self.tick_callback.lock().unwrap() {
-            callback(Duration::ZERO);
+        {
+            if let Some(ref callback) = *self.tick_callback.lock().unwrap() {
+                callback(Duration::ZERO);
+            }
         }
     }
 
     pub fn restart(&self) {
-        if let Some(duration) = self.duration.lock().unwrap().take() {
+        let duration = {
+            let locked_duration = *self.duration.lock().unwrap();
+            locked_duration.clone()
+        };
+        if let Some(duration) = duration {
             self.start(duration);
         }
     }

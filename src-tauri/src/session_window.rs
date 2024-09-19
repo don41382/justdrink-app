@@ -3,9 +3,10 @@ use crate::menubar::set_persistent_presentation_mode;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
+use crate::countdown_timer;
+use crate::countdown_timer::CountdownTimer;
 use tauri::{AppHandle, EventId, Manager, WebviewWindowBuilder};
 use tauri_specta::Event;
-use crate::countdown_timer;
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -26,8 +27,11 @@ pub fn show<R>(app: &AppHandle<R>) -> Result<(), String>
 where
     R: tauri::Runtime,
 {
+    // stop current running timer
+    app.state::<CountdownTimer>().stop();
+
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
-        window.close().map_err(|_| "Failed to close window".to_string())?;
+        return Ok(());
     }
 
     #[cfg(target_os = "macos")]
@@ -35,6 +39,8 @@ where
         .set_activation_policy(ActivationPolicy::Regular)
         .unwrap();
     set_persistent_presentation_mode(true);
+
+    println!("start window");
 
     let window = WebviewWindowBuilder::new(
         app,

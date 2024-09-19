@@ -11,7 +11,7 @@ mod detect_mouse_state;
 
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::Mutex;
 use std::time::Duration;
 
 #[cfg(target_os = "macos")]
@@ -33,23 +33,20 @@ use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 #[tauri::command]
 fn update_settings(
     settings: SettingsDetails,
-    timer: State<TimerState>,
+    timer: State<CountdownTimer>,
     store_settings: State<Mutex<SettingsDetails>>,
 ) {
-    let session_timer = timer.0.lock().unwrap();
     *store_settings.lock().unwrap() = settings.clone();
-    sync_settings(settings, session_timer);
+    sync_settings(&settings, timer);
 }
 
 #[specta::specta]
 #[tauri::command]
 fn close_window(
     window: Window,
-    timer: State<TimerState>,
-    store_settings: State<Mutex<SettingsDetails>>,
+    timer: State<CountdownTimer>,
 ) {
-    let session_timer = timer.0.lock().unwrap();
-    sync_settings(store_settings.lock().unwrap().clone(), session_timer);
+    timer.restart();
     window.close().unwrap();
 }
 
@@ -59,9 +56,7 @@ fn load_session_details(session_repository: State<SessionRepository>) -> Session
     session_repository.pick_random_session().unwrap().clone()
 }
 
-struct TimerState(Arc<Mutex<CountdownTimer>>);
-
-fn sync_settings(settings: SettingsDetails, session_timer: MutexGuard<CountdownTimer>) {
+fn sync_settings(settings: &SettingsDetails, session_timer: State<CountdownTimer>) {
     if settings.active {
         session_timer.start(Duration::from_secs(
             settings.next_break_duration_minutes.into(),
@@ -97,11 +92,11 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(builder.invoke_handler())
-        .manage(TimerState(Arc::new(Mutex::new(CountdownTimer::new()))))
+        .manage(CountdownTimer::new())
         .manage(SessionRepository::new())
         .manage(Mutex::new(SettingsDetails {
-            active: false,
-            next_break_duration_minutes: 30,
+            active: true,
+            next_break_duration_minutes: 5,
         }))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
@@ -153,13 +148,15 @@ fn build_typescript_interfaces(
 }
 
 fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
-    let timer_state = app.state::<TimerState>();
-    let timer = timer_state
-        .0
-        .lock()
-        .map_err(|e| format!("Failed to lock timer state: {}", e))?;
-
+    let timer = app.state::<CountdownTimer>();
     timer.register_callback(app.app_handle().clone());
+
+    {
+        let settings = app.state::<Mutex<SettingsDetails>>().lock().unwrap().clone();
+        if settings.active {
+            timer.start(Duration::from_secs(settings.next_break_duration_minutes as u64));
+        }
+    }
 
     /*
     timer.set_tick_callback(Box::new({

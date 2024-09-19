@@ -1,4 +1,5 @@
-use crate::{countdown_timer, detect_mouse_state, TimerState};
+use crate::countdown_timer::CountdownTimer;
+use crate::{countdown_timer, detect_mouse_state, settings_window};
 use log::error;
 use mouse_position::mouse_position::Mouse;
 use std::sync::{Arc, Mutex};
@@ -20,7 +21,8 @@ where
 
     let app_handle_show = app.clone();
     countdown_timer::EventTicker::listen(app, move |event| {
-        if event.payload.countdown > 0 && event.payload.countdown < 10 {
+        if event.payload.countdown > 0 && event.payload.countdown < 10 &&
+            !app_handle_show.get_webview_window(settings_window::WINDOW_LABEL).unwrap().is_visible().unwrap() {
             if let Some(window) = app_handle_show.get_webview_window(WINDOW_LABEL) {
                 window.show().unwrap()
             }
@@ -36,8 +38,8 @@ where
     let app_handle_shake = app.app_handle().clone();
     detect_mouse_state::init(&mut app.app_handle(), Box::new(move |_| {
         if let Some(window) = app_handle_shake.get_webview_window(WINDOW_LABEL) {
-            let timer = app_handle_shake.state::<TimerState>();
-            timer.0.lock().unwrap().restart();
+            let timer = app_handle_shake.state::<CountdownTimer>();
+            timer.restart();
         }
     }));
 

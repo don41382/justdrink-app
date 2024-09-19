@@ -1,13 +1,13 @@
-use std::cmp::PartialEq;
-use crate::model::event::{SettingsEvent};
+use crate::countdown_timer;
+use crate::model::event::SettingsEvent;
 use crate::model::settings::SettingsDetails;
-use std::sync::{Mutex};
+use std::cmp::PartialEq;
+use std::sync::Mutex;
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{App, AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
-use crate::countdown_timer;
 
-const WINDOW_LABEL: &'static str = "settings";
+pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
 pub fn new(app: &AppHandle) -> Result<WebviewWindow, String> {
     let window = tauri::WebviewWindowBuilder::new(
@@ -15,21 +15,21 @@ pub fn new(app: &AppHandle) -> Result<WebviewWindow, String> {
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/settings".into()),
     )
-    .title("Settings")
-    .inner_size(800.0, 600.0)
-    .center()
-    .visible(false)
-    .always_on_top(true)
-    .transparent(true)
-    .decorations(true)
-    .skip_taskbar(false)
-    .effects(WindowEffectsConfig::default())
-    .resizable(false)
-    .build()
-    .map_err(|e| {
-        log::error!("Failed to build WebviewWindow: {:?}", e);
-        "Failed to build WebviewWindow".to_string()
-    })?;
+        .title("Settings")
+        .inner_size(800.0, 600.0)
+        .center()
+        .visible(false)
+        .always_on_top(true)
+        .transparent(true)
+        .decorations(true)
+        .skip_taskbar(false)
+        .effects(WindowEffectsConfig::default())
+        .resizable(false)
+        .build()
+        .map_err(|e| {
+            log::error!("Failed to build WebviewWindow: {:?}", e);
+            "Failed to build WebviewWindow".to_string()
+        })?;
 
     Ok(window)
 }
@@ -45,8 +45,8 @@ where
             SettingsEvent {
                 details: settings.lock().unwrap().clone(),
             }
-            .emit(&window.app_handle().clone())
-            .unwrap();
+                .emit(&window.app_handle().clone())
+                .unwrap();
 
             Ok(())
         }
