@@ -9,7 +9,7 @@
     import VideoPlayer from "./VideoPlayer.svelte";
 
     let session: SessionDetail | undefined = undefined;
-    let countdownSeconds: number;
+    let countdownSeconds: number | undefined;
     let countdownInterval: number | undefined;
 
     let backgroundVideo: HTMLVideoElement;
@@ -108,13 +108,20 @@
                 <AdviceMessage advices={session.advices}/>
             </div>
             <div class="flex-none w-full flex items-center justify-center">
-                <VideoPlayer filename="{session.id}/{session.id}" class="max-h-[500px]"/>
+                <div out:fade={{ duration: 1000 }}>
+                    <VideoPlayer filename="{session.id}/{session.id}" class="max-h-[500px]"/>
+                </div>
             </div>
         {/if}
     </div>
     <div class="absolute bottom-14 right-14 z-50 text-gray-600 flex flex-col items-center">
         <div class="text-3xl mb-6">
-            <span in:fade={{ delay: 100, duration: 1000 }}>{formatCountdown(countdownSeconds)}</span>
+            {#if countdownSeconds && countdownSeconds > 0}
+                <span in:fade={{ delay: 100, duration: 1000 }}
+                      out:fade={{ delay: 100, duration: 1000 }}>
+                    {formatCountdown(countdownSeconds)}
+                </span>
+            {/if}
         </div>
 
         <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center"

@@ -19,7 +19,7 @@ impl SessionRepository {
                     "Very important: Perform the head circles very slowly and consciously, and avoid hasty, thoughtless movements."]
                     .iter().map(|s| s.to_string()).collect()
                 ,
-                duration_s: 60,
+                duration_s: 30,
                 active: true,
             },
             SessionDetail {
@@ -33,7 +33,7 @@ impl SessionRepository {
                     "Breathe deeply and evenly to maximize relaxation and tension relief."]
                     .iter().map(|s| s.to_string()).collect()
                 ,
-                duration_s: 60,
+                duration_s: 30,
                 active: true,
             },
             SessionDetail {
@@ -47,7 +47,7 @@ impl SessionRepository {
                     "Notice the tension in your core as the arch in your lower back flattens slightly.",
                     "Perform this movement in a steady, fluid rhythm, paying attention to your breathing."
                 ].iter().map(|s| s.to_string()).collect(),
-                duration_s: 60,
+                duration_s: 30,
                 active: true,
             },
             SessionDetail {
@@ -77,7 +77,7 @@ impl SessionRepository {
                     "You should feel a gentle stretch at the back of your neck and slight muscle engagement at the front.",
                     "This exercise may help relieve tension headaches, improve sitting posture, and reduce neck pain."
                 ].iter().map(|s| s.to_string()).collect(),
-                duration_s: 60,
+                duration_s: 20,
                 active: true,
             }
         ];

@@ -36,6 +36,7 @@ fn update_settings(
     timer: State<CountdownTimer>,
     store_settings: State<Mutex<SettingsDetails>>,
 ) {
+    println!("settings: {:?}", settings);
     *store_settings.lock().unwrap() = settings.clone();
     sync_settings(&settings, timer);
 }
@@ -96,7 +97,7 @@ pub fn run() {
         .manage(SessionRepository::new())
         .manage(Mutex::new(SettingsDetails {
             active: true,
-            next_break_duration_minutes: 120,
+            next_break_duration_minutes: 60,
         }))
         .setup(move |app| {
             builder.mount_events(app.app_handle());

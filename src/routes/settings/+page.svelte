@@ -8,6 +8,7 @@
 
     let sessionStartListenerUnregister: UnlistenFn;
     let closeRequestUnregister: UnlistenFn;
+    let next_break_duration_minutes: string = ""
 
     let settings: SettingsDetails | undefined = undefined;
 
@@ -18,6 +19,8 @@
             await info("show settings");
 
             settings = payload.details
+            next_break_duration_minutes = settings.next_break_duration_minutes.toString()
+
             const window = getCurrentWindow();
             await window.show();
             await window.setFocus();
@@ -38,7 +41,10 @@
 
     function submit() {
         if (settings) {
-            info(`submit: ${settings.active}`);
+            info(`submit: ${settings.next_break_duration_minutes}`);
+            if (next_break_duration_minutes) {
+                settings.next_break_duration_minutes = parseInt(next_break_duration_minutes);
+            }
             commands.updateSettings(settings);
         }
     }
@@ -81,14 +87,17 @@
                         <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-700">Next session</span>
-                                <input type="number"
-                                       class="p-2 border rounded-l shadow-sm text-right placeholder-right text-black w-24"
-                                       maxlength="2" pattern="\d{1,2}" required inputmode="numeric" placeholder="min"
-                                       on:change={submit}
-                                       bind:value="{settings.next_break_duration_minutes}">
+                                <select class="p-2 border rounded-l shadow-sm text-right text-black w-24"
+                                        bind:value={next_break_duration_minutes}
+                                        on:change={submit}>
+                                    <option value=10>10 min</option>
+                                    <option value=30>30 min</option>
+                                    <option value=60>1 hour</option>
+                                    <option value=120>2 hours</option>
+                                    <option value=180>3 hours</option>
+                                </select>
                             </div>
-                            <p class="text-gray-500 text-sm mt-1">Minutes until next session</p>
-
+                            <p class="text-gray-500 text-sm mt-1">Time until the next session</p>
                         </label>
                     </div>
                 </div>
