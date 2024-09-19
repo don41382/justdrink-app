@@ -36,7 +36,7 @@ where
     });
 
     let app_handle_shake = app.app_handle().clone();
-    detect_mouse_state::init(&mut app.app_handle(), Box::new(move |_| {
+    detect_mouse_state::init(Box::new(move |_| {
         if let Some(window) = app_handle_shake.get_webview_window(WINDOW_LABEL) {
             let timer = app_handle_shake.state::<CountdownTimer>();
             timer.restart();

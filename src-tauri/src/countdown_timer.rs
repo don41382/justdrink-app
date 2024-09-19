@@ -7,6 +7,7 @@ use tauri_specta::Event;
 use timer::{Guard, Timer};
 
 pub const EVENT_FINISHED: &'static str = "event_finished";
+const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(500);
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct EventTicker {
@@ -88,7 +89,6 @@ impl CountdownTimer {
         {
             match self.duration.try_lock() {
                 Ok(mut d) => {
-                    println!("works");
                     *d = Some(duration);
                 }
                 Err(e) => {
@@ -106,7 +106,7 @@ impl CountdownTimer {
         // Schedule the repeating task
         let guard = self
             .timer
-            .schedule_repeating(chrono::Duration::seconds(1), move || {
+            .schedule_repeating(TICKER_SPEED_MS, move || {
                 // Check if paused
                 {
                     let paused = is_paused.lock().unwrap();
@@ -118,7 +118,7 @@ impl CountdownTimer {
 
                 let rem_time: Duration = {
                     let mut rem_time = rem_time.lock().unwrap();
-                    *rem_time = *rem_time - Duration::from_secs(1);
+                    *rem_time = *rem_time - Duration::from_millis(TICKER_SPEED_MS.num_milliseconds() as u64);
                     rem_time.clone()
                 };
 

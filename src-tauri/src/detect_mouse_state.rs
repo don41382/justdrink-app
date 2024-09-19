@@ -4,7 +4,7 @@ use specta::Type;
 use std::collections::VecDeque;
 use std::thread::sleep;
 use std::time::Duration;
-use tauri::{AppHandle, Runtime};
+use tauri::Runtime;
 use tauri_specta::Event;
 
 pub enum MouseState {
@@ -12,12 +12,11 @@ pub enum MouseState {
 }
 
 
-pub fn init<R>(app: &mut &AppHandle<R>, on_shake: Box<dyn Fn(MouseState) + Send + 'static>)
+pub fn init<R>(on_shake: Box<dyn Fn(MouseState) + Send + 'static>)
 where
     R: Runtime,
 {
-    let app_handler = app.clone();
-    const MAX_WINDOW: usize = 20;
+    const MAX_WINDOW: usize = 30;
     tauri::async_runtime::spawn(async move {
         let mut window = VecDeque::with_capacity(MAX_WINDOW);
         loop {
@@ -30,7 +29,7 @@ where
                     window.push_back(x);
 
                     let vec = window.iter().map(|&x| x).collect::<Vec<i32>>();
-                    if is_mouse_shaking(vec, 10, 5) {
+                    if is_mouse_shaking(vec, 5, 4) {
                         on_shake(MouseState::SHAKE);
                         window.clear();
                     }

@@ -96,7 +96,7 @@ pub fn run() {
         .manage(SessionRepository::new())
         .manage(Mutex::new(SettingsDetails {
             active: true,
-            next_break_duration_minutes: 5,
+            next_break_duration_minutes: 120,
         }))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
