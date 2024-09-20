@@ -15,8 +15,8 @@ where
     R: tauri::Runtime + 'static,
 {
     let app_handle = app.clone();
-    countdown_timer::EventTickerStatus::listen(app, move |status| {
-        if status.payload.status == countdown_timer::TickerStatus::FINISHED {
+    countdown_timer::CountdownEvent::listen(app, move |status| {
+        if status.payload.status == countdown_timer::CountdownStatus::Finished {
             start(&app_handle).unwrap();
         }
     })

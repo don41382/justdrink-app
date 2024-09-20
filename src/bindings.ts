@@ -38,13 +38,13 @@ async loadSessionDetails() : Promise<Result<SessionDetail, string>> {
 
 
 export const events = __makeEvents__<{
-eventTicker: EventTicker,
-eventTickerStatus: EventTickerStatus,
+countdownEvent: CountdownEvent,
+countdownStatus: CountdownStatus,
 sessionStartEvent: SessionStartEvent,
 settingsEvent: SettingsEvent
 }>({
-eventTicker: "event-ticker",
-eventTickerStatus: "event-ticker-status",
+countdownEvent: "countdown-event",
+countdownStatus: "countdown-status",
 sessionStartEvent: "session-start-event",
 settingsEvent: "settings-event"
 })
@@ -55,13 +55,12 @@ settingsEvent: "settings-event"
 
 /** user-defined types **/
 
-export type EventTicker = { countdown: number }
-export type EventTickerStatus = { status: TickerStatus }
+export type CountdownEvent = { status: CountdownStatus }
+export type CountdownStatus = "Start" | { RunningSeconds: { countdown_seconds: number } } | "Finished"
 export type SessionDetail = { id: string; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
 export type SessionStartEvent = { details: SessionDetail }
 export type SettingsDetails = { next_break_duration_minutes: number; active: boolean }
 export type SettingsEvent = { details: SettingsDetails }
-export type TickerStatus = "START" | "FINISHED"
 
 /** tauri-specta globals **/
 

@@ -1,4 +1,4 @@
-use crate::countdown_timer::EventTicker;
+use crate::countdown_timer::{CountdownEvent, CountdownStatus};
 use crate::pretty_time::PrettyTime;
 use crate::{session_window, settings_window};
 use std::time::Duration;
@@ -57,12 +57,23 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
         .build(main_app);
 
     let app_handle_tray_update = main_app.clone();
-    EventTicker::listen(main_app.app_handle(), move |event| {
+    CountdownEvent::listen(main_app.app_handle(), move |event| {
+        let update: Option<Duration> = match event.payload.status {
+            CountdownStatus::Start => {
+                None
+            }
+            CountdownStatus::RunningSeconds { countdown_seconds } => {
+                Some(Duration::from_secs(countdown_seconds as u64))
+            }
+            CountdownStatus::Finished => {
+                None
+            }
+        };
+
         update_tray_title(
             &app_handle_tray_update,
-            Duration::from_secs(event.payload.countdown as u64),
-        )
-            .map_err(|e| log::error!("Failed to update tray title: {}", e))
+            update,
+        ).map_err(|e| log::error!("Failed to update tray title: {}", e))
             .ok();
     });
 
@@ -71,13 +82,16 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
 
 pub fn update_tray_title<R: Runtime>(
     app_handle: &tauri::AppHandle<R>,
-    duration: Duration,
+    duration: Option<Duration>,
 ) -> tauri::Result<()> {
     if let Some(tray) = app_handle.tray_by_id(TRAY_ID) {
-        if duration > Duration::from_secs(1) {
-            tray.set_title(Some(duration.to_pretty_time()))?;
-        } else {
-            tray.set_title::<String>(None)?;
+        match duration {
+            None => {
+                tray.set_title::<String>(None)?;
+            }
+            Some(duration) => {
+                tray.set_title(Some(duration.to_pretty_time()))?;
+            }
         }
     }
     Ok(())

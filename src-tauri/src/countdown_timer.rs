@@ -1,3 +1,4 @@
+use crate::countdown_timer::CountdownStatus::{Finished, RunningSeconds};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::sync::{Arc, Mutex};
@@ -8,26 +9,22 @@ use timer::{Guard, Timer};
 
 const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(500);
 
-#[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
-pub struct EventTicker {
-    pub countdown: u32,
+#[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
+pub struct CountdownEvent {
+    pub(crate) status: CountdownStatus,
 }
+
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
-pub enum TickerStatus {
-    START,
-    FINISHED,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
-pub struct EventTickerStatus {
-    pub status: TickerStatus,
+pub enum CountdownStatus {
+    Start,
+    RunningSeconds { countdown_seconds: u32 },
+    Finished,
 }
 
 pub struct CountdownTimer {
     timer: Timer,
-    tick_callback: Arc<Mutex<Option<Box<dyn Fn(Duration) + Send + 'static>>>>,
-    status_callback: Arc<Mutex<Option<Box<dyn Fn(TickerStatus) + Send + 'static>>>>,
+    tick_callback: Arc<Mutex<Option<Box<dyn Fn(CountdownStatus) + Send + 'static>>>>,
     duration: Arc<Mutex<Option<Duration>>>,
     remaining_time: Arc<Mutex<Duration>>,
     guard: Arc<Mutex<Option<Guard>>>,
@@ -39,7 +36,6 @@ impl CountdownTimer {
         CountdownTimer {
             timer: Timer::new(),
             tick_callback: Arc::new(Mutex::new(None)),
-            status_callback: Arc::new(Mutex::new(None)),
             duration: Arc::new(Mutex::new(None)),
             remaining_time: Arc::new(Mutex::new(Duration::ZERO)),
             guard: Arc::new(Mutex::new(None)),
@@ -48,26 +44,14 @@ impl CountdownTimer {
     }
 
     pub fn register_callback(&self, app_handle: AppHandle) {
-        let mut cb_finished = self.status_callback.lock().unwrap();
         let mut cb_tick = self.tick_callback.lock().unwrap();
-
-        *cb_finished = Some(Box::new({
-            let app_handle_finish = app_handle.clone();
-            move |status| {
-                EventTickerStatus { status }
-                    .emit(&app_handle_finish)
-                    .unwrap();
-            }
-        }));
 
         *cb_tick = Some(Box::new({
             let app_handle_ticker = app_handle.clone();
             move |tick| {
-                EventTicker {
-                    countdown: tick.as_secs() as u32,
-                }
-                .emit(&app_handle_ticker)
-                .unwrap();
+                CountdownEvent {
+                    status: tick.clone()
+                }.emit(&app_handle_ticker).unwrap();
             }
         }));
     }
@@ -91,10 +75,15 @@ impl CountdownTimer {
         }
 
         let tick_cb = Arc::clone(&self.tick_callback);
-        let finish_cb = Arc::clone(&self.status_callback);
         let rem_time = Arc::clone(&self.remaining_time);
         let is_paused = Arc::clone(&self.is_paused);
         let guard_arc = Arc::clone(&self.guard);
+
+        {
+            if let Some(ref callback) = *tick_cb.lock().unwrap() {
+                callback(CountdownStatus::Start);
+            }
+        }
 
         // Schedule the repeating task
         let guard = self.timer.schedule_repeating(TICKER_SPEED_MS, move || {
@@ -114,8 +103,10 @@ impl CountdownTimer {
                 rem_time.clone()
             };
 
-            if let Some(ref callback) = *tick_cb.lock().unwrap() {
-                callback(rem_time);
+            {
+                if let Some(ref callback) = *tick_cb.lock().unwrap() {
+                    callback(RunningSeconds { countdown_seconds: rem_time.as_secs() as u32 });
+                }
             }
 
             if rem_time <= Duration::ZERO {
@@ -125,9 +116,11 @@ impl CountdownTimer {
                     guard_lock.take(); // Dropping the guard cancels the timer
                 }
 
-                // Time's up
-                if let Some(ref callback) = *finish_cb.lock().unwrap() {
-                    callback(TickerStatus::FINISHED);
+                {
+                    // Time's up
+                    if let Some(ref callback) = *tick_cb.lock().unwrap() {
+                        callback(Finished);
+                    }
                 }
             }
         });
@@ -168,7 +161,7 @@ impl CountdownTimer {
         // send zero callback
         {
             if let Some(ref callback) = *self.tick_callback.lock().unwrap() {
-                callback(Duration::ZERO);
+                callback(Finished);
             }
         }
     }

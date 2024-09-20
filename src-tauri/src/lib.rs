@@ -92,8 +92,8 @@ pub fn run() {
         collect_events![
             model::event::SessionStartEvent,
             model::event::SettingsEvent,
-            countdown_timer::EventTicker,
-            countdown_timer::EventTickerStatus,
+            countdown_timer::CountdownEvent,
+            countdown_timer::CountdownStatus,
         ],
     )
         .unwrap();
