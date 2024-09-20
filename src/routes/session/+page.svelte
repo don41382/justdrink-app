@@ -33,7 +33,12 @@
     }
 
     onMount(async () => {
-        setup(await commands.loadSessionDetails());
+        let res = await commands.loadSessionDetails();
+        if (res.status === "ok") {
+            setup(res.data);
+        } else {
+            alert(`An error occurred while loading session details: ${res.error}`);
+        }
 
         const window = getCurrentWindow()
         await window.setFocus()

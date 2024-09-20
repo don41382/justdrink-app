@@ -70,8 +70,19 @@ fn close_window(window: Window, timer: State<CountdownTimer>) {
 
 #[specta::specta]
 #[tauri::command]
-fn load_session_details(session_repository: State<SessionRepository>) -> SessionDetail {
-    session_repository.pick_random_session().unwrap().clone()
+fn load_session_details(session_repository: State<Mutex<SessionRepository>>) -> Result<SessionDetail, String> {
+    {
+        let mut repo = session_repository.lock().unwrap();
+        match repo.pick_random_session() {
+            None => {
+                error!("no session found - this should not happen");
+                Err("could not find a session".to_string())
+            }
+            Some(session) => {
+                Ok(session.clone())
+            }
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -102,7 +113,7 @@ pub fn run() {
         )
         .invoke_handler(builder.invoke_handler())
         .manage(CountdownTimer::new())
-        .manage(SessionRepository::new())
+        .manage(Mutex::new(SessionRepository::new()))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
 

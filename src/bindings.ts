@@ -24,8 +24,13 @@ async startFirstSession(nextBreakDurationMinutes: number) : Promise<Result<null,
     else return { status: "error", error: e  as any };
 }
 },
-async loadSessionDetails() : Promise<SessionDetail> {
-    return await TAURI_INVOKE("load_session_details");
+async loadSessionDetails() : Promise<Result<SessionDetail, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("load_session_details") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

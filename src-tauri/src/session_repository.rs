@@ -1,11 +1,14 @@
 use crate::model::session::SessionDetail;
 use rand::seq::IteratorRandom;
+use std::collections::HashSet;
 
 pub struct SessionRepository {
     sessions: Vec<SessionDetail>,
+    picked_sessions: HashSet<usize>, // Track indices of picked sessions
 }
 
 impl SessionRepository {
+    // Initialize the repository with predefined sessions and an empty set of picked sessions
     pub fn new() -> Self {
         let initial_sessions = vec![
             SessionDetail {
@@ -17,8 +20,7 @@ impl SessionRepository {
                     "Relax your shoulders and begin to slowly circle your head.",
                     "Start with a smaller range of motion. Decide for yourself how far you want to go into the stretch.",
                     "Very important: Perform the head circles very slowly and consciously, and avoid hasty, thoughtless movements."]
-                    .iter().map(|s| s.to_string()).collect()
-                ,
+                    .iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
             },
@@ -31,8 +33,7 @@ impl SessionRepository {
                     "Gradually increase the range of motion, making the circles larger.",
                     "Lift your shoulders up towards your ears during the movement for added stretch.",
                     "Breathe deeply and evenly to maximize relaxation and tension relief."]
-                    .iter().map(|s| s.to_string()).collect()
-                ,
+                    .iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
             },
@@ -47,21 +48,20 @@ impl SessionRepository {
                     "Notice the tension in your core as the arch in your lower back flattens slightly.",
                     "Perform this movement in a steady, fluid rhythm, paying attention to your breathing."
                 ].iter().map(|s| s.to_string()).collect(),
-                duration_s: 30,
+                duration_s: 20,
                 active: true,
             },
             SessionDetail {
                 id: "chair-squat".to_string(),
                 title: "Chair Squat".to_string(),
-                description: "A effective bodyweight exercise to strengthen triceps, shoulders, and chest using a sturdy chair or bench.".to_string(),
+                description: "An effective bodyweight exercise to strengthen triceps, shoulders, and chest using a sturdy chair or bench.".to_string(),
                 advices: vec![
                     "Lower your body by bending your elbows to a 90-degree angle while inhaling.",
                     "Push back up to the starting position, fully extending your arms while exhaling.",
                     "Maintain relaxed shoulders and a neutral neck position to avoid strain.",
                     "Perform slow, controlled movements for better muscle engagement and injury prevention.",
-                ].iter().map(|s| s.to_string()).collect()
-                ,
-                duration_s: 60,
+                ].iter().map(|s| s.to_string()).collect(),
+                duration_s: 30,
                 active: true,
             },
             SessionDetail {
@@ -84,11 +84,32 @@ impl SessionRepository {
 
         SessionRepository {
             sessions: initial_sessions,
+            picked_sessions: HashSet::new(), // Initialize with an empty set
         }
     }
 
-    pub fn pick_random_session(&self) -> Option<&SessionDetail> {
+    // This method ensures that all sessions are picked once before repeating
+    pub fn pick_random_session(&mut self) -> Option<&SessionDetail> {
+        // If all sessions have been picked, reset the picked list
+        if self.picked_sessions.len() == self.sessions.len() {
+            self.picked_sessions.clear();
+        }
+
+        // Filter active sessions that haven't been picked
         let mut rng = rand::thread_rng();
-        self.sessions.iter().filter(|s| s.active).choose(&mut rng)
+        let available_sessions: Vec<(usize, &SessionDetail)> = self.sessions
+            .iter()
+            .enumerate()
+            .filter(|(i, s)| s.active && !self.picked_sessions.contains(i))
+            .collect();
+
+        // Randomly choose one of the available sessions
+        if let Some((index, session)) = available_sessions.into_iter().choose(&mut rng) {
+            // Add the index of the picked session to the picked_sessions set
+            self.picked_sessions.insert(index);
+            Some(session)
+        } else {
+            None
+        }
     }
 }
