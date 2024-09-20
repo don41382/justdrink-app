@@ -1,15 +1,12 @@
 use crate::countdown_timer::CountdownTimer;
 use crate::model::event::SettingsEvent;
-use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsDetails;
 use log::error;
-use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::Duration;
-use tauri::path::BaseDirectory;
 use tauri::utils::config::WindowEffectsConfig;
-use tauri::{AppHandle, Error, Manager, WebviewWindow, Wry};
+use tauri::{AppHandle, Manager, WebviewWindow, Wry};
 use tauri_plugin_store::{with_store, StoreCollection};
 use tauri_specta::Event;
 
@@ -49,7 +46,7 @@ fn load_settings(app: &AppHandle) -> Result<SettingsDetails, anyhow::Error> {
 pub fn set_settings(app: &AppHandle, settings: SettingsDetails) -> Result<(), String> {
     let timer = app.state::<CountdownTimer>();
     {
-        let mut settings_session = app.state::<Mutex<SettingsDetails>>();
+        let settings_session = app.state::<Mutex<SettingsDetails>>();
         *settings_session.lock().unwrap() = settings.clone();
     }
 
