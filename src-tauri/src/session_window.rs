@@ -1,6 +1,4 @@
 use crate::menubar::set_persistent_presentation_mode;
-use std::thread::sleep;
-use std::time::Duration;
 
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
@@ -42,31 +40,26 @@ where
         .unwrap();
     set_persistent_presentation_mode(true);
 
-    let window = WebviewWindowBuilder::new(
-        app,
-        WINDOW_LABEL,
-        tauri::WebviewUrl::App("/session".into()),
-    )
-        .title("Motion Minute Session")
-        .transparent(true)
-        .visible(false)
-        .always_on_top(true)
-        .decorations(false)
-        .maximized(true)
-        .skip_taskbar(true)
-        .resizable(false);
+    let window =
+        WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App("/session".into()))
+            .title("Motion Minute Session")
+            .transparent(true)
+            .visible(false)
+            .always_on_top(true)
+            .decorations(false)
+            .maximized(true)
+            .skip_taskbar(true)
+            .resizable(false);
 
     #[cfg(target_os = "windows")]
     let window = window.fullscreen(true);
 
-    let window = window.build()
-        .map_err(|e| {
-            log::error!("Failed to build WebviewWindow: {:?}", e);
-            "Failed to build WebviewWindow".to_string()
-        })?;
+    let window = window.build().map_err(|e| {
+        log::error!("Failed to build WebviewWindow: {:?}", e);
+        "Failed to build WebviewWindow".to_string()
+    })?;
 
     window.show().unwrap();
 
     Ok(())
 }
-

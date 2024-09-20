@@ -15,7 +15,6 @@ use tauri_specta::Event;
 
 pub const WINDOW_LABEL: &'static str = "start_soon";
 
-
 pub fn init<R>(mut app: &AppHandle<R>) -> Result<(), String>
 where
     R: Runtime,
@@ -26,8 +25,14 @@ where
 
     let app_handle_show = app.clone();
     countdown_timer::EventTicker::listen(app, move |event| {
-        if event.payload.countdown > 0 && event.payload.countdown < 5 &&
-            !app_handle_show.get_webview_window(settings_window::WINDOW_LABEL).unwrap().is_visible().unwrap() {
+        if event.payload.countdown > 0
+            && event.payload.countdown < 5
+            && !app_handle_show
+                .get_webview_window(settings_window::WINDOW_LABEL)
+                .unwrap()
+                .is_visible()
+                .unwrap()
+        {
             if let Some(window) = app_handle_show.get_webview_window(WINDOW_LABEL) {
                 window.show().unwrap()
             }
@@ -67,9 +72,13 @@ where
                     match position {
                         Mouse::Position { x, y } => {
                             #[cfg(target_os = "windows")]
-                            window.set_position(PhysicalPosition::new(x + 20, y - 130)).unwrap();
+                            window
+                                .set_position(PhysicalPosition::new(x + 20, y - 130))
+                                .unwrap();
                             #[cfg(target_os = "macos")]
-                            window.set_position(LogicalPosition::new(x + 10, y - 90)).unwrap();
+                            window
+                                .set_position(LogicalPosition::new(x + 10, y - 90))
+                                .unwrap();
                         }
                         Mouse::Error => {}
                     }
@@ -89,20 +98,20 @@ where
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/startsoon".into()),
     )
-        .title("Start Soon Message")
-        .center()
-        .visible(false)
-        .always_on_top(true)
-        .transparent(true)
-        .decorations(false)
-        .skip_taskbar(true)
-        .resizable(true)
-        .transparent(true)
-        .shadow(false)
-        .build()
-        .map_err(|e| {
-            log::error!("Failed to build WebviewWindow: {:?}", e);
-            "Failed to build WebviewWindow".to_string()
-        })?;
+    .title("Start Soon Message")
+    .center()
+    .visible(false)
+    .always_on_top(true)
+    .transparent(true)
+    .decorations(false)
+    .skip_taskbar(true)
+    .resizable(true)
+    .transparent(true)
+    .shadow(false)
+    .build()
+    .map_err(|e| {
+        log::error!("Failed to build WebviewWindow: {:?}", e);
+        "Failed to build WebviewWindow".to_string()
+    })?;
     Ok(window)
 }

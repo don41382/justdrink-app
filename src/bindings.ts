@@ -8,8 +8,13 @@ export const commands = {
 async closeWindow() : Promise<void> {
     await TAURI_INVOKE("close_window");
 },
-async updateSettings(settings: SettingsDetails) : Promise<void> {
-    await TAURI_INVOKE("update_settings", { settings });
+async updateSettings(settings: SettingsDetails) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_settings", { settings }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 async loadSessionDetails() : Promise<SessionDetail> {
     return await TAURI_INVOKE("load_session_details");

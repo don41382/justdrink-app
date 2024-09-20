@@ -1,19 +1,19 @@
 mod countdown_timer;
+mod detect_mouse_state;
 mod menubar;
 mod model;
 mod pretty_time;
 mod session_repository;
 mod session_window;
 mod settings_window;
-mod tray;
 mod start_soon_window;
-mod detect_mouse_state;
+mod tray;
 
+use log::error;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
 use std::time::Duration;
-
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
@@ -25,28 +25,23 @@ use crate::session_repository::SessionRepository;
 #[cfg(target_os = "windows")]
 use tauri::PhysicalPosition;
 
-use tauri::{App, Manager, State, Window, WindowEvent};
+use tauri::{App, AppHandle, Manager, State, Window, WindowEvent};
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
 #[specta::specta]
 #[tauri::command]
-fn update_settings(
-    settings: SettingsDetails,
-    timer: State<CountdownTimer>,
-    store_settings: State<Mutex<SettingsDetails>>,
-) {
-    println!("settings: {:?}", settings);
-    *store_settings.lock().unwrap() = settings.clone();
-    sync_settings(&settings, timer);
+fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> Result<(), String> {
+    settings_window::set_settings(&app_handle, settings).map_err(|err| {
+        error!("error while trying to save settings: {:?}", err);
+        format!("error during update settings: {:?}", err)
+    })?;
+    Ok(())
 }
 
 #[specta::specta]
 #[tauri::command]
-fn close_window(
-    window: Window,
-    timer: State<CountdownTimer>,
-) {
+fn close_window(window: Window, timer: State<CountdownTimer>) {
     timer.restart();
     window.close().unwrap();
 }
@@ -55,16 +50,6 @@ fn close_window(
 #[tauri::command]
 fn load_session_details(session_repository: State<SessionRepository>) -> SessionDetail {
     session_repository.pick_random_session().unwrap().clone()
-}
-
-fn sync_settings(settings: &SettingsDetails, session_timer: State<CountdownTimer>) {
-    if settings.active {
-        session_timer.start(Duration::from_secs(
-            settings.next_break_duration_minutes.into(),
-        ));
-    } else {
-        session_timer.stop();
-    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -78,9 +63,10 @@ pub fn run() {
             countdown_timer::EventTickerStatus,
         ],
     )
-        .unwrap();
+    .unwrap();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(
@@ -95,12 +81,10 @@ pub fn run() {
         .invoke_handler(builder.invoke_handler())
         .manage(CountdownTimer::new())
         .manage(SessionRepository::new())
-        .manage(Mutex::new(SettingsDetails {
-            active: true,
-            next_break_duration_minutes: 60,
-        }))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
+
+            app.manage(Mutex::new(settings_window::get_settings(app.app_handle())));
 
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;
@@ -153,9 +137,15 @@ fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     timer.register_callback(app.app_handle().clone());
 
     {
-        let settings = app.state::<Mutex<SettingsDetails>>().lock().unwrap().clone();
+        let settings = app
+            .state::<Mutex<SettingsDetails>>()
+            .lock()
+            .unwrap()
+            .clone();
         if settings.active {
-            timer.start(Duration::from_secs(settings.next_break_duration_minutes as u64));
+            timer.start(Duration::from_secs(
+                settings.next_break_duration_minutes as u64,
+            ));
         }
     }
 

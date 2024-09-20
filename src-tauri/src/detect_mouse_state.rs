@@ -4,9 +4,8 @@ use std::thread::sleep;
 use std::time::Duration;
 
 pub enum MouseState {
-    SHAKE
+    SHAKE,
 }
-
 
 pub fn init(on_shake: Box<dyn Fn(MouseState) + Send + 'static>) {
     const MAX_WINDOW: usize = 30;

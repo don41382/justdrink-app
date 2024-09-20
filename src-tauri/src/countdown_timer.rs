@@ -24,7 +24,6 @@ pub struct EventTickerStatus {
     pub status: TickerStatus,
 }
 
-
 pub struct CountdownTimer {
     timer: Timer,
     tick_callback: Arc<Mutex<Option<Box<dyn Fn(Duration) + Send + 'static>>>>,
@@ -48,7 +47,6 @@ impl CountdownTimer {
         }
     }
 
-
     pub fn register_callback(&self, app_handle: AppHandle) {
         let mut cb_finished = self.status_callback.lock().unwrap();
         let mut cb_tick = self.tick_callback.lock().unwrap();
@@ -56,14 +54,20 @@ impl CountdownTimer {
         *cb_finished = Some(Box::new({
             let app_handle_finish = app_handle.clone();
             move |status| {
-                EventTickerStatus { status }.emit(&app_handle_finish).unwrap();
+                EventTickerStatus { status }
+                    .emit(&app_handle_finish)
+                    .unwrap();
             }
         }));
 
         *cb_tick = Some(Box::new({
             let app_handle_ticker = app_handle.clone();
             move |tick| {
-                EventTicker { countdown: tick.as_secs() as u32 }.emit(&app_handle_ticker).unwrap();
+                EventTicker {
+                    countdown: tick.as_secs() as u32,
+                }
+                .emit(&app_handle_ticker)
+                .unwrap();
             }
         }));
     }
@@ -93,42 +97,40 @@ impl CountdownTimer {
         let guard_arc = Arc::clone(&self.guard);
 
         // Schedule the repeating task
-        let guard = self
-            .timer
-            .schedule_repeating(TICKER_SPEED_MS, move || {
-                // Check if paused
+        let guard = self.timer.schedule_repeating(TICKER_SPEED_MS, move || {
+            // Check if paused
+            {
+                let paused = is_paused.lock().unwrap();
+                if *paused {
+                    return;
+                }
+                drop(paused); // Release the lock before proceeding
+            }
+
+            let rem_time: Duration = {
+                let mut rem_time = rem_time.lock().unwrap();
+                *rem_time =
+                    *rem_time - Duration::from_millis(TICKER_SPEED_MS.num_milliseconds() as u64);
+                rem_time.clone()
+            };
+
+            if let Some(ref callback) = *tick_cb.lock().unwrap() {
+                callback(rem_time);
+            }
+
+            if rem_time <= Duration::ZERO {
                 {
-                    let paused = is_paused.lock().unwrap();
-                    if *paused {
-                        return;
-                    }
-                    drop(paused); // Release the lock before proceeding
+                    // Stop the timer by dropping the guard
+                    let mut guard_lock = guard_arc.lock().unwrap();
+                    guard_lock.take(); // Dropping the guard cancels the timer
                 }
 
-                let rem_time: Duration = {
-                    let mut rem_time = rem_time.lock().unwrap();
-                    *rem_time = *rem_time - Duration::from_millis(TICKER_SPEED_MS.num_milliseconds() as u64);
-                    rem_time.clone()
-                };
-
-                if let Some(ref callback) = *tick_cb.lock().unwrap() {
-                    callback(rem_time);
+                // Time's up
+                if let Some(ref callback) = *finish_cb.lock().unwrap() {
+                    callback(TickerStatus::FINISHED);
                 }
-
-                if rem_time <= Duration::ZERO {
-                    {
-                        // Stop the timer by dropping the guard
-                        let mut guard_lock = guard_arc.lock().unwrap();
-                        guard_lock.take(); // Dropping the guard cancels the timer
-                    }
-
-
-                    // Time's up
-                    if let Some(ref callback) = *finish_cb.lock().unwrap() {
-                        callback(TickerStatus::FINISHED);
-                    }
-                }
-            });
+            }
+        });
 
         // Store the guard to keep the scheduled task alive
         let mut guard_lock = self.guard.lock().unwrap();
