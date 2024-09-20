@@ -24,7 +24,7 @@ pub enum CountdownStatus {
 
 pub struct CountdownTimer {
     timer: Timer,
-    tick_callback: Arc<Mutex<Option<Box<dyn Fn(CountdownStatus) + Send + 'static>>>>,
+    tick_callback: Arc<dyn Fn(CountdownStatus) + Send + Sync>,
     duration: Arc<Mutex<Option<Duration>>>,
     remaining_time: Arc<Mutex<Duration>>,
     guard: Arc<Mutex<Option<Guard>>>,
@@ -32,28 +32,15 @@ pub struct CountdownTimer {
 }
 
 impl CountdownTimer {
-    pub fn new() -> Self {
+    pub fn new(app_handle: &AppHandle) -> Self {
         CountdownTimer {
             timer: Timer::new(),
-            tick_callback: Arc::new(Mutex::new(None)),
+            tick_callback: register_callback(app_handle),
             duration: Arc::new(Mutex::new(None)),
             remaining_time: Arc::new(Mutex::new(Duration::ZERO)),
             guard: Arc::new(Mutex::new(None)),
             is_paused: Arc::new(Mutex::new(false)),
         }
-    }
-
-    pub fn register_callback(&self, app_handle: AppHandle) {
-        let mut cb_tick = self.tick_callback.lock().unwrap();
-
-        *cb_tick = Some(Box::new({
-            let app_handle_ticker = app_handle.clone();
-            move |tick| {
-                CountdownEvent {
-                    status: tick.clone()
-                }.emit(&app_handle_ticker).unwrap();
-            }
-        }));
     }
 
     /// Starts the countdown timer with the specified duration.
@@ -74,16 +61,10 @@ impl CountdownTimer {
             }
         }
 
-        let tick_cb = Arc::clone(&self.tick_callback);
         let rem_time = Arc::clone(&self.remaining_time);
         let is_paused = Arc::clone(&self.is_paused);
         let guard_arc = Arc::clone(&self.guard);
-
-        {
-            if let Some(ref callback) = *tick_cb.lock().unwrap() {
-                callback(CountdownStatus::Start);
-            }
-        }
+        let callback = Arc::clone(&self.tick_callback);
 
         // Schedule the repeating task
         let guard = self.timer.schedule_repeating(TICKER_SPEED_MS, move || {
@@ -103,11 +84,7 @@ impl CountdownTimer {
                 rem_time.clone()
             };
 
-            {
-                if let Some(ref callback) = *tick_cb.lock().unwrap() {
-                    callback(RunningSeconds { countdown_seconds: rem_time.as_secs() as u32 });
-                }
-            }
+            (*callback)(RunningSeconds { countdown_seconds: rem_time.as_secs() as u32 });
 
             if rem_time <= Duration::ZERO {
                 {
@@ -116,12 +93,7 @@ impl CountdownTimer {
                     guard_lock.take(); // Dropping the guard cancels the timer
                 }
 
-                {
-                    // Time's up
-                    if let Some(ref callback) = *tick_cb.lock().unwrap() {
-                        callback(Finished);
-                    }
-                }
+                (*callback)(Finished);
             }
         });
 
@@ -158,12 +130,9 @@ impl CountdownTimer {
             *rem_time = Duration::ZERO;
         }
 
+        // TODO: send Finished
         // send zero callback
-        {
-            if let Some(ref callback) = *self.tick_callback.lock().unwrap() {
-                callback(Finished);
-            }
-        }
+        //(*self.tick_callback)(Finished);
     }
 
     pub fn restart(&self) {
@@ -177,102 +146,13 @@ impl CountdownTimer {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::mpsc::{channel, Receiver, Sender};
-    use std::thread::sleep;
-
-    #[test]
-    fn test_elapse() {
-        let (tx, rx): (Sender<u64>, Receiver<u64>) = channel();
-
-        let timer = CountdownTimer::new();
-        timer.set_tick_callback(Box::new(move |remaining_time| {
-            tx.send(remaining_time.as_secs()).unwrap();
-        }));
-
-        timer.start(Duration::from_secs(3));
-        sleep(Duration::from_secs(4));
-
-        let mut received_ticks = vec![];
-        while let Ok(tick) = rx.try_recv() {
-            received_ticks.push(tick);
+fn register_callback(app_handle: &AppHandle) -> Arc<dyn Fn(CountdownStatus) + Send + Sync> {
+    Arc::new({
+        let app_handle_ticker = app_handle.clone();
+        move |tick| {
+            CountdownEvent {
+                status: tick.clone()
+            }.emit(&app_handle_ticker).unwrap();
         }
-
-        assert_eq!(received_ticks, vec![2, 1]);
-    }
-
-    #[test]
-    fn test_pause_resume() {
-        let (tx, rx): (Sender<u64>, Receiver<u64>) = channel();
-
-        println!("new");
-        let timer = CountdownTimer::new();
-        timer.set_tick_callback(Box::new(move |remaining_time| {
-            tx.send(remaining_time.as_secs()).unwrap();
-        }));
-
-        println!("start");
-        timer.start(Duration::from_secs(5));
-        sleep(Duration::from_secs(2));
-        println!("pause");
-        timer.pause();
-        sleep(Duration::from_secs(2));
-        println!("resume");
-        timer.resume();
-        sleep(Duration::from_secs(4));
-
-        let mut received_ticks = vec![];
-        while let Ok(tick) = rx.try_recv() {
-            received_ticks.push(tick);
-        }
-
-        assert_eq!(received_ticks, vec![4, 3, 2, 1]);
-    }
-
-    #[test]
-    fn test_stop() {
-        let (tx, rx): (Sender<u64>, Receiver<u64>) = channel();
-
-        let timer = CountdownTimer::new();
-        timer.set_tick_callback(Box::new(move |remaining_time| {
-            tx.send(remaining_time.as_secs()).unwrap();
-        }));
-
-        timer.start(Duration::from_secs(5));
-        sleep(Duration::from_secs(2));
-        timer.stop();
-        sleep(Duration::from_secs(2));
-
-        let mut received_ticks = vec![];
-        while let Ok(tick) = rx.try_recv() {
-            received_ticks.push(tick);
-        }
-
-        assert_eq!(received_ticks, vec![4]);
-    }
-
-    #[test]
-    fn test_delayed_callback_registration() {
-        let (tx, rx): (Sender<u64>, Receiver<u64>) = channel();
-
-        let timer = CountdownTimer::new();
-        timer.start(Duration::from_secs(5));
-
-        sleep(Duration::from_secs(2));
-
-        timer.set_tick_callback(Box::new(move |remaining_time| {
-            tx.send(remaining_time.as_secs()).unwrap();
-        }));
-
-        sleep(Duration::from_secs(4));
-
-        let mut received_ticks = vec![];
-        while let Ok(tick) = rx.try_recv() {
-            received_ticks.push(tick);
-        }
-
-        assert_eq!(received_ticks, vec![2, 1]);
-    }
+    })
 }

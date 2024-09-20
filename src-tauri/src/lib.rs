@@ -112,10 +112,11 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(builder.invoke_handler())
-        .manage(CountdownTimer::new())
         .manage(Mutex::new(SessionRepository::new()))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
+
+            app.manage(CountdownTimer::new(app.app_handle()));
 
             match settings_window::get_settings(app.app_handle()) {
                 Ok(settings) => {
@@ -176,7 +177,6 @@ fn build_typescript_interfaces(
 
 fn setup_timer(app: &mut App, settings: SettingsDetails) -> Result<(), Box<dyn std::error::Error>> {
     let timer = app.state::<CountdownTimer>();
-    timer.register_callback(app.app_handle().clone());
 
     if settings.active {
         timer.start(Duration::from_secs(
