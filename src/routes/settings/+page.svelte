@@ -5,6 +5,7 @@
     import {getCurrentWindow} from "@tauri-apps/api/window";
     import {info} from "@tauri-apps/plugin-log";
     import Icon from '@iconify/svelte';
+    import {disable, enable, isEnabled} from "@tauri-apps/plugin-autostart";
 
     let sessionStartListenerUnregister: UnlistenFn;
     let closeRequestUnregister: UnlistenFn;
@@ -12,8 +13,8 @@
 
     let settings: SettingsDetails | undefined = undefined;
 
-
     onMount(async () => {
+
         await info("mounted settings window");
         sessionStartListenerUnregister = await events.settingsEvent.listen(async ({payload}) => {
             await info("show settings");
@@ -39,13 +40,20 @@
         }
     });
 
-    function submit() {
+    async function submit() {
         if (settings) {
             info(`submit: ${settings.next_break_duration_minutes}`);
             if (next_break_duration_minutes) {
                 settings.next_break_duration_minutes = parseInt(next_break_duration_minutes);
             }
-            commands.updateSettings(settings);
+            if (await isEnabled() != settings.enable_on_startup) {
+                if (settings.enable_on_startup) {
+                    await enable()
+                } else {
+                    await disable()
+                }
+            }
+            await commands.updateSettings(settings);
         }
     }
 
@@ -83,7 +91,15 @@
                         <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
                             <span class="text-gray-700">Active</span><input bind:checked={settings.active}
                                                                             on:change={submit} type="checkbox"
-                                                                            class="toggle-checkbox"></label>
+                                                                            class="toggle-checkbox">
+                        </label>
+                        <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
+                            <span class="text-gray-700">Enable on startup</span><input
+                                bind:checked={settings.enable_on_startup}
+                                on:change={submit}
+                                type="checkbox"
+                                class="toggle-checkbox">
+                        </label>
                         <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-700">Next session</span>

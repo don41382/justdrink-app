@@ -27,6 +27,7 @@ use crate::session_repository::SessionRepository;
 use tauri::PhysicalPosition;
 
 use tauri::{App, AppHandle, Manager, State, Window, WindowEvent};
+use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
@@ -42,11 +43,12 @@ fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> Result<(
 
 #[specta::specta]
 #[tauri::command]
-fn start_first_session(app_handle: AppHandle, window: Window, next_break_duration_minutes: u32) -> Result<(), String> {
+fn start_first_session(app_handle: AppHandle, window: Window, next_break_duration_minutes: u32, enable_on_startup: bool) -> Result<(), String> {
     settings_window::set_settings(&app_handle, SettingsDetails {
         active: true,
         next_break_duration_minutes,
-    }, false).map_err(|err| {
+        enable_on_startup,
+    }, true).map_err(|err| {
         error!("error while trying to save settings: {:?}", err);
         format!("error during update settings: {:?}", err)
     })?;
@@ -102,6 +104,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, None))
         .plugin(
             tauri_plugin_log::Builder::default()
                 .targets([

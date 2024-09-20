@@ -16,6 +16,7 @@ const STORE_NAME: &str = "mm-config.bin";
 const DEFAULT_SESSION: SettingsDetails = SettingsDetails {
     next_break_duration_minutes: 120,
     active: true,
+    enable_on_startup: true,
 };
 
 fn write_settings(app: &AppHandle, settings_details: &SettingsDetails) -> Result<(), anyhow::Error> {

@@ -16,9 +16,9 @@ async updateSettings(settings: SettingsDetails) : Promise<Result<null, string>> 
     else return { status: "error", error: e  as any };
 }
 },
-async startFirstSession(nextBreakDurationMinutes: number) : Promise<Result<null, string>> {
+async startFirstSession(nextBreakDurationMinutes: number, enableOnStartup: boolean) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("start_first_session", { nextBreakDurationMinutes }) };
+    return { status: "ok", data: await TAURI_INVOKE("start_first_session", { nextBreakDurationMinutes, enableOnStartup }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -59,7 +59,7 @@ export type CountdownEvent = { status: CountdownStatus }
 export type CountdownStatus = "Start" | { RunningSeconds: { countdown_seconds: number } } | "Finished"
 export type SessionDetail = { id: string; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
 export type SessionStartEvent = { details: SessionDetail }
-export type SettingsDetails = { next_break_duration_minutes: number; active: boolean }
+export type SettingsDetails = { next_break_duration_minutes: number; active: boolean; enable_on_startup: boolean }
 export type SettingsEvent = { details: SettingsDetails }
 
 /** tauri-specta globals **/

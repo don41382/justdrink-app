@@ -21,6 +21,8 @@
     "log:default",
     "fs:default",
     "os:default",
-    "os:allow-platform"
+    "os:allow-platform",
+    "autostart:default",
+    "autostart:allow-is-enabled"
   ]
 }

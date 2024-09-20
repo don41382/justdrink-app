@@ -129,10 +129,6 @@ impl CountdownTimer {
             let mut rem_time = self.remaining_time.lock().unwrap();
             *rem_time = Duration::ZERO;
         }
-
-        // TODO: send Finished
-        // send zero callback
-        //(*self.tick_callback)(Finished);
     }
 
     pub fn restart(&self) {

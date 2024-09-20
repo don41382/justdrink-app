@@ -1,11 +1,14 @@
 <script lang="ts">
 
     import {commands} from '../../bindings';
+    import {enable} from "@tauri-apps/plugin-autostart";
+    import {info} from "@tauri-apps/plugin-log";
 
     let backgroundVideo: HTMLVideoElement;
     let backgroundVideoReady = false;
 
     let next_break_duration_minutes: string = "180"
+    let enable_on_startup = true;
 
     function setBackgroundVideoReady() {
         if (backgroundVideo.readyState === 4) {
@@ -14,7 +17,16 @@
     }
 
     function startSession() {
-        commands.startFirstSession(parseInt(next_break_duration_minutes));
+        info("start session")
+        if (enable_on_startup) {
+            enable()
+        }
+
+        let res = commands.startFirstSession(
+            parseInt(next_break_duration_minutes),
+            enable_on_startup
+        );
+
     }
 
     // allows no context menu
@@ -29,7 +41,12 @@
         <p class="px-16 text-xl text-center italic mb-16 block">
             Stay active and energized throughout your day with gentle reminders to stretch and move.
         </p>
-        <div class="flex items-center space-x-4 mb-8">
+        <label class="flex items-center space-x-4 mb-4">
+            <span class="text-gray-700 font-thin">Load on startup</span><input bind:checked={enable_on_startup}
+                                                                               class="checked:bg-mm-blue-50 bg-mm-blue-50"
+                                                                               type="checkbox">
+        </label>
+        <div class="flex items-center space-x-4 mb-6">
             <p class="text-xl">Start my session every</p>
             <select
                     bind:value={next_break_duration_minutes}
