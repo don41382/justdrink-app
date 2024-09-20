@@ -17,13 +17,12 @@ where
     let app_handle = app.clone();
     countdown_timer::EventTickerStatus::listen(app, move |status| {
         if status.payload.status == countdown_timer::TickerStatus::FINISHED {
-            println!("show it: {:?}", status.payload);
-            show(&app_handle).unwrap();
+            start(&app_handle).unwrap();
         }
     })
 }
 
-pub fn show<R>(app: &AppHandle<R>) -> Result<(), String>
+pub fn start<R>(app: &AppHandle<R>) -> Result<(), String>
 where
     R: tauri::Runtime,
 {

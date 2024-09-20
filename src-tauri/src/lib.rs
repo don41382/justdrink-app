@@ -8,8 +8,9 @@ mod session_window;
 mod settings_window;
 mod start_soon_window;
 mod tray;
+mod welcome_window;
 
-use log::error;
+use log::{error, warn};
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
@@ -32,9 +33,30 @@ use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 #[specta::specta]
 #[tauri::command]
 fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> Result<(), String> {
-    settings_window::set_settings(&app_handle, settings).map_err(|err| {
+    settings_window::set_settings(&app_handle, settings, true).map_err(|err| {
         error!("error while trying to save settings: {:?}", err);
         format!("error during update settings: {:?}", err)
+    })?;
+    Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+fn start_first_session(app_handle: AppHandle, window: Window, next_break_duration_minutes: u32) -> Result<(), String> {
+    settings_window::set_settings(&app_handle, SettingsDetails {
+        active: true,
+        next_break_duration_minutes,
+    }, false).map_err(|err| {
+        error!("error while trying to save settings: {:?}", err);
+        format!("error during update settings: {:?}", err)
+    })?;
+    window.hide().map_err(|err| {
+        error!("error while closing welcome window: {:?}", err);
+        format!("could not close window: {:?}", err)
+    })?;
+    session_window::start(&app_handle).map_err(|err| {
+        error!("error while starting session: {:?}", err);
+        format!("could not start session: {:?}", err)
     })?;
     Ok(())
 }
@@ -55,7 +77,7 @@ fn load_session_details(session_repository: State<SessionRepository>) -> Session
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = build_typescript_interfaces(
-        collect_commands![close_window, update_settings, load_session_details,],
+        collect_commands![close_window, update_settings, start_first_session, load_session_details,],
         collect_events![
             model::event::SessionStartEvent,
             model::event::SettingsEvent,
@@ -63,7 +85,7 @@ pub fn run() {
             countdown_timer::EventTickerStatus,
         ],
     )
-    .unwrap();
+        .unwrap();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -84,7 +106,18 @@ pub fn run() {
         .setup(move |app| {
             builder.mount_events(app.app_handle());
 
-            app.manage(Mutex::new(settings_window::get_settings(app.app_handle())));
+            match settings_window::get_settings(app.app_handle()) {
+                Ok(settings) => {
+                    app.manage(Mutex::new(Some(settings.clone())));
+                    setup_timer(app, settings.clone()).unwrap();
+                }
+                Err(err) => {
+                    warn!("could not load settings: {}", err);
+                    welcome_window::show(app.app_handle())?;
+                    app.manage(Mutex::new(None::<SettingsDetails>));
+                }
+            }
+
 
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;
@@ -94,8 +127,6 @@ pub fn run() {
             app.set_activation_policy(ActivationPolicy::Accessory);
 
             tray::create_tray(app.handle())?;
-
-            setup_timer(app).unwrap();
 
             Ok(())
         })
@@ -132,41 +163,14 @@ fn build_typescript_interfaces(
     Ok(builder)
 }
 
-fn setup_timer(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
+fn setup_timer(app: &mut App, settings: SettingsDetails) -> Result<(), Box<dyn std::error::Error>> {
     let timer = app.state::<CountdownTimer>();
     timer.register_callback(app.app_handle().clone());
 
-    {
-        let settings = app
-            .state::<Mutex<SettingsDetails>>()
-            .lock()
-            .unwrap()
-            .clone();
-        if settings.active {
-            timer.start(Duration::from_secs(
-                settings.next_break_duration_minutes as u64,
-            ));
-        }
+    if settings.active {
+        timer.start(Duration::from_secs(
+            settings.next_break_duration_minutes as u64,
+        ));
     }
-
-    /*
-    timer.set_tick_callback(Box::new({
-        let app_handle = app_handle.clone();
-        move |time| {
-            tray::update_tray_title(&app_handle, time)
-                .map_err(|e| log::error!("Failed to update tray title: {}", e))
-                .ok();
-        }
-    }));
-
-    timer.set_finish_callback(Box::new({
-        let app_handle = app_handle.clone();
-        move || {
-            session_window::show(&app_handle)
-                .map_err(|e| log::error!("Failed to show session window: {}", e))
-                .ok();
-        }
-    }));*/
-
     Ok(())
 }

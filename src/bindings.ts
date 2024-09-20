@@ -16,6 +16,14 @@ async updateSettings(settings: SettingsDetails) : Promise<Result<null, string>> 
     else return { status: "error", error: e  as any };
 }
 },
+async startFirstSession(nextBreakDurationMinutes: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("start_first_session", { nextBreakDurationMinutes }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async loadSessionDetails() : Promise<SessionDetail> {
     return await TAURI_INVOKE("load_session_details");
 }

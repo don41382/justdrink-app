@@ -77,21 +77,18 @@
         return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
-
-    // allows no context menu
-    document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
 <svelte:window on:keydown|preventDefault={onKeyDown}/>
 
 <div aria-pressed="true"
-     class="bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} cursor-default"
+     class="{backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} cursor-default"
      in:fade={{duration: 1000}}>
     <!-- background video -->
     <video
             autoplay
             bind:this={backgroundVideo}
-            class="absolute w-full h-full object-cover blur-sm {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'}"
+            class="absolute w-full h-full object-cover blur-sm"
             loop muted on:canplay={setBackgroundVideoReady} playsinline
             preload="auto">
         <source src="/videos/bg-h264.mov" type="video/mp4">
@@ -101,8 +98,8 @@
     <div class="relative z-10 flex flex-col h-full">
         {#if session !== undefined && countdownSeconds !== undefined}
             <div class="flex-none text-center mt-20 px-48">
-                <h1 class="text-8xl font-bold mb-4">{session.title}</h1>
-                <h1 class="text-4xl font-normal mb-16">{session.description}</h1>
+                <h1 class="text-8xl text-mm-blue font-bold mb-4">{session.title}</h1>
+                <h1 class="text-4xl text-mm-purple font-normal mb-16">{session.description}</h1>
             </div>
             <div class="flex flex-grow items-center w-full px-48 {(backgroundVideoReady) ? '' : 'hidden'}">
                 <AdviceMessage advices={session.advices}/>

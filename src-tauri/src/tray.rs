@@ -44,7 +44,7 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
         .menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "start" => {
-                session_window::show(app.app_handle()).unwrap();
+                session_window::start(app.app_handle()).unwrap();
             }
             "settings" => {
                 settings_window::show(app).unwrap();
@@ -62,8 +62,8 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
             &app_handle_tray_update,
             Duration::from_secs(event.payload.countdown as u64),
         )
-        .map_err(|e| log::error!("Failed to update tray title: {}", e))
-        .ok();
+            .map_err(|e| log::error!("Failed to update tray title: {}", e))
+            .ok();
     });
 
     Ok(())
