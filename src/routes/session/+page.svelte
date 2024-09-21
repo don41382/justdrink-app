@@ -7,6 +7,8 @@
     import Icon from '@iconify/svelte';
     import AdviceMessage from "./AdviceMessage.svelte";
     import VideoPlayer from "./VideoPlayer.svelte";
+    import * as tauri_path from '@tauri-apps/api/path';
+    import {convertFileSrc} from "@tauri-apps/api/core";
 
     let session: SessionDetail | undefined = undefined;
     let countdownSeconds: number | undefined;
@@ -33,6 +35,9 @@
     }
 
     onMount(async () => {
+        let resource_dir = await tauri_path.resourceDir();
+        backgroundVideo.src = convertFileSrc(`${resource_dir}/videos/bg-h264.mov`)
+
         let res = await commands.loadSessionDetails();
         if (res.status === "ok") {
             setup(res.data);
@@ -87,16 +92,16 @@
 <svelte:window on:keydown|preventDefault={onKeyDown}/>
 
 <div aria-pressed="true"
-     class="{backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden {backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} cursor-default"
+     class="{backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default"
      in:fade={{duration: 1000}}>
-    <!-- background video -->
+
     <video
             autoplay
             bind:this={backgroundVideo}
             class="absolute w-full h-full object-cover blur-sm"
             loop muted on:canplay={setBackgroundVideoReady} playsinline
             preload="auto">
-        <source src="/videos/bg-h264.mov" type="video/mp4">
+        <source src="" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 
@@ -111,7 +116,7 @@
             </div>
             <div class="flex-none w-full flex items-center justify-center">
                 <div out:fade={{ duration: 1000 }}>
-                    <VideoPlayer filename="{session.id}/{session.id}" class="max-h-[500px]"/>
+                    <VideoPlayer filename="{session.id}" class="max-h-[500px]"/>
                 </div>
             </div>
         {/if}
