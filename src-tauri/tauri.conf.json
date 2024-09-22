@@ -10,7 +10,8 @@
       "assetProtocol": {
         "scope": [
           "**/*.mov",
-          "**/*.webm"
+          "**/*.webm",
+          "**/*.mp3"
         ],
         "enable": true
       }
@@ -33,7 +34,8 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "videos/*"
+      "videos/*",
+      "audio/*"
     ]
   }
 }

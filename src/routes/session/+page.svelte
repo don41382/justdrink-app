@@ -14,8 +14,12 @@
     let countdownSeconds: number | undefined;
     let countdownInterval: number | undefined;
 
+    let finishSound: HTMLAudioElement;
+
     let backgroundVideo: HTMLVideoElement;
     let backgroundVideoReady = false;
+
+    let show = true;
 
     info("Initialized Session Window")
 
@@ -30,6 +34,14 @@
                     countdownSeconds = 0
                     clearInterval(countdownInterval);
                 }
+
+                if (countdownSeconds < 3) {
+                    finishSound.play();
+                }
+
+                if (countdownSeconds < 1) {
+                    show = false;
+                }
             }
         }, 1000);
     }
@@ -37,6 +49,7 @@
     onMount(async () => {
         let resource_dir = await tauri_path.resourceDir();
         backgroundVideo.src = convertFileSrc(`${resource_dir}/videos/bg-h264.mov`)
+        finishSound.src = convertFileSrc(`${resource_dir}/audio/session-end.mp3`)
 
         let res = await commands.loadSessionDetails();
         if (res.status === "ok") {
@@ -75,7 +88,7 @@
     function onKeyDown(e: KeyboardEvent) {
         switch (e.key) {
             case "Escape":
-                closeApp();
+                show = false;
                 break;
         }
     }
@@ -91,66 +104,72 @@
 
 <svelte:window on:keydown|preventDefault={onKeyDown}/>
 
-<div aria-pressed="true"
-     class="{backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default"
-     in:fade={{duration: 1000}}>
+{#if show}
+    <div aria-pressed="true"
+         class="{backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default"
+         out:fade={{duration: 1000}} on:outroend={closeApp}>
 
-    <video
-            autoplay
-            bind:this={backgroundVideo}
-            class="absolute w-full h-full object-cover blur-sm"
-            loop muted on:canplay={setBackgroundVideoReady} playsinline
-            preload="auto">
-        <source src="" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+        <audio bind:this={finishSound} src="" preload="auto"></audio>
 
-    <div class="relative z-10 flex flex-col h-full">
-        {#if session !== undefined && countdownSeconds !== undefined}
-            <div class="flex-none text-center mt-20 px-48">
-                <h1 class="text-8xl text-mm-blue font-bold mb-4">{session.title}</h1>
-                <h1 class="text-4xl text-mm-purple font-normal mb-16">{session.description}</h1>
-            </div>
-            <div class="flex flex-grow items-center w-full px-48 {(backgroundVideoReady) ? '' : 'hidden'}">
-                <AdviceMessage advices={session.advices}/>
-            </div>
-            <div class="flex-none w-full flex items-center justify-center">
+        <video
+                autoplay
+                bind:this={backgroundVideo}
+                class="absolute w-full h-full object-cover blur-sm"
+                loop muted on:canplay={setBackgroundVideoReady} playsinline
+                preload="auto">
+            <source src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <div class="relative z-20 flex flex-col">
+            {#if session !== undefined && countdownSeconds !== undefined}
+                <div class="flex-none text-center mt-20 px-48">
+                    <h1 class="text-8xl text-mm-blue font-bold mb-4">{session.title}</h1>
+                    <h1 class="text-4xl text-mm-purple font-normal mb-16">{session.description}</h1>
+                </div>
+                <div class="flex flex-grow items-center px-80 {(backgroundVideoReady) ? '' : 'hidden'}">
+                    <AdviceMessage advices={session.advices}/>
+                </div>
+            {/if}
+        </div>
+        {#if session}
+            <div class="absolute bottom-0 z-10 w-full flex items-center justify-center">
                 <div out:fade={{ duration: 1000 }}>
-                    <VideoPlayer filename="{session.id}" class="max-h-[500px]"/>
+                    <VideoPlayer filename="{session.id}" class="max-h-[500px] h-auto"/>
                 </div>
             </div>
         {/if}
-    </div>
-    <div class="absolute bottom-14 right-14 z-50 text-gray-600 flex flex-col items-center">
-        <div class="text-3xl mb-6">
-            {#if countdownSeconds && countdownSeconds > 0}
-                <span in:fade={{ delay: 100, duration: 1000 }}
-                      out:fade={{ delay: 100, duration: 1000 }}>
+        <div class="absolute bottom-14 right-14 z-20 text-gray-600 flex flex-col items-center">
+            <div class="text-3xl mb-6">
+                {#if countdownSeconds && countdownSeconds > 0}
+                <span in:fade={{ duration: 1000 }}
+                      out:fade={{ duration: 1000 }}>
                     {formatCountdown(countdownSeconds)}
                 </span>
-            {/if}
+                {/if}
+            </div>
+
+            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center"
+                    on:click={closeApp}>
+                {#if countdownSeconds && countdownSeconds > 0}
+                    <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
+                    Skip
+                {:else}
+                    <Icon icon="material-symbols-light:check-circle-outline" class="mr-2" height="32"/>
+                    Finished
+                {/if}
+            </button>
         </div>
-
-        <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center"
-                on:click={closeApp}>
-            {#if countdownSeconds && countdownSeconds > 0}
-                <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
-                Skip
-            {:else}
-                <Icon icon="material-symbols-light:check-circle-outline" class="mr-2" height="32"/>
-                Finished
-            {/if}
-        </button>
     </div>
-</div>
 
-<style>
-    .video-background-ready {
-        opacity: 1.0;
-        transition: opacity 1s;
-    }
+    <style>
+        .video-background-ready {
+            opacity: 1.0;
+            transition: opacity 1s;
+        }
 
-    .video-not-ready {
-        opacity: 0;
-    }
-</style>
+        .video-not-ready {
+            opacity: 0;
+        }
+    </style>
+{/if}
