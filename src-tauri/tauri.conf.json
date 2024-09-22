@@ -24,6 +24,11 @@
     "frontendDist": "../build"
   },
   "bundle": {
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico"
+      }
+    },
     "active": true,
     "targets": "all",
     "icon": [

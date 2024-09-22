@@ -23,9 +23,6 @@ use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsDetails;
 use crate::session_repository::SessionRepository;
 
-#[cfg(target_os = "windows")]
-use tauri::PhysicalPosition;
-
 use tauri::{App, AppHandle, Manager, State, Window, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
