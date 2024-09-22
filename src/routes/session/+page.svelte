@@ -9,11 +9,15 @@
     import VideoPlayer from "./VideoPlayer.svelte";
     import * as tauri_path from '@tauri-apps/api/path';
     import {convertFileSrc} from "@tauri-apps/api/core";
+    import AudioPlayer from "./AudioPlayer.svelte";
+
+    const fadeOutDurationSeconds = 2
 
     let session: SessionDetail | undefined = undefined;
     let countdownSeconds: number | undefined;
     let countdownInterval: number | undefined;
 
+    let music: AudioPlayer;
     let finishSound: HTMLAudioElement;
 
     let backgroundVideo: HTMLVideoElement;
@@ -35,7 +39,7 @@
                     clearInterval(countdownInterval);
                 }
 
-                if (countdownSeconds < 3) {
+                if (countdownSeconds < 2) {
                     finishSound.play();
                 }
 
@@ -50,6 +54,7 @@
         let resource_dir = await tauri_path.resourceDir();
         backgroundVideo.src = convertFileSrc(`${resource_dir}/videos/bg-h264.mov`)
         finishSound.src = convertFileSrc(`${resource_dir}/audio/session-end.mp3`)
+        music.play();
 
         let res = await commands.loadSessionDetails();
         if (res.status === "ok") {
@@ -80,6 +85,10 @@
         cleanup();
     });
 
+    function beforeCloseApp() {
+        music.fadeOut(fadeOutDurationSeconds * 1000);
+    }
+
     function closeApp() {
         cleanup();
         commands.closeWindow();
@@ -88,7 +97,7 @@
     function onKeyDown(e: KeyboardEvent) {
         switch (e.key) {
             case "Escape":
-                show = false;
+                closeApp();
                 break;
         }
     }
@@ -107,8 +116,9 @@
 {#if show}
     <div aria-pressed="true"
          class="{backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default"
-         out:fade={{duration: 1000}} on:outroend={closeApp}>
+         out:fade={{duration: fadeOutDurationSeconds * 1000}} on:outrostart={beforeCloseApp} on:outroend={closeApp}>
 
+        <AudioPlayer bind:this={music} filename="session-01.mp3" initialVolume={0.4}/>
         <audio bind:this={finishSound} src="" preload="auto"></audio>
 
         <video

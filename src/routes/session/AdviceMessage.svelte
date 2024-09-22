@@ -31,7 +31,7 @@
     });
 </script>
 
-<div class="text-4xl font-extralight italic leading-normal text-center w-full items-center {classes}">
+<div class="text-2xl font-extralight italic leading-normal text-center w-full items-center {classes}">
     {#if advices.length > 0}
         {#if visible}
             <div class="text-center"
