@@ -10,7 +10,7 @@ mod start_soon_window;
 mod tray;
 mod welcome_window;
 
-use log::{error, warn};
+use log::{error, info, warn};
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
@@ -44,6 +44,7 @@ fn start_first_session(app_handle: AppHandle, window: Window, next_break_duratio
     settings_window::set_settings(&app_handle, SettingsDetails {
         active: true,
         next_break_duration_minutes,
+        allow_tracking: true,
         enable_on_startup,
     }, true).map_err(|err| {
         error!("error while trying to save settings: {:?}", err);
@@ -126,6 +127,7 @@ pub fn run() {
                 Err(err) => {
                     warn!("could not load settings: {}", err);
                     welcome_window::show(app.app_handle())?;
+                    info!("display welcome screen");
                     app.manage(Mutex::new(None::<SettingsDetails>));
                 }
             }

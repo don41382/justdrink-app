@@ -5,7 +5,8 @@
   "windows": [
     "session",
     "settings",
-    "start_soon"
+    "start_soon",
+    "welcome"
   ],
   "permissions": [
     "core:default",

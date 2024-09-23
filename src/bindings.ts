@@ -59,7 +59,7 @@ export type CountdownEvent = { status: CountdownStatus }
 export type CountdownStatus = "Start" | { RunningSeconds: { countdown_seconds: number } } | "Finished"
 export type SessionDetail = { id: string; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
 export type SessionStartEvent = { details: SessionDetail }
-export type SettingsDetails = { next_break_duration_minutes: number; active: boolean; enable_on_startup: boolean }
+export type SettingsDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
 export type SettingsEvent = { details: SettingsDetails }
 
 /** tauri-specta globals **/

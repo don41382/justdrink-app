@@ -16,6 +16,7 @@ const STORE_NAME: &str = "mm-config.bin";
 const DEFAULT_SESSION: SettingsDetails = SettingsDetails {
     next_break_duration_minutes: 120,
     active: true,
+    allow_tracking: true,
     enable_on_startup: true,
 };
 

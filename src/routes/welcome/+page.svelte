@@ -1,28 +1,22 @@
 <script lang="ts">
-
     import {commands} from '../../bindings';
     import {enable} from "@tauri-apps/plugin-autostart";
-    import {info} from "@tauri-apps/plugin-log";
-
-    let backgroundVideo: HTMLVideoElement;
-    let backgroundVideoReady = false;
+    import {info, warn} from "@tauri-apps/plugin-log";
+    import {onMount} from "svelte";
+    import BackgroundVideo from "./BackgroundVideo.svelte";
 
     let next_break_duration_minutes: string = "180"
     let enable_on_startup = true;
 
-    function setBackgroundVideoReady() {
-        if (backgroundVideo.readyState === 4) {
-            backgroundVideoReady = true
-        }
-    }
+    let backgroundVideoLoaded: boolean = false;
 
-    function startSession() {
-        info("start session")
+    async function startSession() {
+        await info("start session")
         if (enable_on_startup) {
-            enable()
+            await enable()
         }
 
-        let res = commands.startFirstSession(
+        await commands.startFirstSession(
             parseInt(next_break_duration_minutes),
             enable_on_startup
         );
@@ -34,7 +28,7 @@
 </script>
 
 
-<div class="{backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} h-screen flex flex-col items-center justify-center cursor-default">
+<div class="{backgroundVideoLoaded ? 'video-background-ready' : 'video-not-ready'} h-screen flex flex-col items-center justify-center cursor-default rounded-2xl">
     <div class="relative z-10 flex flex-col items-center p-8">
         <h1 class="text-4xl mb-4 accent-mm-blue">Welcome to</h1>
         <h2 class="text-6xl text-mm-orange mb-8">Motion Minutes</h2>
@@ -65,15 +59,7 @@
             </button>
         </div>
     </div>
-    <video
-            autoplay
-            bind:this={backgroundVideo}
-            class="absolute w-full h-full object-cover rounded-3xl p-2"
-            loop muted on:canplay={setBackgroundVideoReady} playsinline
-            preload="auto">
-        <source src="/videos/bg-h264.mov" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+    <BackgroundVideo bind:backgroundVideoLoaded={backgroundVideoLoaded}></BackgroundVideo>
 </div>
 
 <style>

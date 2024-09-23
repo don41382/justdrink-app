@@ -10,6 +10,7 @@
     import * as tauri_path from '@tauri-apps/api/path';
     import {convertFileSrc} from "@tauri-apps/api/core";
     import AudioPlayer from "./AudioPlayer.svelte";
+    import BackgroundVideo from "../BackgroundVideo.svelte";
 
     const fadeOutDurationSeconds = 2
 
@@ -17,11 +18,10 @@
     let countdownSeconds: number | undefined;
     let countdownInterval: number | undefined;
 
+    let backgroundLoadingFinished: boolean = false;
+
     let music: AudioPlayer;
     let finishSound: HTMLAudioElement;
-
-    let backgroundVideo: HTMLVideoElement;
-    let backgroundVideoReady = false;
 
     let show = true;
 
@@ -52,7 +52,6 @@
 
     onMount(async () => {
         let resource_dir = await tauri_path.resourceDir();
-        backgroundVideo.src = convertFileSrc(`${resource_dir}/videos/bg-h264.mov`)
         finishSound.src = convertFileSrc(`${resource_dir}/audio/session-end.mp3`)
         music.play();
 
@@ -66,12 +65,6 @@
         const window = getCurrentWindow()
         await window.setFocus()
     });
-
-    function setBackgroundVideoReady() {
-        if (backgroundVideo.readyState === 4) {
-            backgroundVideoReady = true
-        }
-    }
 
     function cleanup() {
         if (countdownInterval) {
@@ -115,21 +108,13 @@
 
 {#if show}
     <div aria-pressed="true"
-         class="{backgroundVideoReady ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default"
+         class="{backgroundLoadingFinished ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default"
          out:fade={{duration: fadeOutDurationSeconds * 1000}} on:outrostart={beforeCloseApp} on:outroend={closeApp}>
 
         <AudioPlayer bind:this={music} filename="session-01.mp3" initialVolume={0.4}/>
         <audio bind:this={finishSound} src="" preload="auto"></audio>
 
-        <video
-                autoplay
-                bind:this={backgroundVideo}
-                class="absolute w-full h-full object-cover blur-sm"
-                loop muted on:canplay={setBackgroundVideoReady} playsinline
-                preload="auto">
-            <source src="" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
+        <BackgroundVideo bind:backgroundVideoLoaded={backgroundLoadingFinished}/>
 
         <div class="relative z-20 flex flex-col">
             {#if session !== undefined && countdownSeconds !== undefined}
@@ -137,7 +122,7 @@
                     <h1 class="text-8xl text-mm-blue font-bold mb-4">{session.title}</h1>
                     <h1 class="text-4xl text-mm-purple font-normal mb-16">{session.description}</h1>
                 </div>
-                <div class="flex flex-grow items-center px-80 {(backgroundVideoReady) ? '' : 'hidden'}">
+                <div class="flex flex-grow items-center px-80 {(backgroundLoadingFinished) ? '' : 'hidden'}">
                     <AdviceMessage advices={session.advices}/>
                 </div>
             {/if}
