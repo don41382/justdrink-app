@@ -4,6 +4,7 @@ use crate::model::settings::SettingsDetails;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::Duration;
+use log::info;
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{AppHandle, Manager, WebviewWindow, Wry};
 use tauri_plugin_store::{with_store, StoreCollection};
@@ -11,7 +12,7 @@ use tauri_specta::Event;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
-const STORE_NAME: &str = "mm-config.bin";
+const STORE_NAME: &str = "mm-config.json";
 
 const DEFAULT_SESSION: SettingsDetails = SettingsDetails {
     next_break_duration_minutes: 120,
@@ -45,6 +46,7 @@ fn load_settings(app: &AppHandle) -> Result<SettingsDetails, anyhow::Error> {
         .try_state::<StoreCollection<Wry>>()
         .unwrap();
     let path = PathBuf::from(STORE_NAME);
+    info!("loading settings: {:?}",app.path().app_data_dir()?.join(&path));
     let details = with_store(app.app_handle().clone(), stores, path, |store| {
         let data_json = store
             .get("data".to_string())
@@ -62,7 +64,7 @@ pub fn set_settings(
     app: &AppHandle,
     settings: SettingsDetails,
     time_start: bool,
-) -> Result<(), String> {
+) -> Result<(), anyhow::Error> {
     let timer = app.state::<CountdownTimer>();
     {
         let settings_session = app.state::<Mutex<Option<SettingsDetails>>>();
@@ -70,7 +72,7 @@ pub fn set_settings(
     }
 
     // save settings
-    write_settings(&app, &settings).map_err(|e| format!("error while writing settings: {}", e))?;
+    write_settings(&app, &settings)?;
 
     if time_start {
         // activate new settings

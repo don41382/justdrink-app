@@ -24,13 +24,11 @@ async startFirstSession(nextBreakDurationMinutes: number, enableOnStartup: boole
     else return { status: "error", error: e  as any };
 }
 },
-async loadSessionDetails() : Promise<Result<SessionDetail, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("load_session_details") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async loadSessionDetails() : Promise<SessionDetail | null> {
+    return await TAURI_INVOKE("load_session_details");
+},
+async closeErrorWindow() : Promise<void> {
+    await TAURI_INVOKE("close_error_window");
 }
 }
 
@@ -38,12 +36,14 @@ async loadSessionDetails() : Promise<Result<SessionDetail, string>> {
 
 
 export const events = __makeEvents__<{
+alertEvent: AlertEvent,
 countdownEvent: CountdownEvent,
 countdownStatus: CountdownStatus,
 sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
 settingsEvent: SettingsEvent
 }>({
+alertEvent: "alert-event",
 countdownEvent: "countdown-event",
 countdownStatus: "countdown-status",
 sessionEndingReason: "session-ending-reason",
@@ -57,6 +57,7 @@ settingsEvent: "settings-event"
 
 /** user-defined types **/
 
+export type AlertEvent = { title: string; message: string }
 export type CountdownEvent = { status: CountdownStatus }
 export type CountdownStatus = "Start" | { RunningSeconds: { countdown_seconds: number } } | "Finished"
 export type SessionDetail = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }

@@ -1,11 +1,11 @@
-use std::sync::{Mutex, TryLockResult};
-use log::{error, info, warn};
+use std::sync::{Mutex};
+use std::time::Duration;
+use log::{info, warn};
 use serde_json::json;
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest::blocking::{ClientBuilder};
-use crate::model::session::{SessionDetail, SessionEndingReason};
+use crate::model::session::{SessionEndingReason};
 use crate::model::settings::SettingsDetails;
-use crate::session_repository::SessionRepository;
 
 pub(crate) struct Tracking {
     client: tauri_plugin_http::reqwest::blocking::Client,
@@ -74,6 +74,7 @@ impl Tracking {
             let res = self.client.post("https://eu.i.posthog.com/capture/")
                 .header("Content-Type", "application/json")
                 .json(&event_data)
+                .timeout(Duration::from_secs(3))
                 .send()?;
 
             res.error_for_status()?;
@@ -84,7 +85,7 @@ impl Tracking {
     pub fn send_tracking(&self, event: Event) -> ()
     {
         self.send_tracking_event(event).unwrap_or_else(|e| {
-            warn!("error sending tracking event {:?}", e);
+            warn!("error sending tracking event: {:?}", e);
             ()
         })
     }

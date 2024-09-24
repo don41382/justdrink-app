@@ -1,7 +1,8 @@
 use crate::countdown_timer::{CountdownEvent, CountdownStatus};
 use crate::pretty_time::PrettyTime;
-use crate::{session_window, settings_window};
+use crate::{alert, session_window, settings_window};
 use std::time::Duration;
+use anyhow::anyhow;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem};
 use tauri::{
     menu::{Menu, MenuItem},
@@ -21,6 +22,7 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
         None,
         None::<&str>,
     )?;
+    let test = MenuItem::with_id(main_app, "test", "Test ...", true, None::<&str>)?;
     let quit_menu = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
     let session_start_menu =
         MenuItem::with_id(main_app, "start", "Start session", true, None::<&str>)?;
@@ -34,6 +36,7 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
             &separator,
             &settings_menu,
             &separator,
+            &test,
             &quit_menu,
         ],
     )?;
@@ -44,10 +47,17 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
         .menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "start" => {
-                session_window::start(app.app_handle()).unwrap();
+                session_window::start(app.app_handle()).unwrap_or_else(|e| {
+                    alert(app, "Error while starting the session", "I am sorry, we are unable to start the session.", Some(e));
+                });
             }
             "settings" => {
-                settings_window::show(app).unwrap();
+                settings_window::show(app).unwrap_or_else(|e| {
+                    alert(app, "Error while opening settings", "I am sorry, we are unable to open up the settings.", Some(anyhow!(e)));
+                });
+            }
+            "test" => {
+                alert::alert(app, "Test", "This is a test error", None);
             }
             "quit" => {
                 app.exit(0);

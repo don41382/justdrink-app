@@ -10,18 +10,18 @@ mod start_soon_window;
 mod tracking;
 mod tray;
 mod welcome_window;
-mod error;
+mod alert;
 
 use log::{error, info, warn};
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::{Mutex};
+use std::thread::spawn;
 use std::time::Duration;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
 use crate::countdown_timer::CountdownTimer;
-use crate::model::session::{SessionDetail, SessionEndingReason};
 use crate::model::settings::SettingsDetails;
 use crate::session_repository::SessionRepository;
 
@@ -29,6 +29,7 @@ use tauri::{App, AppHandle, Manager, State, Window, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
+use crate::alert::alert;
 use crate::tracking::{Event, Tracking};
 
 #[specta::specta]
@@ -45,10 +46,23 @@ fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> Result<(
 #[tauri::command]
 fn start_first_session(
     app_handle: AppHandle,
-    window: Window,
+    welcome_window: Window,
     next_break_duration_minutes: u32,
     enable_on_startup: bool,
 ) -> Result<(), String> {
+    spawn(move || {
+        info!("starting first session");
+        match start_first_session_(&app_handle.app_handle(), welcome_window, next_break_duration_minutes, enable_on_startup) {
+            Ok(_) => {}
+            Err(error) => {
+                alert(&app_handle.app_handle(), "Not able to start first session", format!("{:?}", error).as_str(), Some(error))
+            }
+        }
+    });
+    Ok(())
+}
+
+fn start_first_session_(app_handle: &AppHandle, welcome_window: Window, next_break_duration_minutes: u32, enable_on_startup: bool) -> Result<(), anyhow::Error> {
     settings_window::set_settings(
         &app_handle,
         SettingsDetails {
@@ -58,25 +72,15 @@ fn start_first_session(
             enable_on_startup,
         },
         true,
-    )
-    .map_err(|err| {
-        error!("error while trying to save settings: {:?}", err);
-        format!("error during update settings: {:?}", err)
-    })?;
-    window.hide().map_err(|err| {
-        error!("error while closing welcome window: {:?}", err);
-        format!("could not close window: {:?}", err)
-    })?;
-    session_window::start(&app_handle).map_err(|err| {
-        error!("error while starting session: {:?}", err);
-        format!("could not start session: {:?}", err)
-    })?;
+    )?;
+    welcome_window.hide()?;
+    session_window::start(&app_handle)?;
     Ok(())
 }
 
 #[specta::specta]
 #[tauri::command]
-fn end_session(window: Window, timer: State<CountdownTimer>, reason: SessionEndingReason, tracking: State<Tracking>) {
+fn end_session(window: Window, timer: State<CountdownTimer>, reason: model::session::SessionEndingReason, tracking: State<Tracking>) {
     timer.restart();
     window.close().unwrap();
     tracking.send_tracking(Event::EndSession(reason));
@@ -85,16 +89,17 @@ fn end_session(window: Window, timer: State<CountdownTimer>, reason: SessionEndi
 #[specta::specta]
 #[tauri::command]
 fn load_session_details(
+    app: AppHandle,
     session_repository: State<Mutex<SessionRepository>>,
-) -> Result<SessionDetail, String> {
+) -> Option<model::session::SessionDetail> {
     {
         let mut repo = session_repository.lock().unwrap();
         match repo.pick_random_session() {
             None => {
-                error!("no session found - this should not happen");
-                Err("could not find a session".to_string())
+                alert(&app, "Session is missing", "There is no session available", None);
+                None
             }
-            Some(session) => Ok(session.clone()),
+            Some(session) => Some(session.clone()),
         }
     }
 }
@@ -107,16 +112,19 @@ pub fn run() {
             update_settings,
             start_first_session,
             load_session_details,
+            alert::close_error_window,
         ],
         collect_events![
             model::event::SessionStartEvent,
             model::event::SettingsEvent,
+            model::event::AlertEvent,
             model::session::SessionEndingReason,
             countdown_timer::CountdownEvent,
             countdown_timer::CountdownStatus,
+
         ],
     )
-    .unwrap();
+        .unwrap();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
@@ -132,14 +140,20 @@ pub fn run() {
                 .targets([
                     Target::new(tauri_plugin_log::TargetKind::Stdout),
                     Target::new(tauri_plugin_log::TargetKind::Webview),
+                    Target::new(tauri_plugin_log::TargetKind::LogDir {
+                        file_name: Some("motion-minutes".to_string())
+                    })
                 ])
-                .level(log::LevelFilter::Info)
+                .level_for("tao::platform_impl::platform::window_delegate", log::LevelFilter::Info)
+                .level(log::LevelFilter::Trace)
                 .build(),
         )
         .invoke_handler(builder.invoke_handler())
         .manage(Mutex::new(SessionRepository::new()))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
+
+            alert::init(app.app_handle())?;
 
             app.manage(CountdownTimer::new(app.app_handle()));
             app.manage(Tracking::new(app.app_handle()).unwrap());

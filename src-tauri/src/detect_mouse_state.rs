@@ -1,9 +1,8 @@
-use std::cmp::{max, min};
+use std::cmp::{max};
 use mouse_position::mouse_position::{Mouse, Position};
 use std::collections::VecDeque;
 use std::thread::sleep;
 use std::time::Duration;
-use log::info;
 
 pub enum MouseState {
     SHAKE,
