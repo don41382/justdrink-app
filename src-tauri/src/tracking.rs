@@ -1,9 +1,11 @@
+use std::mem::swap;
 use std::sync::{Mutex};
+use std::thread::spawn;
 use std::time::Duration;
 use log::{info, warn};
-use serde_json::json;
+use serde_json::{json, Value};
 use tauri::{AppHandle, Manager};
-use tauri_plugin_http::reqwest::blocking::{ClientBuilder};
+use tauri_plugin_http::reqwest::blocking::{Client, ClientBuilder};
 use crate::model::session::{SessionEndingReason};
 use crate::model::settings::SettingsDetails;
 
@@ -50,7 +52,7 @@ impl Tracking {
         })
     }
 
-    fn send_tracking_event(&self, event: Event) -> Result<(), anyhow::Error> {
+    fn send_tracking_event(&self, event: Event) {
         let allow_tracking = {
             let settings = self.app_handle.state::<Mutex<Option<SettingsDetails>>>();
             let result = if let Ok(guard) = settings.try_lock() {
@@ -71,22 +73,29 @@ impl Tracking {
                     "arch": self.arch
                 }
             });
-            let res = self.client.post("https://eu.i.posthog.com/capture/")
-                .header("Content-Type", "application/json")
-                .json(&event_data)
-                .timeout(Duration::from_secs(3))
-                .send()?;
-
-            res.error_for_status()?;
+            let client_clone = self.client.clone();
+            spawn(move || {
+                Self::send(&event_data, client_clone).unwrap_or_else(|e| {
+                    warn!("error sending tracking event: {:?}", e);
+                    ()
+                })
+            });
         }
+    }
+
+    fn send(event_data: &Value, client_clone: Client) -> Result<(), anyhow::Error> {
+        let res = client_clone.post("https://eu.i.posthog.com/capture/")
+            .header("Content-Type", "application/json")
+            .json(&event_data)
+            .timeout(Duration::from_secs(3))
+            .send()?;
+
+        res.error_for_status()?;
         Ok(())
     }
 
     pub fn send_tracking(&self, event: Event) -> ()
     {
-        self.send_tracking_event(event).unwrap_or_else(|e| {
-            warn!("error sending tracking event: {:?}", e);
-            ()
-        })
+        self.send_tracking_event(event);
     }
 }
