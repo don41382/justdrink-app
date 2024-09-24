@@ -25,21 +25,19 @@ where
 
     let app_handle_show = app.clone();
     countdown_timer::CountdownEvent::listen(app, move |event| {
-        let should_show_countdown =
-            match event.payload.status {
-                CountdownStatus::Start => { false }
-                CountdownStatus::RunningSeconds { countdown_seconds } => {
-                    countdown_seconds > 0 && countdown_seconds < 5 &&
-                        !app_handle_show
-                            .get_webview_window(settings_window::WINDOW_LABEL)
-                            .unwrap()
-                            .is_visible()
-                            .unwrap()
-                }
-                CountdownStatus::Finished => {
-                    false
-                }
-            };
+        let should_show_countdown = match event.payload.status {
+            CountdownStatus::Start => false,
+            CountdownStatus::RunningSeconds { countdown_seconds } => {
+                countdown_seconds > 0
+                    && countdown_seconds < 5
+                    && !app_handle_show
+                    .get_webview_window(settings_window::WINDOW_LABEL)
+                    .unwrap()
+                    .is_visible()
+                    .unwrap()
+            }
+            CountdownStatus::Finished => false,
+        };
         if should_show_countdown {
             if let Some(window) = app_handle_show.get_webview_window(WINDOW_LABEL) {
                 window.show().unwrap()
@@ -54,12 +52,28 @@ where
     });
 
     let app_handle_shake = app.app_handle().clone();
-    detect_mouse_state::init(Box::new(move |_| {
+    detect_mouse_state::detect_mouse_shake(Box::new(move |_| {
         if let Some(_window) = app_handle_shake.get_webview_window(WINDOW_LABEL) {
             let timer = app_handle_shake.state::<CountdownTimer>();
             timer.restart();
         }
     }));
+
+    let app_handle_idle = app.app_handle().clone();
+    detect_mouse_state::detect_mouse_idl(
+        300,
+        5
+        , Box::new(move |mode| {
+            match mode {
+                detect_mouse_state::Mode::Idle => {
+                    app_handle_idle.state::<CountdownTimer>().pause();
+                }
+                detect_mouse_state::Mode::Working => {
+                    app_handle_idle.state::<CountdownTimer>().resume();
+                }
+            }
+        }));
+
 
     Ok(())
 }

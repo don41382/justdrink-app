@@ -6,7 +6,8 @@
     "session",
     "settings",
     "start_soon",
-    "welcome"
+    "welcome",
+    "error"
   ],
   "permissions": [
     "core:default",
@@ -24,6 +25,11 @@
     "os:default",
     "os:allow-platform",
     "autostart:default",
-    "autostart:allow-is-enabled"
+    "autostart:allow-is-enabled",
+    "os:default",
+    "os:allow-arch",
+    "os:allow-hostname",
+    "os:allow-os-type",
+    "http:default"
   ]
 }

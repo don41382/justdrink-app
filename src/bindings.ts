@@ -5,8 +5,8 @@
 
 
 export const commands = {
-async closeWindow() : Promise<void> {
-    await TAURI_INVOKE("close_window");
+async endSession(reason: SessionEndingReason) : Promise<void> {
+    await TAURI_INVOKE("end_session", { reason });
 },
 async updateSettings(settings: SettingsDetails) : Promise<Result<null, string>> {
     try {
@@ -40,11 +40,13 @@ async loadSessionDetails() : Promise<Result<SessionDetail, string>> {
 export const events = __makeEvents__<{
 countdownEvent: CountdownEvent,
 countdownStatus: CountdownStatus,
+sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
 settingsEvent: SettingsEvent
 }>({
 countdownEvent: "countdown-event",
 countdownStatus: "countdown-status",
+sessionEndingReason: "session-ending-reason",
 sessionStartEvent: "session-start-event",
 settingsEvent: "settings-event"
 })
@@ -57,7 +59,9 @@ settingsEvent: "settings-event"
 
 export type CountdownEvent = { status: CountdownStatus }
 export type CountdownStatus = "Start" | { RunningSeconds: { countdown_seconds: number } } | "Finished"
-export type SessionDetail = { id: string; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
+export type SessionDetail = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
+export type SessionEndingReason = "EndOfTime" | "UserEscape"
+export type SessionId = string
 export type SessionStartEvent = { details: SessionDetail }
 export type SettingsDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
 export type SettingsEvent = { details: SettingsDetails }

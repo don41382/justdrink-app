@@ -1,29 +1,31 @@
-use mouse_position::mouse_position::Mouse;
+use std::cmp::{max, min};
+use mouse_position::mouse_position::{Mouse, Position};
 use std::collections::VecDeque;
 use std::thread::sleep;
 use std::time::Duration;
+use log::info;
 
 pub enum MouseState {
     SHAKE,
 }
 
-pub fn init(on_shake: Box<dyn Fn(MouseState) + Send + 'static>) {
-    const MAX_WINDOW: usize = 30;
+pub fn detect_mouse_shake(on_shake: Box<dyn Fn(MouseState) + Send + 'static>) {
+    const MAX_SHAKE_WINDOW: usize = 30;
     tauri::async_runtime::spawn(async move {
-        let mut window = VecDeque::with_capacity(MAX_WINDOW);
+        let mut shake_window = VecDeque::with_capacity(MAX_SHAKE_WINDOW);
         loop {
             let position = Mouse::get_mouse_position();
             match position {
                 Mouse::Position { x, y: _ } => {
-                    if window.len() >= MAX_WINDOW {
-                        window.pop_front();
+                    if shake_window.len() >= MAX_SHAKE_WINDOW {
+                        shake_window.pop_front();
                     }
-                    window.push_back(x);
+                    shake_window.push_back(x);
 
-                    let vec = window.iter().map(|&x| x).collect::<Vec<i32>>();
+                    let vec = shake_window.iter().map(|&x| x).collect::<Vec<i32>>();
                     if is_mouse_shaking(vec, 5, 3) {
                         on_shake(MouseState::SHAKE);
-                        window.clear();
+                        shake_window.clear();
                     }
                 }
                 Mouse::Error => {}
@@ -31,6 +33,71 @@ pub fn init(on_shake: Box<dyn Fn(MouseState) + Send + 'static>) {
             sleep(Duration::from_millis(50));
         }
     });
+}
+
+pub enum Mode {
+    Idle,
+    Working,
+}
+
+pub fn detect_mouse_idl(idle_duration_s: usize, working_duration_s: usize, on_mode_switch: Box<dyn Fn(Mode) + Send + 'static>) {
+    let idle_window_size: usize = 60 * max(idle_duration_s, working_duration_s);
+    tauri::async_runtime::spawn(async move {
+        let mut idle_window: VecDeque<Position> = VecDeque::with_capacity(idle_window_size);
+        let mut mode = Mode::Working;
+        loop {
+            let position = Mouse::get_mouse_position();
+            match position {
+                Mouse::Position { x, y } => {
+                    if idle_window.len() >= idle_window_size {
+                        idle_window.pop_front();
+                    }
+                    idle_window.push_back(Position { x, y });
+                }
+                Mouse::Error => {}
+            }
+
+            match mode {
+                Mode::Working => {
+                    let positions: Vec<&Position> = idle_window.iter().rev().take(idle_duration_s).collect();
+                    let distance = max_distance(&positions);
+                    if distance < 100.0 && (positions.len() >= idle_duration_s) {
+                        println!("switch to idle: {:.2}", &distance);
+                        mode = Mode::Idle;
+                        on_mode_switch(Mode::Idle);
+                    }
+                }
+                Mode::Idle => {
+                    let positions: Vec<&Position> = idle_window.iter().rev().take(working_duration_s).collect();
+                    let distance = max_distance(&positions);
+                    if distance > 100.0 && (positions.len() >= working_duration_s) {
+                        println!("switch to working: {:.2}", &distance);
+                        mode = Mode::Working;
+                        on_mode_switch(Mode::Working);
+                    }
+                }
+            }
+            sleep(Duration::from_secs(1));
+        }
+    });
+}
+
+fn max_distance(positions: &Vec<&Position>) -> f64 {
+    let mut max_diff = 0.0;
+
+    for i in 0..positions.len() {
+        for j in i + 1..positions.len() {
+            let dx = (positions[i].x - positions[j].x).pow(2) as f64;
+            let dy = (positions[i].y - positions[j].y).pow(2) as f64;
+            let distance = (dx + dy).sqrt();
+
+            if distance > max_diff {
+                max_diff = distance;
+            }
+        }
+    }
+
+    max_diff
 }
 
 fn is_mouse_shaking(y_coords: Vec<i32>, min_distance: i32, min_direction_changes: usize) -> bool {
@@ -79,6 +146,11 @@ fn is_mouse_shaking(y_coords: Vec<i32>, min_distance: i32, min_direction_changes
 
 #[cfg(test)]
 mod tests {
+    use std::thread::sleep;
+    use std::time::Duration;
+    use tauri::command;
+    use crate::detect_mouse_state::{detect_mouse_idl, Mode};
+
     #[test]
     pub fn test_vec() {
         let mut vec = Vec::with_capacity(5);

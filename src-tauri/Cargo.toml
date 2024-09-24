@@ -32,6 +32,8 @@ tauri-plugin-autostart = "2.0.0-rc"
 mouse_position = "0.1.4"
 tauri-plugin-store = "2.0.0-rc"
 anyhow = "1.0.89"
+machine-uid = "0.5.3"
+tauri-plugin-http = { version = "2.0.0-rc", features = ["blocking"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.26.0"

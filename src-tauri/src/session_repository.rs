@@ -1,4 +1,4 @@
-use crate::model::session::SessionDetail;
+use crate::model::session::{SessionDetail, SessionId};
 use rand::seq::IteratorRandom;
 use std::collections::HashSet;
 
@@ -12,7 +12,7 @@ impl SessionRepository {
     pub fn new() -> Self {
         let initial_sessions = vec![
             SessionDetail {
-                id: "rotate-your-head".to_string(),
+                id: SessionId("rotate-your-head".to_string()),
                 title: "Rotate your head".to_string(),
                 description: "Slowly rotate your head".to_string(),
                 advices: vec![
@@ -25,7 +25,7 @@ impl SessionRepository {
                 active: true,
             },
             SessionDetail {
-                id: "shoulder-circle".to_string(),
+                id: SessionId("shoulder-circle".to_string()),
                 title: "Shoulder Circles".to_string(),
                 description: "A gentle shoulder mobility exercise that relieves tension and promotes relaxation.".to_string(),
                 advices: vec![
@@ -38,7 +38,7 @@ impl SessionRepository {
                 active: true,
             },
             SessionDetail {
-                id: "seated-hip-mobility".to_string(),
+                id: SessionId("seated-hip-mobility".to_string()),
                 title: "Seated Hip Mobility".to_string(),
                 description: "A seated exercise to improve hip flexibility and core engagement through controlled pelvic movements.".to_string(),
                 advices: vec![
@@ -52,7 +52,7 @@ impl SessionRepository {
                 active: true,
             },
             SessionDetail {
-                id: "chair-squat".to_string(),
+                id: SessionId("chair-squat".to_string()),
                 title: "Chair Squat".to_string(),
                 description: "An effective bodyweight exercise to strengthen triceps, shoulders, and chest using a sturdy chair or bench.".to_string(),
                 advices: vec![
@@ -65,7 +65,7 @@ impl SessionRepository {
                 active: true,
             },
             SessionDetail {
-                id: "chin-tuck".to_string(),
+                id: SessionId("chin-tuck".to_string()),
                 title: "Chin Tucks".to_string(),
                 description: "A simple exercise to improve neck muscle endurance, relieve tension, and promote better posture.".to_string(),
                 advices: vec![
@@ -97,7 +97,8 @@ impl SessionRepository {
 
         // Filter active sessions that haven't been picked
         let mut rng = rand::thread_rng();
-        let available_sessions: Vec<(usize, &SessionDetail)> = self.sessions
+        let available_sessions: Vec<(usize, &SessionDetail)> = self
+            .sessions
             .iter()
             .enumerate()
             .filter(|(i, s)| s.active && !self.picked_sessions.contains(i))

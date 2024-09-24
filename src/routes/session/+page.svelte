@@ -1,6 +1,6 @@
 <script lang="ts">
     import {info} from '@tauri-apps/plugin-log';
-    import {commands, type SessionDetail} from '../../bindings';
+    import {commands, type SessionDetail, type SessionEndingReason} from '../../bindings';
     import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
     import {fade} from 'svelte/transition';
@@ -82,15 +82,15 @@
         music.fadeOut(fadeOutDurationSeconds * 1000);
     }
 
-    function closeApp() {
+    function closeApp(reason: SessionEndingReason) {
         cleanup();
-        commands.closeWindow();
+        commands.endSession(reason);
     }
 
     function onKeyDown(e: KeyboardEvent) {
         switch (e.key) {
             case "Escape":
-                closeApp();
+                closeApp("UserEscape");
                 break;
         }
     }
@@ -109,7 +109,8 @@
 {#if show}
     <div aria-pressed="true"
          class="{backgroundLoadingFinished ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default"
-         out:fade={{duration: fadeOutDurationSeconds * 1000}} on:outrostart={beforeCloseApp} on:outroend={closeApp}>
+         out:fade={{duration: fadeOutDurationSeconds * 1000}} on:outrostart={beforeCloseApp}
+         on:outroend={() => closeApp("EndOfTime")}>
 
         <AudioPlayer bind:this={music} filename="session-01.mp3" initialVolume={0.4}/>
         <audio bind:this={finishSound} src="" preload="auto"></audio>
@@ -145,7 +146,7 @@
             </div>
 
             <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center"
-                    on:click={closeApp}>
+                    on:click={() => closeApp("UserEscape")}>
                 {#if countdownSeconds && countdownSeconds > 0}
                     <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
                     Skip

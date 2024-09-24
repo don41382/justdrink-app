@@ -59,21 +59,15 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
     let app_handle_tray_update = main_app.clone();
     CountdownEvent::listen(main_app.app_handle(), move |event| {
         let update: Option<Duration> = match event.payload.status {
-            CountdownStatus::Start => {
-                None
-            }
+            CountdownStatus::Start => None,
             CountdownStatus::RunningSeconds { countdown_seconds } => {
                 Some(Duration::from_secs(countdown_seconds as u64))
             }
-            CountdownStatus::Finished => {
-                None
-            }
+            CountdownStatus::Finished => None,
         };
 
-        update_tray_title(
-            &app_handle_tray_update,
-            update,
-        ).map_err(|e| log::error!("Failed to update tray title: {}", e))
+        update_tray_title(&app_handle_tray_update, update)
+            .map_err(|e| log::error!("Failed to update tray title: {}", e))
             .ok();
     });
 

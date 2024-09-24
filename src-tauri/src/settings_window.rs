@@ -20,8 +20,14 @@ const DEFAULT_SESSION: SettingsDetails = SettingsDetails {
     enable_on_startup: true,
 };
 
-fn write_settings(app: &AppHandle, settings_details: &SettingsDetails) -> Result<(), anyhow::Error> {
-    let stores = app.app_handle().try_state::<StoreCollection<Wry>>().unwrap();
+fn write_settings(
+    app: &AppHandle,
+    settings_details: &SettingsDetails,
+) -> Result<(), anyhow::Error> {
+    let stores = app
+        .app_handle()
+        .try_state::<StoreCollection<Wry>>()
+        .unwrap();
     let path = PathBuf::from(STORE_NAME);
     with_store(app.app_handle().clone(), stores, path, |store| {
         let json_data = serde_json::to_value(settings_details)
@@ -34,7 +40,10 @@ fn write_settings(app: &AppHandle, settings_details: &SettingsDetails) -> Result
 }
 
 fn load_settings(app: &AppHandle) -> Result<SettingsDetails, anyhow::Error> {
-    let stores = app.app_handle().try_state::<StoreCollection<Wry>>().unwrap();
+    let stores = app
+        .app_handle()
+        .try_state::<StoreCollection<Wry>>()
+        .unwrap();
     let path = PathBuf::from(STORE_NAME);
     let details = with_store(app.app_handle().clone(), stores, path, |store| {
         let data_json = store
@@ -49,7 +58,11 @@ fn load_settings(app: &AppHandle) -> Result<SettingsDetails, anyhow::Error> {
     Ok(details)
 }
 
-pub fn set_settings(app: &AppHandle, settings: SettingsDetails, time_start: bool) -> Result<(), String> {
+pub fn set_settings(
+    app: &AppHandle,
+    settings: SettingsDetails,
+    time_start: bool,
+) -> Result<(), String> {
     let timer = app.state::<CountdownTimer>();
     {
         let settings_session = app.state::<Mutex<Option<SettingsDetails>>>();
@@ -57,8 +70,7 @@ pub fn set_settings(app: &AppHandle, settings: SettingsDetails, time_start: bool
     }
 
     // save settings
-    write_settings(&app, &settings)
-        .map_err(|e| format!("error while writing settings: {}", e))?;
+    write_settings(&app, &settings).map_err(|e| format!("error while writing settings: {}", e))?;
 
     if time_start {
         // activate new settings
@@ -83,21 +95,21 @@ pub fn new(app: &AppHandle) -> Result<WebviewWindow, String> {
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/settings".into()),
     )
-        .title("Settings")
-        .inner_size(800.0, 600.0)
-        .center()
-        .visible(false)
-        .always_on_top(true)
-        .transparent(true)
-        .decorations(true)
-        .skip_taskbar(false)
-        .effects(WindowEffectsConfig::default())
-        .resizable(false)
-        .build()
-        .map_err(|e| {
-            log::error!("Failed to build WebviewWindow: {:?}", e);
-            "Failed to build WebviewWindow".to_string()
-        })?;
+    .title("Settings")
+    .inner_size(800.0, 600.0)
+    .center()
+    .visible(false)
+    .always_on_top(true)
+    .transparent(true)
+    .decorations(true)
+    .skip_taskbar(false)
+    .effects(WindowEffectsConfig::default())
+    .resizable(false)
+    .build()
+    .map_err(|e| {
+        log::error!("Failed to build WebviewWindow: {:?}", e);
+        "Failed to build WebviewWindow".to_string()
+    })?;
 
     Ok(window)
 }
@@ -113,8 +125,8 @@ where
             SettingsEvent {
                 details: settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION),
             }
-                .emit(&window.app_handle().clone())
-                .unwrap();
+            .emit(&window.app_handle().clone())
+            .unwrap();
 
             Ok(())
         }

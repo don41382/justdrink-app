@@ -3,7 +3,7 @@
     import {enable} from "@tauri-apps/plugin-autostart";
     import {info, warn} from "@tauri-apps/plugin-log";
     import {onMount} from "svelte";
-    import BackgroundVideo from "./BackgroundVideo.svelte";
+    import BackgroundVideo from "../BackgroundVideo.svelte";
 
     let next_break_duration_minutes: string = "180"
     let enable_on_startup = true;

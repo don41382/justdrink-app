@@ -14,7 +14,6 @@ pub struct CountdownEvent {
     pub(crate) status: CountdownStatus,
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
 pub enum CountdownStatus {
     Start,
@@ -84,7 +83,9 @@ impl CountdownTimer {
                 rem_time.clone()
             };
 
-            (*callback)(RunningSeconds { countdown_seconds: rem_time.as_secs() as u32 });
+            (*callback)(RunningSeconds {
+                countdown_seconds: rem_time.as_secs() as u32,
+            });
 
             if rem_time <= Duration::ZERO {
                 {
@@ -147,8 +148,10 @@ fn register_callback(app_handle: &AppHandle) -> Arc<dyn Fn(CountdownStatus) + Se
         let app_handle_ticker = app_handle.clone();
         move |tick| {
             CountdownEvent {
-                status: tick.clone()
-            }.emit(&app_handle_ticker).unwrap();
+                status: tick.clone(),
+            }
+            .emit(&app_handle_ticker)
+            .unwrap();
         }
     })
 }

@@ -3,7 +3,7 @@ use crate::menubar::set_persistent_presentation_mode;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use crate::countdown_timer;
+use crate::{countdown_timer, tracking};
 use crate::countdown_timer::CountdownTimer;
 use tauri::{AppHandle, EventId, Manager, WebviewWindowBuilder};
 use tauri_specta::Event;
@@ -22,12 +22,15 @@ where
     })
 }
 
-pub fn start<R>(app: &AppHandle<R>) -> Result<(), String>
+pub fn start<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
 where
     R: tauri::Runtime,
 {
     // stop current running timer
     app.state::<CountdownTimer>().stop();
+
+    // send tracking event
+    app.state::<tracking::Tracking>().send_tracking(tracking::Event::StartSession);
 
     if let Some(_window) = app.get_webview_window(WINDOW_LABEL) {
         return Ok(());
@@ -53,12 +56,9 @@ where
     #[cfg(target_os = "windows")]
     let window = window.fullscreen(true);
 
-    let window = window.build().map_err(|e| {
-        log::error!("Failed to build WebviewWindow: {:?}", e);
-        "Failed to build WebviewWindow".to_string()
-    })?;
+    let window = window.build()?;
 
-    window.show().unwrap();
+    window.show()?;
 
     Ok(())
 }
