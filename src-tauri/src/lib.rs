@@ -145,6 +145,7 @@ pub fn run() {
                     })
                 ])
                 .level_for("tao::platform_impl::platform::window_delegate", log::LevelFilter::Info)
+                .level_for("tao::platform_impl::platform::view", log::LevelFilter::Info)
                 .level(log::LevelFilter::Trace)
                 .build(),
         )

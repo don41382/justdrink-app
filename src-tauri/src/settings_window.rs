@@ -21,6 +21,12 @@ const DEFAULT_SESSION: SettingsDetails = SettingsDetails {
     enable_on_startup: true,
 };
 
+#[specta::specta]
+#[tauri::command]
+pub fn load_settings_details(settings: State<Mutex<Option<SettingsDetails>>>) -> SettingsDetails {
+    settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION)
+}
+
 fn write_settings(
     app: &AppHandle,
     settings_details: &SettingsDetails,
@@ -90,12 +96,6 @@ pub fn set_settings(
     Ok(())
 }
 
-#[specta::specta]
-#[tauri::command]
-pub fn load_settings_details(settings: State<Mutex<Option<SettingsDetails>>>) -> SettingsDetails {
-    settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION)
-}
-
 pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsDetails, anyhow::Error> {
     load_settings(app_handle)
 }
@@ -125,9 +125,9 @@ where
 
 pub fn show<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
 where
-    R: tauri::Runtime,
+    R: Runtime,
 {
-    app.get_webview_window(WINDOW_LABEL).unwrap_or({
+    let _window = app.get_webview_window(WINDOW_LABEL).unwrap_or({
         new(app.app_handle())?
     });
 
