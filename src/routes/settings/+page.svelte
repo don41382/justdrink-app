@@ -1,33 +1,26 @@
 <script lang="ts">
-    import { commands, events, type SettingsDetails } from '../../bindings';
-    import { onDestroy, onMount } from 'svelte';
-    import type { UnlistenFn } from '@tauri-apps/api/event';
-    import { getCurrentWindow } from "@tauri-apps/api/window";
-    import { info } from "@tauri-apps/plugin-log";
+    import {commands, events, type SettingsDetails} from '../../bindings';
+    import {onDestroy, onMount} from 'svelte';
+    import type {UnlistenFn} from '@tauri-apps/api/event';
+    import {getCurrentWindow} from "@tauri-apps/api/window";
+    import {info} from "@tauri-apps/plugin-log";
     import Icon from "@iconify/svelte";
     import Session from "./Settings.svelte";
     import Tracking from "./Tracking.svelte";
 
-    let sessionStartListenerUnregister: UnlistenFn;
     let closeRequestUnregister: UnlistenFn;
     let settings: SettingsDetails | undefined = undefined;
     let currentPage: 'session' | 'tracking' = 'session';
 
     onMount(async () => {
         await info("mounted settings");
-        sessionStartListenerUnregister = await events.settingsEvent.listen(async ({payload}) => {
-            await info("show");
-            settings = payload.details;
-            const window = getCurrentWindow();
-            await window.show();
-            await window.setFocus();
-        });
+        settings = await commands.loadSettingsDetails();
+        const window = getCurrentWindow();
+        await window.show();
+        await window.setFocus();
     });
 
     onDestroy(() => {
-        if (sessionStartListenerUnregister) {
-            sessionStartListenerUnregister();
-        }
         if (closeRequestUnregister) {
             closeRequestUnregister();
         }
@@ -42,8 +35,8 @@
     document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
-{#if settings}
-    <div class="cursor-default bg-gray-100 font-sans rounded-b-2xl h-screen flex overflow-hidden">
+<div class="cursor-default bg-gray-100 font-sans rounded-b-2xl h-screen flex overflow-hidden">
+    {#if settings}
         <!-- Sidebar -->
         <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
             <div class="flex-grow overflow-y-auto">
@@ -78,10 +71,10 @@
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
             {#if currentPage === 'session'}
-                <Session {settings} {updateSettings} />
+                <Session {settings} {updateSettings}/>
             {:else if currentPage === 'tracking'}
-                <Tracking {settings} {updateSettings} />
+                <Tracking {settings} {updateSettings}/>
             {/if}
         </div>
-    </div>
-{/if}
+    {/if}
+</div>

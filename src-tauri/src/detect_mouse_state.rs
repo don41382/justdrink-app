@@ -145,11 +145,6 @@ fn is_mouse_shaking(y_coords: Vec<i32>, min_distance: i32, min_direction_changes
 
 #[cfg(test)]
 mod tests {
-    use std::thread::sleep;
-    use std::time::Duration;
-    use tauri::command;
-    use crate::detect_mouse_state::{detect_mouse_idl, Mode};
-
     #[test]
     pub fn test_vec() {
         let mut vec = Vec::with_capacity(5);

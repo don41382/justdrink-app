@@ -1,14 +1,12 @@
 use crate::countdown_timer::CountdownTimer;
-use crate::model::event::SettingsEvent;
 use crate::model::settings::SettingsDetails;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::Duration;
 use log::info;
 use tauri::utils::config::WindowEffectsConfig;
-use tauri::{AppHandle, Manager, WebviewWindow, Wry};
+use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Wry};
 use tauri_plugin_store::{with_store, StoreCollection};
-use tauri_specta::Event;
 use crate::tracking;
 use crate::tracking::Tracking;
 
@@ -92,50 +90,48 @@ pub fn set_settings(
     Ok(())
 }
 
+#[specta::specta]
+#[tauri::command]
+pub fn load_settings_details(settings: State<Mutex<Option<SettingsDetails>>>) -> SettingsDetails {
+    settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION)
+}
+
 pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsDetails, anyhow::Error> {
     load_settings(app_handle)
 }
 
-pub fn new(app: &AppHandle) -> Result<WebviewWindow, String> {
+fn new<R>(app: &AppHandle<R>) -> Result<WebviewWindow<R>, anyhow::Error>
+where
+    R: Runtime,
+{
     let window = tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/settings".into()),
     )
-    .title("Settings")
-    .inner_size(800.0, 600.0)
-    .center()
-    .visible(false)
-    .always_on_top(true)
-    .transparent(true)
-    .decorations(true)
-    .skip_taskbar(false)
-    .effects(WindowEffectsConfig::default())
-    .resizable(false)
-    .build()
-    .map_err(|e| {
-        log::error!("Failed to build WebviewWindow: {:?}", e);
-        "Failed to build WebviewWindow".to_string()
-    })?;
-
+        .title("Settings")
+        .inner_size(800.0, 600.0)
+        .center()
+        .visible(false)
+        .always_on_top(true)
+        .transparent(true)
+        .decorations(true)
+        .skip_taskbar(false)
+        .effects(WindowEffectsConfig::default())
+        .resizable(false)
+        .build()?;
     Ok(window)
 }
 
-pub fn show<R>(app: &AppHandle<R>) -> Result<(), String>
+pub fn show<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
 where
     R: tauri::Runtime,
 {
-    match app.get_webview_window(WINDOW_LABEL) {
-        None => Err("Can't show session window, because it does not exist.".to_string()),
-        Some(window) => {
-            let settings = app.state::<Mutex<Option<SettingsDetails>>>();
-            SettingsEvent {
-                details: settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION),
-            }
-            .emit(&window.app_handle().clone())
-            .unwrap();
+    app.get_webview_window(WINDOW_LABEL).unwrap_or({
+        new(app.app_handle())?
+    });
 
-            Ok(())
-        }
-    }
+    // the window wil show itself, once it's mounted
+
+    Ok(())
 }

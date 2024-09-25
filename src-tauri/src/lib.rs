@@ -111,13 +111,14 @@ pub fn run() {
             update_settings,
             start_first_session,
             load_session_details,
+            settings_window::load_settings_details,
             alert::close_error_window,
         ],
         collect_events![
             model::event::SessionStartEvent,
-            model::event::SettingsEvent,
             model::event::AlertEvent,
             model::session::SessionEndingReason,
+            model::settings::SettingsDetails,
             countdown_timer::CountdownEvent,
             countdown_timer::CountdownStatus,
 
@@ -171,7 +172,6 @@ pub fn run() {
 
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;
-            settings_window::new(app.app_handle())?;
 
             #[cfg(target_os = "macos")]
             app.set_activation_policy(ActivationPolicy::Accessory);

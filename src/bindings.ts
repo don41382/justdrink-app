@@ -22,6 +22,9 @@ async startFirstSession(nextBreakDurationMinutes: number, enableOnStartup: boole
 async loadSessionDetails() : Promise<SessionDetail | null> {
     return await TAURI_INVOKE("load_session_details");
 },
+async loadSettingsDetails() : Promise<SettingsDetails> {
+    return await TAURI_INVOKE("load_settings_details");
+},
 async closeErrorWindow() : Promise<void> {
     await TAURI_INVOKE("close_error_window");
 }
@@ -36,14 +39,14 @@ countdownEvent: CountdownEvent,
 countdownStatus: CountdownStatus,
 sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
-settingsEvent: SettingsEvent
+settingsDetails: SettingsDetails
 }>({
 alertEvent: "alert-event",
 countdownEvent: "countdown-event",
 countdownStatus: "countdown-status",
 sessionEndingReason: "session-ending-reason",
 sessionStartEvent: "session-start-event",
-settingsEvent: "settings-event"
+settingsDetails: "settings-details"
 })
 
 /** user-defined constants **/
@@ -60,7 +63,6 @@ export type SessionEndingReason = "EndOfTime" | "UserEscape"
 export type SessionId = string
 export type SessionStartEvent = { details: SessionDetail }
 export type SettingsDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
-export type SettingsEvent = { details: SettingsDetails }
 
 /** tauri-specta globals **/
 
