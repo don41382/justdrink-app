@@ -35,7 +35,6 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
             &separator,
             &settings_menu,
             &separator,
-            &test,
             &quit_menu,
         ],
     )?;

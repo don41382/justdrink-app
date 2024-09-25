@@ -83,7 +83,7 @@ pub fn set_settings(
         // activate new settings
         if settings.active {
             timer.start(Duration::from_secs(
-                settings.next_break_duration_minutes.into(),
+                (settings.next_break_duration_minutes * 60).into(),
             ));
         } else {
             timer.stop();

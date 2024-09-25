@@ -1,6 +1,4 @@
-use std::mem::swap;
 use std::sync::{Mutex};
-use std::thread::spawn;
 use std::time::Duration;
 use log::{info, warn};
 use serde_json::{json, Value};
@@ -76,7 +74,7 @@ impl Tracking {
                 }
             });
             let client_clone = self.client.clone();
-            spawn(move || {
+            std::thread::spawn(move || {
                 Self::send(&event_data, client_clone).unwrap_or_else(|e| {
                     warn!("error sending tracking event: {:?}", e);
                     ()

@@ -12,7 +12,7 @@ mod tray;
 mod welcome_window;
 mod alert;
 
-use log::{error, info, warn};
+use log::{info, warn};
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::{Mutex};
@@ -218,7 +218,7 @@ fn setup_timer(app: &mut App, settings: SettingsDetails) -> Result<(), Box<dyn s
 
     if settings.active {
         timer.start(Duration::from_secs(
-            settings.next_break_duration_minutes as u64,
+            (settings.next_break_duration_minutes * 60).into(),
         ));
     }
     Ok(())

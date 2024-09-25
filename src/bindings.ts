@@ -8,13 +8,8 @@ export const commands = {
 async endSession(reason: SessionEndingReason) : Promise<void> {
     await TAURI_INVOKE("end_session", { reason });
 },
-async updateSettings(settings: SettingsDetails) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("update_settings", { settings }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async updateSettings(settings: SettingsDetails) : Promise<null> {
+    return await TAURI_INVOKE("update_settings", { settings });
 },
 async startFirstSession(nextBreakDurationMinutes: number, enableOnStartup: boolean) : Promise<Result<null, string>> {
     try {
