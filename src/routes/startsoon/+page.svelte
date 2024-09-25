@@ -10,16 +10,10 @@
 
     onMount(async () => {
         eventTickerUnListen = await events.countdownEvent.listen(async ({payload}) => {
-            switch (payload.status) {
-                case "Start":
-                    countdown = 0;
-                    break;
-                case "Finished":
-                    countdown = 0;
-                    break;
-                default:
-                    countdown = payload.status.RunningSeconds.countdown_seconds;
-                    break;
+            if (payload.status.Active) {
+                countdown = payload.status.Active;
+            } else {
+                countdown = 0;
             }
         })
 

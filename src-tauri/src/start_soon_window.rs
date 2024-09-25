@@ -1,4 +1,4 @@
-use crate::countdown_timer::{CountdownStatus, CountdownTimer};
+use crate::countdown_timer::{CountdownTimer, TimerStatus};
 use crate::{countdown_timer, detect_mouse_state, settings_window};
 use mouse_position::mouse_position::Mouse;
 use std::thread::sleep;
@@ -26,17 +26,15 @@ where
     let app_handle_show = app.clone();
     countdown_timer::CountdownEvent::listen(app, move |event| {
         let should_show_countdown = match event.payload.status {
-            CountdownStatus::Start => false,
-            CountdownStatus::RunningSeconds { countdown_seconds } => {
-                countdown_seconds > 0
-                    && countdown_seconds < 5
+            TimerStatus::Active(countdown) => {
+                countdown > 0
+                    && countdown < 5
                     && !app_handle_show
                     .get_webview_window(settings_window::WINDOW_LABEL)
-                    .unwrap()
-                    .is_visible()
-                    .unwrap()
+                    .map(|w| w.is_visible().unwrap_or(false))
+                    .unwrap_or(false)
             }
-            CountdownStatus::Finished => false,
+            _ => false,
         };
         if should_show_countdown {
             if let Some(window) = app_handle_show.get_webview_window(WINDOW_LABEL) {
@@ -61,12 +59,12 @@ where
 
     let app_handle_idle = app.app_handle().clone();
     detect_mouse_state::detect_mouse_idl(
-        300,
+        500,
         5
         , Box::new(move |mode| {
             match mode {
                 detect_mouse_state::Mode::Idle => {
-                    app_handle_idle.state::<CountdownTimer>().pause();
+                    app_handle_idle.state::<CountdownTimer>().pause(countdown_timer::PauseOrigin::Idle);
                 }
                 detect_mouse_state::Mode::Working => {
                     app_handle_idle.state::<CountdownTimer>().resume();

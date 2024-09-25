@@ -18,7 +18,7 @@ where
 {
     let app_handle = app.clone();
     countdown_timer::CountdownEvent::listen(app, move |status| {
-        if status.payload.status == countdown_timer::CountdownStatus::Finished {
+        if status.payload.status == countdown_timer::TimerStatus::Finished {
             info!("Thread after timer runs out: {}", thread::current().name().unwrap_or("Unnamed Thread").to_string());
             start(&app_handle).unwrap();
         }

@@ -38,6 +38,8 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "copyright": "Rocket Solutions SL 2024",
+    "publisher": "Rocket Solutions SL",
     "resources": [
       "videos/*",
       "audio/*"

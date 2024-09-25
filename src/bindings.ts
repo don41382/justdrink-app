@@ -36,17 +36,17 @@ async closeErrorWindow() : Promise<void> {
 export const events = __makeEvents__<{
 alertEvent: AlertEvent,
 countdownEvent: CountdownEvent,
-countdownStatus: CountdownStatus,
 sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
-settingsDetails: SettingsDetails
+settingsDetails: SettingsDetails,
+timerStatus: TimerStatus
 }>({
 alertEvent: "alert-event",
 countdownEvent: "countdown-event",
-countdownStatus: "countdown-status",
 sessionEndingReason: "session-ending-reason",
 sessionStartEvent: "session-start-event",
-settingsDetails: "settings-details"
+settingsDetails: "settings-details",
+timerStatus: "timer-status"
 })
 
 /** user-defined constants **/
@@ -56,13 +56,14 @@ settingsDetails: "settings-details"
 /** user-defined types **/
 
 export type AlertEvent = { title: string; message: string }
-export type CountdownEvent = { status: CountdownStatus }
-export type CountdownStatus = "Start" | { RunningSeconds: { countdown_seconds: number } } | "Finished"
+export type CountdownEvent = { status: TimerStatus }
+export type PauseOrigin = "Idle" | "User"
 export type SessionDetail = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
 export type SessionEndingReason = "EndOfTime" | "UserEscape"
 export type SessionId = string
 export type SessionStartEvent = { details: SessionDetail }
 export type SettingsDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
+export type TimerStatus = "NotStarted" | { Active: number } | { Paused: PauseOrigin } | "Finished"
 
 /** tauri-specta globals **/
 

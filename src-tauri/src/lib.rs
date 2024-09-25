@@ -120,7 +120,7 @@ pub fn run() {
             model::session::SessionEndingReason,
             model::settings::SettingsDetails,
             countdown_timer::CountdownEvent,
-            countdown_timer::CountdownStatus,
+            countdown_timer::TimerStatus,
 
         ],
     )

@@ -39,6 +39,7 @@
                 <select bind:value={next_break_duration_minutes}
                         class="p-2 border rounded-l shadow-sm text-right text-black w-24"
                         on:change={submit}>
+                    <option value="1">1 min</option>
                     <option value="10">10 min</option>
                     <option value="30">30 min</option>
                     <option value="60">1 hour</option>
