@@ -14,16 +14,13 @@
     let currentPage: 'session' | 'tracking' = 'session';
 
     onMount(async () => {
-        await info("mounted settings window");
+        await info("mounted settings");
         sessionStartListenerUnregister = await events.settingsEvent.listen(async ({payload}) => {
-            await info("show settings");
+            await info("show");
             settings = payload.details;
             const window = getCurrentWindow();
             await window.show();
             await window.setFocus();
-        });
-        closeRequestUnregister = await getCurrentWindow().listen("tauri://close-requested", (e) => {
-            info("close settings window")
         });
     });
 

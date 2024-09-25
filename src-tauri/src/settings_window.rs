@@ -9,6 +9,8 @@ use tauri::utils::config::WindowEffectsConfig;
 use tauri::{AppHandle, Manager, WebviewWindow, Wry};
 use tauri_plugin_store::{with_store, StoreCollection};
 use tauri_specta::Event;
+use crate::tracking;
+use crate::tracking::Tracking;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
@@ -73,6 +75,9 @@ pub fn set_settings(
 
     // save settings
     write_settings(&app, &settings)?;
+
+    // send tracking event
+    app.state::<Tracking>().send_tracking(tracking::Event::SetTimer(settings.next_break_duration_minutes));
 
     if time_start {
         // activate new settings

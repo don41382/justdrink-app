@@ -10,7 +10,7 @@ use crate::model::session::{SessionEndingReason};
 use crate::model::settings::SettingsDetails;
 
 pub(crate) struct Tracking {
-    client: tauri_plugin_http::reqwest::blocking::Client,
+    client: Client,
     app_handle: AppHandle,
     machine_id: String,
     platform: String,
@@ -20,6 +20,7 @@ pub(crate) struct Tracking {
 #[derive(Debug)]
 pub enum Event {
     StartSession,
+    SetTimer(u32),
     EndSession(SessionEndingReason),
 }
 
@@ -27,9 +28,10 @@ impl Event {
     fn name(&self) -> String {
         match self {
             Event::StartSession => String::from("start_session"),
+            Event::SetTimer(minutes) => String::from(format!("set_timer_{}", minutes)),
             Event::EndSession(end) => match end {
                 SessionEndingReason::EndOfTime => String::from("session_end_time"),
-                SessionEndingReason::UserEscape => String::from("session_end_time")
+                SessionEndingReason::UserEscape => String::from("session_end_user_escape")
             }
         }
     }
@@ -52,7 +54,7 @@ impl Tracking {
         })
     }
 
-    fn send_tracking_event(&self, event: Event) {
+    pub fn send_tracking(&self, event: Event) {
         let allow_tracking = {
             let settings = self.app_handle.state::<Mutex<Option<SettingsDetails>>>();
             let result = if let Ok(guard) = settings.try_lock() {
@@ -87,15 +89,11 @@ impl Tracking {
         let res = client_clone.post("https://eu.i.posthog.com/capture/")
             .header("Content-Type", "application/json")
             .json(&event_data)
-            .timeout(Duration::from_secs(3))
+            .timeout(Duration::from_secs(10))
             .send()?;
 
         res.error_for_status()?;
         Ok(())
     }
 
-    pub fn send_tracking(&self, event: Event) -> ()
-    {
-        self.send_tracking_event(event);
-    }
 }

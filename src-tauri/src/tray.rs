@@ -22,7 +22,6 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
         None,
         None::<&str>,
     )?;
-    let test = MenuItem::with_id(main_app, "test", "Test ...", true, None::<&str>)?;
     let quit_menu = MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?;
     let session_start_menu =
         MenuItem::with_id(main_app, "start", "Start session", true, None::<&str>)?;
@@ -55,9 +54,6 @@ pub fn create_tray<R: Runtime>(main_app: &tauri::AppHandle<R>) -> tauri::Result<
                 settings_window::show(app).unwrap_or_else(|e| {
                     alert(app, "Error while opening settings", "I am sorry, we are unable to open up the settings.", Some(anyhow!(e)));
                 });
-            }
-            "test" => {
-                alert::alert(app, "Test", "This is a test error", None);
             }
             "quit" => {
                 app.exit(0);

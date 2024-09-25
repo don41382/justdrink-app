@@ -34,12 +34,11 @@ use crate::tracking::{Event, Tracking};
 
 #[specta::specta]
 #[tauri::command]
-fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> Result<(), String> {
-    settings_window::set_settings(&app_handle, settings, true).map_err(|err| {
-        error!("error while trying to save settings: {:?}", err);
-        format!("error during update settings: {:?}", err)
-    })?;
-    Ok(())
+fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> () {
+    settings_window::set_settings(&app_handle, settings, true).unwrap_or_else(|err| {
+        alert(app_handle.app_handle(), "Failed to update settings", "Motion minute is unable to update settings.", Some(err));
+        ()
+    });
 }
 
 #[specta::specta]
@@ -152,7 +151,6 @@ pub fn run() {
         .manage(Mutex::new(SessionRepository::new()))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
-
             alert::init(app.app_handle())?;
 
             app.manage(CountdownTimer::new(app.app_handle()));
