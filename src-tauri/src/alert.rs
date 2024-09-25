@@ -35,7 +35,7 @@ where
     Ok(())
 }
 
-pub fn alert<R>(app: &AppHandle<R>, title: &str, message: &str, error: Option<anyhow::Error>) -> ()
+pub fn alert<R>(app: &AppHandle<R>, title: &str, message: &str, error: Option<anyhow::Error>, silence: bool) -> ()
 where
     R: Runtime,
 {
@@ -45,11 +45,13 @@ where
         error!("error '{}' with message '{}'", title, message);
     }
 
-    match display_alert(app, title, message) {
-        Ok(_) => {}
-        Err(e) => {
-            error!("unable to display error {:?}", e);
-            app.exit(-1);
+    if !silence {
+        match display_alert(app, title, message) {
+            Ok(_) => {}
+            Err(e) => {
+                error!("unable to display error {:?}", e);
+                app.exit(-1);
+            }
         }
     }
 }

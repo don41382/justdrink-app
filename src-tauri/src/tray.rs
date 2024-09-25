@@ -1,16 +1,14 @@
+use std::thread::sleep;
 use crate::countdown_timer::{CountdownEvent, CountdownTimer, PauseOrigin, TimerStatus};
 use crate::pretty_time::PrettyTime;
 use crate::{alert, countdown_timer, session_window, settings_window};
 use std::time::Duration;
 use anyhow::{anyhow};
+use log::{debug, info};
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
-use tauri::{
-    menu::{Menu, MenuItem},
-    tray::TrayIconBuilder,
-    Manager, Runtime,
-};
+use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, AppHandle, Manager, Runtime};
 use tauri::tray::TrayIconEvent;
-use tauri_specta::Event;
+use tauri_specta::{Event, TypedEvent};
 
 const TRAY_ID: &'static str = "tray";
 
@@ -32,7 +30,6 @@ where
                 PauseOrigin::User =>
                     "Next session is paused".to_string()
             }
-
         }
         TimerStatus::NotStarted => {
             "Not running".to_string()
@@ -41,6 +38,8 @@ where
             "Not running".to_string()
         }
     };
+
+    debug!("generate new menu {}", status_string);
 
     let menu = Menu::with_items(
         main_app,
@@ -82,7 +81,7 @@ where
                             ) {
                             Ok(_) => {}
                             Err(error) => {
-                                alert(tray.app_handle(), "Menu not accessible", "I am sorry, there is an error while opening the menu item in the tray.", Some(error));
+                                alert(tray.app_handle(), "Menu not accessible", "I am sorry, there is an error while opening the menu item in the tray.", Some(error), false);
                             }
                         }
                     }
@@ -96,12 +95,12 @@ where
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "start" => {
                 session_window::start(app.app_handle()).unwrap_or_else(|e| {
-                    alert(app, "Error while starting the session", "I am sorry, we are unable to start the session.", Some(e));
+                    alert(app, "Error while starting the session", "I am sorry, we are unable to start the session.", Some(e), false);
                 });
             }
             "settings" => {
                 settings_window::show(app).unwrap_or_else(|e| {
-                    alert(app, "Error while opening settings", "I am sorry, we are unable to open up the settings.", Some(anyhow!(e)));
+                    alert(app, "Error while opening settings", "I am sorry, we are unable to open up the settings.", Some(anyhow!(e)), false);
                 });
             }
             "pause" => {

@@ -76,7 +76,7 @@ impl CountdownTimer {
         }
 
         let rem_time = Arc::clone(&self.remaining_time);
-        let is_paused = Arc::clone(&self.status);
+        let status = Arc::clone(&self.status);
         let guard_arc = Arc::clone(&self.guard);
         let callback = Arc::clone(&self.tick_callback);
 
@@ -84,15 +84,16 @@ impl CountdownTimer {
         let guard = self.timer.schedule_repeating(TICKER_SPEED_MS, move || {
             // Check if paused
             {
-                let status = is_paused.lock().unwrap();
-                match *status {
+                let status = {
+                    status.lock().unwrap().clone()
+                };
+                match status {
                     TimerStatus::Paused(_) => {
                         (*callback)(status.clone());
                         return;
                     }
                     _ => {}
                 }
-                drop(status);
             }
 
             let rem_time: Duration = {
@@ -103,12 +104,12 @@ impl CountdownTimer {
             };
 
             if rem_time > Duration::ZERO {
-                {
-                    let mut status = is_paused.lock().unwrap();
+                let status = {
+                    let mut status = status.lock().unwrap();
                     *status = TimerStatus::Active(rem_time.as_secs() as u32);
-                    (*callback)(status.clone());
-                    drop(status);
-                }
+                    status.clone()
+                };
+                (*callback)(status);
             } else {
                 {
                     // Stop the timer by dropping the guard

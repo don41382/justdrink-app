@@ -36,7 +36,7 @@ use crate::tracking::{Event, Tracking};
 #[tauri::command]
 fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> () {
     settings_window::set_settings(&app_handle, settings, true).unwrap_or_else(|err| {
-        alert(app_handle.app_handle(), "Failed to update settings", "Motion minute is unable to update settings.", Some(err));
+        alert(app_handle.app_handle(), "Failed to update settings", "Motion minute is unable to update settings.", Some(err), false);
         ()
     });
 }
@@ -54,7 +54,7 @@ fn start_first_session(
         match start_first_session_(&app_handle.app_handle(), welcome_window, next_break_duration_minutes, enable_on_startup) {
             Ok(_) => {}
             Err(error) => {
-                alert(&app_handle.app_handle(), "Not able to start first session", format!("{:?}", error).as_str(), Some(error))
+                alert(&app_handle.app_handle(), "Not able to start first session", format!("{:?}", error).as_str(), Some(error), false)
             }
         }
     });
@@ -95,7 +95,7 @@ fn load_session_details(
         let mut repo = session_repository.lock().unwrap();
         match repo.pick_random_session() {
             None => {
-                alert(&app, "Session is missing", "There is no session available", None);
+                alert(&app, "Session is missing", "There is no session available", None, false);
                 None
             }
             Some(session) => Some(session.clone()),
