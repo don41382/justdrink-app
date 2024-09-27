@@ -41,6 +41,13 @@ jobs:
       - name: install frontend dependencies
         run: yarn install # change this to npm, pnpm or bun depending on which one you use.
 
+      - name: Create videos directory and download videos
+        run: |
+          mkdir -p src-tauri/videos
+          curl -L https://storage.googleapis.com/motion-minute-download/videos/v1.zip -o v1.zip
+          unzip v1.zip -d src-tauri/videos
+          rm v1.zip # clean up the zip file
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
