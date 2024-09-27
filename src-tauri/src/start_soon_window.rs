@@ -28,7 +28,7 @@ where
         let should_show_countdown = match event.payload.status {
             TimerStatus::Active(countdown) => {
                 countdown > 0
-                    && countdown < 5
+                    && countdown < 6
                     && !app_handle_show
                     .get_webview_window(settings_window::WINDOW_LABEL)
                     .map(|w| w.is_visible().unwrap_or(false))
@@ -51,7 +51,7 @@ where
 
     let app_handle_shake = app.app_handle().clone();
     detect_mouse_state::detect_mouse_shake(Box::new(move |_| {
-        if let Some(_window) = app_handle_shake.get_webview_window(WINDOW_LABEL) {
+        if app_handle_shake.get_webview_window(WINDOW_LABEL).map(|w| w.is_visible().unwrap_or(false)).unwrap_or(false) {
             let timer = app_handle_shake.state::<CountdownTimer>();
             timer.restart();
         }

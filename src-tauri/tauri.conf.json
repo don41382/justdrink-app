@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/tauri-apps/tauri/releases/download/tauri-build-v2.0.0-beta.13/schema.json",
-  "productName": "Motion Minute",
-  "version": "0.1.0",
+  "productName": "Motion Minute App",
+  "version": "0.1.1",
   "identifier": "com.rocketsolutions.minutemotion",
   "app": {
     "macOSPrivateApi": true,
@@ -38,7 +38,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "copyright": "Rocket Solutions SL 2024",
+    "copyright": "2024 - Rocket Solutions SL",
     "publisher": "Rocket Solutions SL",
     "resources": [
       "videos/*",

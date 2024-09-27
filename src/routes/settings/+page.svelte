@@ -61,12 +61,14 @@
                     </li>
                 </ul>
             </div>
+            <!--
             <div class="p-4">
                 <button class="text-gray-700 flex items-center space-x-2">
                     <i class="fas fa-key"></i>
                     <span>Manage license</span>
                 </button>
             </div>
+            -->
         </div>
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
