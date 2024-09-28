@@ -6,6 +6,11 @@ on:
       - master
 
 jobs:
+  job_id:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
   publish-tauri:
     permissions:
       contents: write
@@ -55,4 +60,6 @@ jobs:
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
+          releaseCommitish: "main"
+          repo: https://github.com/don41382/motion-minute-app-releases
           args: ${{ matrix.args }}
