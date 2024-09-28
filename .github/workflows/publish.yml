@@ -6,11 +6,6 @@ on:
       - master
 
 jobs:
-  job_id:
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-
   publish-tauri:
     permissions:
       contents: write
