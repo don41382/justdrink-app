@@ -55,6 +55,11 @@ jobs:
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
-          releaseCommitish: "main"
-          repo: "https://github.com/don41382/motion-minute-app-releases"
           args: ${{ matrix.args }}
+
+      - name: Upload to Google Cloud Storage
+        uses: google-github-actions/upload-cloud-storage@v1
+        with:
+          path: 'src-tauri/target/release/bundle/**'
+          destination: 'gs://motion-minute-download/releases/'
+          gzip: false
