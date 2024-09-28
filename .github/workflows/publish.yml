@@ -61,5 +61,5 @@ jobs:
           releaseDraft: true
           prerelease: false
           releaseCommitish: "main"
-          repo: https://github.com/don41382/motion-minute-app-releases
+          repo: "https://github.com/don41382/motion-minute-app-releases"
           args: ${{ matrix.args }}
