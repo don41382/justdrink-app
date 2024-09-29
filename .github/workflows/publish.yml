@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # for Arm based macs (M1 and above).
+          - platform: "macos-latest" # universal
             args: "--target universal-apple-darwin"
           - platform: "windows-latest"
             args: ""
@@ -66,14 +66,16 @@ jobs:
         if: matrix.platform == 'macos-latest'
         uses: google-github-actions/upload-cloud-storage@v1
         with:
-          path: 'src-tauri/target/universal-apple-darwin/release/bundle/dmg'
+          path: 'src-tauri/target/universal-apple-darwin/release/bundle/dmg/'
           destination: 'motion-minute-download/releases'
+          glob: '*.dmg'
           gzip: false
 
       - name: Upload to Google Cloud Storage
         if: matrix.platform == 'windows-latest'
         uses: google-github-actions/upload-cloud-storage@v1
         with:
-          path: 'src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis'
+          path: 'src-tauri/target/release/bundle/nsis/'
           destination: 'motion-minute-download/releases'
+          glob: '*.exe'
           gzip: false
