@@ -57,9 +57,14 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+            credentials_json: "${{ secrets.GOOGLE_CLOUD_STORAGE_KEY }}"
+
       - name: Upload to Google Cloud Storage
         uses: google-github-actions/upload-cloud-storage@v1
         with:
           path: 'src-tauri/target/release/bundle/**'
-          destination: 'gs://motion-minute-download/releases/'
+          destination: 'gs://motion-minute-download/releases'
           gzip: false
