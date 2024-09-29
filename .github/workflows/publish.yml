@@ -73,5 +73,5 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@v1
         with:
           path: 'src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis'
-          destination: 'gs://motion-minute-download/releases'
+          destination: 'motion-minute-download/releases'
           gzip: false
