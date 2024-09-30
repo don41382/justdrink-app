@@ -2,8 +2,8 @@ name: "publish"
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - v*
 
 jobs:
   publish-tauri:
@@ -77,20 +77,20 @@ jobs:
           gzip: false
 
       - name: Upload to Google Cloud Storage - Windows 64
-        if: matrix.platform == 'windows-latest' && matrix.args == '--target i686-pc-windows-msvc'
+        if: ${{ matrix.platform == 'windows-latest' && matrix.arch == 'x64-windows' }}
         uses: google-github-actions/upload-cloud-storage@v1
         with:
-          path: 'src-tauri/target/release/bundle/nsis/'
+          path: 'src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis'
           destination: 'motion-minute-download/releases'
           glob: '*.exe'
           parent: false
           gzip: false
 
       - name: Upload to Google Cloud Storage - Windows 32
-        if: matrix.platform == 'windows-latest' && matrix.args == '--target x86_64-pc-windows-msvc'
+        if: ${{ matrix.platform == 'windows-latest' && matrix.arch == 'x86-windows' }}
         uses: google-github-actions/upload-cloud-storage@v1
         with:
-          path: 'src-tauri/target/release/bundle/nsis/'
+          path: 'src-tauri/target/i686-pc-windows-msvc/release/bundle/nsis'
           destination: 'motion-minute-download/releases'
           glob: '*.exe'
           parent: false
