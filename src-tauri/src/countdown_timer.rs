@@ -5,6 +5,7 @@ use std::time::Duration;
 use tauri::AppHandle;
 use tauri_specta::Event;
 use timer::{Guard, Timer};
+use crate::pretty_time::PrettyTime;
 
 const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(500);
 
@@ -32,6 +33,28 @@ impl TimerStatus {
         match self {
             TimerStatus::Active(_) => true,
             _ => false,
+        }
+    }
+
+    pub fn to_text(&self) -> String {
+        match self {
+            TimerStatus::Active(duration) => {
+                format!("Next session starts in {}", Duration::from_secs(*duration as u64).to_pretty_time())
+            }
+            TimerStatus::Paused(origin) => {
+                match origin {
+                    PauseOrigin::Idle =>
+                        "Paused due to not interaction".to_string(),
+                    PauseOrigin::User =>
+                        "Next session is paused".to_string()
+                }
+            }
+            TimerStatus::NotStarted => {
+                "Not running".to_string()
+            }
+            TimerStatus::Finished => {
+                "Not running".to_string()
+            }
         }
     }
 }
