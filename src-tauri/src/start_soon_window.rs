@@ -1,5 +1,5 @@
-use crate::countdown_timer::{CountdownTimer, TimerStatus};
-use crate::{countdown_timer, detect_mouse_state, settings_window};
+use crate::countdown_timer::{TimerStatus};
+use crate::{countdown_timer, detect_mouse_state, settings_window, CountdownTimerState};
 use mouse_position::mouse_position::Mouse;
 use std::thread::sleep;
 use std::time::Duration;
@@ -52,7 +52,7 @@ where
     let app_handle_shake = app.app_handle().clone();
     detect_mouse_state::detect_mouse_shake(Box::new(move |_| {
         if app_handle_shake.get_webview_window(WINDOW_LABEL).map(|w| w.is_visible().unwrap_or(false)).unwrap_or(false) {
-            let timer = app_handle_shake.state::<CountdownTimer>();
+            let timer = app_handle_shake.state::<CountdownTimerState>();
             timer.restart();
         }
     }));
@@ -64,10 +64,10 @@ where
         , Box::new(move |mode| {
             match mode {
                 detect_mouse_state::Mode::Idle => {
-                    app_handle_idle.state::<CountdownTimer>().pause(countdown_timer::PauseOrigin::Idle);
+                    app_handle_idle.state::<CountdownTimerState>().pause(countdown_timer::PauseOrigin::Idle);
                 }
                 detect_mouse_state::Mode::Working => {
-                    app_handle_idle.state::<CountdownTimer>().resume();
+                    app_handle_idle.state::<CountdownTimerState>().resume();
                 }
             }
         }));

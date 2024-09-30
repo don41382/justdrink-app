@@ -1,11 +1,10 @@
-use std::sync::{Mutex};
 use std::time::Duration;
 use log::{info, warn};
 use serde_json::{json, Value};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest::blocking::{Client, ClientBuilder};
 use crate::model::session::{SessionEndingReason};
-use crate::model::settings::SettingsDetails;
+use crate::SettingsDetailsState;
 
 pub(crate) struct Tracking {
     client: Client,
@@ -54,7 +53,7 @@ impl Tracking {
 
     pub fn send_tracking(&self, event: Event) {
         let allow_tracking = {
-            let settings = self.app_handle.state::<Mutex<Option<SettingsDetails>>>();
+            let settings = self.app_handle.state::<SettingsDetailsState>();
             let result = if let Ok(guard) = settings.try_lock() {
                 guard.as_ref().map(|s| s.allow_tracking).unwrap_or(false)
             } else {
@@ -93,5 +92,4 @@ impl Tracking {
         res.error_for_status()?;
         Ok(())
     }
-
 }

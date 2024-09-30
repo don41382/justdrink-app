@@ -5,8 +5,7 @@ use crate::menubar::set_persistent_presentation_mode;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use crate::{countdown_timer, tracking};
-use crate::countdown_timer::CountdownTimer;
+use crate::{countdown_timer, tracking, CountdownTimerState, TrackingState};
 use tauri::{AppHandle, EventId, Manager, WebviewWindowBuilder};
 use tauri_specta::Event;
 
@@ -31,11 +30,11 @@ where
 {
     info!("start session window: stop timer");
     // stop current running timer
-    app.state::<CountdownTimer>().stop();
+    app.state::<CountdownTimerState>().stop();
 
     info!("start session window: send tracking");
     // send tracking event
-    app.state::<tracking::Tracking>().send_tracking(tracking::Event::StartSession);
+    app.state::<TrackingState>().send_tracking(tracking::Event::StartSession);
 
     info!("start session window: check window exists");
     if let Some(_window) = app.get_webview_window(WINDOW_LABEL) {

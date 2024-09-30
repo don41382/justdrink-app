@@ -1,14 +1,11 @@
-use crate::countdown_timer::CountdownTimer;
 use crate::model::settings::SettingsDetails;
 use std::path::PathBuf;
-use std::sync::Mutex;
 use std::time::Duration;
 use log::info;
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Wry};
 use tauri_plugin_store::{with_store, StoreCollection};
-use crate::tracking;
-use crate::tracking::Tracking;
+use crate::{tracking, CountdownTimerState, SettingsDetailsState, TrackingState};
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
@@ -23,7 +20,7 @@ const DEFAULT_SESSION: SettingsDetails = SettingsDetails {
 
 #[specta::specta]
 #[tauri::command]
-pub fn load_settings_details(settings: State<Mutex<Option<SettingsDetails>>>) -> SettingsDetails {
+pub fn load_settings_details(settings: State<SettingsDetailsState>) -> SettingsDetails {
     settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION)
 }
 
@@ -71,9 +68,9 @@ pub fn set_settings(
     settings: SettingsDetails,
     time_start: bool,
 ) -> Result<(), anyhow::Error> {
-    let timer = app.state::<CountdownTimer>();
+    let timer = app.state::<CountdownTimerState>();
     {
-        let settings_session = app.state::<Mutex<Option<SettingsDetails>>>();
+        let settings_session = app.state::<SettingsDetailsState>();
         *settings_session.lock().unwrap() = Some(settings.clone());
     }
 
@@ -81,7 +78,7 @@ pub fn set_settings(
     write_settings(&app, &settings)?;
 
     // send tracking event
-    app.state::<Tracking>().send_tracking(tracking::Event::SetTimer(settings.next_break_duration_minutes));
+    app.state::<TrackingState>().send_tracking(tracking::Event::SetTimer(settings.next_break_duration_minutes));
 
     if time_start {
         // activate new settings

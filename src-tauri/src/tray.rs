@@ -1,14 +1,13 @@
-use std::thread::sleep;
 use crate::countdown_timer::{CountdownEvent, CountdownTimer, PauseOrigin, TimerStatus};
 use crate::pretty_time::PrettyTime;
 use crate::{alert, countdown_timer, session_window, settings_window};
 use std::time::Duration;
 use anyhow::{anyhow};
-use log::{debug, info};
+use log::{debug};
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
-use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, AppHandle, Manager, Runtime};
+use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, Runtime};
 use tauri::tray::TrayIconEvent;
-use tauri_specta::{Event, TypedEvent};
+use tauri_specta::{Event};
 
 const TRAY_ID: &'static str = "tray";
 

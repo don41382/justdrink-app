@@ -79,7 +79,7 @@ fn start_first_session_(app_handle: &AppHandle, welcome_window: Window, next_bre
 
 #[specta::specta]
 #[tauri::command]
-fn end_session(window: Window, timer: State<CountdownTimer>, reason: model::session::SessionEndingReason, tracking: State<Tracking>) {
+fn end_session(window: Window, timer: State<CountdownTimerState>, reason: model::session::SessionEndingReason, tracking: State<TrackingState>) {
     timer.restart();
     window.close().unwrap();
     tracking.send_tracking(Event::EndSession(reason));
@@ -89,7 +89,7 @@ fn end_session(window: Window, timer: State<CountdownTimer>, reason: model::sess
 #[tauri::command]
 fn load_session_details(
     app: AppHandle,
-    session_repository: State<Mutex<SessionRepository>>,
+    session_repository: State<SessionRepositoryState>,
 ) -> Option<model::session::SessionDetail> {
     {
         let mut repo = session_repository.lock().unwrap();
@@ -102,6 +102,11 @@ fn load_session_details(
         }
     }
 }
+
+type SettingsDetailsState = Mutex<Option<SettingsDetails>>;
+type CountdownTimerState = CountdownTimer;
+type TrackingState = Tracking;
+type SessionRepositoryState = Mutex<SessionRepository>;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -150,24 +155,24 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(builder.invoke_handler())
-        .manage(Mutex::new(SessionRepository::new()))
+        .manage::<SessionRepositoryState>(Mutex::new(SessionRepository::new()))
         .setup(move |app| {
             builder.mount_events(app.app_handle());
             alert::init(app.app_handle())?;
 
-            app.manage(CountdownTimer::new(app.app_handle()));
-            app.manage(Tracking::new(app.app_handle()).unwrap());
+            app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
+            app.manage::<TrackingState>(Tracking::new(app.app_handle()).unwrap());
 
             match settings_window::get_settings(app.app_handle()) {
                 Ok(settings) => {
-                    app.manage(Mutex::new(Some(settings.clone())));
+                    app.manage::<SettingsDetailsState>(Mutex::new(Some(settings.clone())));
                     setup_timer(app, settings.clone()).unwrap();
                 }
                 Err(err) => {
                     warn!("could not load settings: {}", err);
                     welcome_window::show(app.app_handle())?;
                     info!("display welcome screen");
-                    app.manage(Mutex::new(None::<SettingsDetails>));
+                    app.manage::<SettingsDetailsState>(Mutex::new(None::<SettingsDetails>));
                 }
             }
 
@@ -215,7 +220,7 @@ fn build_typescript_interfaces(
 }
 
 fn setup_timer(app: &mut App, settings: SettingsDetails) -> Result<(), Box<dyn std::error::Error>> {
-    let timer = app.state::<CountdownTimer>();
+    let timer = app.state::<CountdownTimerState>();
 
     if settings.active {
         timer.start(Duration::from_secs(
