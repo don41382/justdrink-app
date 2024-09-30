@@ -1,10 +1,10 @@
 use anyhow::Error;
-use log::error;
+use log::{error, warn};
 use tauri::{AppHandle, Manager, Runtime};
 
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
-
+use tauri_plugin_http::reqwest::blocking::ClientBuilder;
 use tauri_specta::Event;
 use crate::model::event::AlertEvent;
 
@@ -56,6 +56,53 @@ where
     }
 }
 
+#[specta::specta]
+#[tauri::command]
+pub fn close_error_and_send(app: AppHandle, window: tauri::Window, message: String) -> () {
+    match send_error(app.app_handle(), message.clone()) {
+        Ok(_) => {}
+        Err(err) => {
+            error!("unable to send error '{}' to server: {:?}", message, err);
+        }
+    }
+    window.hide().expect("alert window must exists and should never be closed");
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn close_error_window(window: tauri::Window) {
+    window.hide().expect("alert window must exists and should never be closed");
+}
+
+
+fn send_error<R>(app: &AppHandle<R>, message: String) -> Result<(), Error>
+where
+    R: Runtime,
+{
+    let id = machine_uid::get().unwrap_or_else(|e| {
+        warn!("can't get machine uid, while sending error: {}", e);
+        "unknown".to_string()
+    });
+    let platform = tauri_plugin_os::platform().to_string();
+    let platform_version = tauri_plugin_os::version().to_string();
+    let version = app.config().clone().version.unwrap_or("unknown-version".to_string());
+
+    let client = ClientBuilder::new().build()?;
+    let result = client
+        .get(format!("https://motionminute.app/app/v1/log?logLevel={error}&platform={platform}&platformVersion={platform_version}&deviceId={deviceId}&version={version}&message={message}",
+                     error = "error",
+                     platform = urlencoding::encode(platform.as_str()),
+                     platform_version = urlencoding::encode(platform_version.as_str()),
+                     deviceId = urlencoding::encode(id.as_str()),
+                     version = urlencoding::encode(version.as_str()),
+                     message = urlencoding::encode(message.as_str())
+        )).send()?;
+
+    result.error_for_status()?;
+
+    Ok(())
+}
+
 fn display_alert<R>(app: &AppHandle<R>, title: &str, message: &str) -> Result<(), Error>
 where
     R: Runtime,
@@ -72,10 +119,4 @@ where
     }.emit(alert_window.app_handle())?;
 
     Ok(())
-}
-
-#[specta::specta]
-#[tauri::command]
-pub fn close_error_window(window: tauri::Window) {
-    window.hide().expect("alert window must exists and should never be closed");
 }

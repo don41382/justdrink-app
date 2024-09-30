@@ -29,14 +29,13 @@ use tauri::{App, AppHandle, Manager, State, Window, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
-use crate::alert::alert;
 use crate::tracking::{Event, Tracking};
 
 #[specta::specta]
 #[tauri::command]
 fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> () {
     settings_window::set_settings(&app_handle, settings, true).unwrap_or_else(|err| {
-        alert(app_handle.app_handle(), "Failed to update settings", "Motion minute is unable to update settings.", Some(err), false);
+        alert::alert(app_handle.app_handle(), "Failed to update settings", "Motion minute is unable to update settings.", Some(err), false);
         ()
     });
 }
@@ -54,7 +53,7 @@ fn start_first_session(
         match start_first_session_(&app_handle.app_handle(), welcome_window, next_break_duration_minutes, enable_on_startup) {
             Ok(_) => {}
             Err(error) => {
-                alert(&app_handle.app_handle(), "Not able to start first session", format!("{:?}", error).as_str(), Some(error), false)
+                alert::alert(&app_handle.app_handle(), "Not able to start first session", format!("{:?}", error).as_str(), Some(error), false)
             }
         }
     });
@@ -95,7 +94,7 @@ fn load_session_details(
         let mut repo = session_repository.lock().unwrap();
         match repo.pick_random_session() {
             None => {
-                alert(&app, "Session is missing", "There is no session available", None, false);
+                alert::alert(&app, "Session is missing", "There is no session available", None, false);
                 None
             }
             Some(session) => Some(session.clone()),
@@ -118,6 +117,7 @@ pub fn run() {
             load_session_details,
             settings_window::load_settings_details,
             alert::close_error_window,
+            alert::close_error_and_send
         ],
         collect_events![
             model::event::SessionStartEvent,

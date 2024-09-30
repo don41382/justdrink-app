@@ -48,12 +48,12 @@ where
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "start" => {
                 session_window::start(app.app_handle()).unwrap_or_else(|e| {
-                    alert(app, "Error while starting the session", "I am sorry, we are unable to start the session.", Some(e), false);
+                    alert::alert(app, "Error while starting the session", "I am sorry, we are unable to start the session.", Some(e), false);
                 });
             }
             "settings" => {
                 settings_window::show(app).unwrap_or_else(|e| {
-                    alert(app, "Error while opening settings", "I am sorry, we are unable to open up the settings.", Some(anyhow!(e)), false);
+                    alert::alert(app, "Error while opening settings", "I am sorry, we are unable to open up the settings.", Some(anyhow!(e)), false);
                 });
             }
             "timer_control" => {

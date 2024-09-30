@@ -27,6 +27,9 @@ async loadSettingsDetails() : Promise<SettingsDetails> {
 },
 async closeErrorWindow() : Promise<void> {
     await TAURI_INVOKE("close_error_window");
+},
+async closeErrorAndSend(message: string) : Promise<null> {
+    return await TAURI_INVOKE("close_error_and_send", { message });
 }
 }
 

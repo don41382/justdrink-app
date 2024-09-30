@@ -25,6 +25,10 @@
         })
     });
 
+    function closeAndSend() {
+        commands.closeErrorAndSend(alert.title + "," + alert.message)
+    }
+
     function close() {
         commands.closeErrorWindow();
     }
@@ -42,7 +46,7 @@
     </div>
     <div class="flex-none">
         <button class="text-white bg-blue-800 hover:bg-blue-900 focus:ring-4 focus:outline-none focus:ring-blue-200 font-medium rounded-lg text-xs px-3 py-1.5 me-2 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                on:click={close} type="button">
+                on:click={closeAndSend} type="button">
             <Icon height="24" icon="mdi-light:send-rounded"/>
             Send Error
         </button>
