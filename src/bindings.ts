@@ -60,7 +60,7 @@ timerStatus: "timer-status"
 
 export type AlertEvent = { title: string; message: string }
 export type CountdownEvent = { status: TimerStatus }
-export type PauseOrigin = "Idle" | "User"
+export type PauseOrigin = "IdleOrVideo" | "User"
 export type SessionDetail = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
 export type SessionEndingReason = "EndOfTime" | "UserEscape"
 export type SessionId = string

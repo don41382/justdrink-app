@@ -11,6 +11,7 @@ mod tracking;
 mod tray;
 mod welcome_window;
 mod alert;
+mod detect_idling;
 
 use log::{info, warn};
 #[cfg(debug_assertions)]
@@ -178,6 +179,7 @@ pub fn run() {
 
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;
+            detect_idling::init(app.app_handle())?;
 
             #[cfg(target_os = "macos")]
             app.set_activation_policy(ActivationPolicy::Accessory);

@@ -93,7 +93,7 @@ pub fn update_tray_title<R, M>(
             TimerStatus::NotStarted => None,
             TimerStatus::Active(duration) => Some(Duration::from_secs(duration as u64).to_pretty_time()),
             TimerStatus::Paused(origin) => match origin {
-                PauseOrigin::Idle => Some("Idle".to_string()),
+                PauseOrigin::IdleOrVideo => Some("Idle".to_string()),
                 PauseOrigin::User => Some("Paused".to_string())
             },
             TimerStatus::Finished => None,

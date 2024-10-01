@@ -13,6 +13,7 @@ use tauri::LogicalPosition;
 
 use tauri_specta::Event;
 
+const START_SOON_TIME: u32 = 10;
 pub const WINDOW_LABEL: &'static str = "start_soon";
 
 pub fn init<R>(mut app: &AppHandle<R>) -> Result<(), String>
@@ -28,7 +29,7 @@ where
         let should_show_countdown = match event.payload.status {
             TimerStatus::Active(countdown) => {
                 countdown > 0
-                    && countdown < 6
+                    && countdown < START_SOON_TIME
                     && !app_handle_show
                     .get_webview_window(settings_window::WINDOW_LABEL)
                     .map(|w| w.is_visible().unwrap_or(false))
@@ -56,22 +57,6 @@ where
             timer.restart();
         }
     }));
-
-    let app_handle_idle = app.app_handle().clone();
-    detect_mouse_state::detect_mouse_idl(
-        500,
-        5
-        , Box::new(move |mode| {
-            match mode {
-                detect_mouse_state::Mode::Idle => {
-                    app_handle_idle.state::<CountdownTimerState>().pause(countdown_timer::PauseOrigin::Idle);
-                }
-                detect_mouse_state::Mode::Working => {
-                    app_handle_idle.state::<CountdownTimerState>().resume();
-                }
-            }
-        }));
-
 
     Ok(())
 }

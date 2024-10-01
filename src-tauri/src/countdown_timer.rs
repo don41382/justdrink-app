@@ -24,7 +24,7 @@ pub enum TimerStatus {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
 pub enum PauseOrigin {
-    Idle,
+    IdleOrVideo,
     User,
 }
 
@@ -43,8 +43,8 @@ impl TimerStatus {
             }
             TimerStatus::Paused(origin) => {
                 match origin {
-                    PauseOrigin::Idle =>
-                        "Paused due to not interaction".to_string(),
+                    PauseOrigin::IdleOrVideo =>
+                        "Paused due to idle".to_string(),
                     PauseOrigin::User =>
                         "Next session is paused".to_string()
                 }

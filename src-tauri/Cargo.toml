@@ -35,6 +35,7 @@ anyhow = "1.0.89"
 machine-uid = "0.5.3"
 tauri-plugin-http = { version = "2.0.0-rc", features = ["blocking"] }
 urlencoding = "2.1.3"
+user-idle = "0.6.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.26.0"
