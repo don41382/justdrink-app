@@ -11,7 +11,8 @@
         "scope": [
           "**/*.mov",
           "**/*.webm",
-          "**/*.mp3"
+          "**/*.mp3",
+          "**/*.png"
         ],
         "enable": true
       }
@@ -42,7 +43,8 @@
     "publisher": "Rocket Solutions SL",
     "resources": [
       "videos/*",
-      "audio/*"
+      "audio/*",
+      "icons/*"
     ]
   }
 }
