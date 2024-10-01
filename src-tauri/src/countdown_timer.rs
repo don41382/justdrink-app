@@ -1,3 +1,4 @@
+use crate::pretty_time::PrettyTime;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::sync::{Arc, Mutex};
@@ -5,7 +6,6 @@ use std::time::Duration;
 use tauri::AppHandle;
 use tauri_specta::Event;
 use timer::{Guard, Timer};
-use crate::pretty_time::PrettyTime;
 
 const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(500);
 
@@ -24,7 +24,8 @@ pub enum TimerStatus {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
 pub enum PauseOrigin {
-    IdleOrVideo,
+    Idle,
+    PreventSleep(String),
     User,
 }
 
@@ -36,25 +37,30 @@ impl TimerStatus {
         }
     }
 
+    pub fn is_prevent_sleep(&self) -> bool {
+        match self {
+            TimerStatus::Paused(reason) => {
+                matches!(reason, PauseOrigin::PreventSleep(_))
+            }
+            _ => false,
+        }
+    }
+
     pub fn to_text(&self) -> String {
         match self {
             TimerStatus::Active(duration) => {
-                format!("Next session starts in {}", Duration::from_secs(*duration as u64).to_pretty_time())
+                format!(
+                    "Next session starts in {}",
+                    Duration::from_secs(*duration as u64).to_pretty_time()
+                )
             }
-            TimerStatus::Paused(origin) => {
-                match origin {
-                    PauseOrigin::IdleOrVideo =>
-                        "Paused due to idle".to_string(),
-                    PauseOrigin::User =>
-                        "Next session is paused".to_string()
-                }
-            }
-            TimerStatus::NotStarted => {
-                "Not running".to_string()
-            }
-            TimerStatus::Finished => {
-                "Not running".to_string()
-            }
+            TimerStatus::Paused(origin) => match origin {
+                PauseOrigin::Idle => "Paused due to idle".to_string(),
+                PauseOrigin::PreventSleep(app_name) => format!("Paused by {}", app_name),
+                PauseOrigin::User => "Next session is paused".to_string(),
+            },
+            TimerStatus::NotStarted => "Not running".to_string(),
+            TimerStatus::Finished => "Not running".to_string(),
         }
     }
 }
@@ -107,9 +113,7 @@ impl CountdownTimer {
         let guard = self.timer.schedule_repeating(TICKER_SPEED_MS, move || {
             // Check if paused
             {
-                let status = {
-                    status.lock().unwrap().clone()
-                };
+                let status = { status.lock().unwrap().clone() };
                 match status {
                     TimerStatus::Paused(_) => {
                         (*callback)(status.clone());
@@ -200,8 +204,8 @@ fn register_callback(app_handle: &AppHandle) -> Arc<dyn Fn(TimerStatus) + Send +
             CountdownEvent {
                 status: tick.clone(),
             }
-                .emit(&app_handle_ticker)
-                .unwrap();
+            .emit(&app_handle_ticker)
+            .unwrap();
         }
     })
 }

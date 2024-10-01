@@ -1,17 +1,18 @@
-use crate::model::settings::SettingsDetails;
+use crate::model::settings::SettingsUserDetails;
+use crate::{alert, model, tracking, CountdownTimerState, SettingsDetailsState, TrackingState};
+use log::info;
 use std::path::PathBuf;
 use std::time::Duration;
-use log::info;
 use tauri::utils::config::WindowEffectsConfig;
-use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Wry};
-use tauri_plugin_store::{with_store, StoreCollection};
-use crate::{tracking, CountdownTimerState, SettingsDetailsState, TrackingState};
+use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window, WindowEvent, Wry};
+use tauri_plugin_store::{StoreBuilder, StoreCollection};
+use tauri_specta::Event;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
 const STORE_NAME: &str = "mm-config.json";
 
-const DEFAULT_SESSION: SettingsDetails = SettingsDetails {
+const DEFAULT_SESSION: SettingsUserDetails = SettingsUserDetails {
     next_break_duration_minutes: 120,
     active: true,
     allow_tracking: true,
@@ -20,52 +21,83 @@ const DEFAULT_SESSION: SettingsDetails = SettingsDetails {
 
 #[specta::specta]
 #[tauri::command]
-pub fn load_settings_details(settings: State<SettingsDetailsState>) -> SettingsDetails {
-    settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION)
+pub fn load_settings(
+    app_handle: AppHandle,
+    settings: State<SettingsDetailsState>,
+) -> model::settings::Settings {
+    let version = app_handle.app_handle().config().version.clone();
+    model::settings::Settings {
+        app: model::settings::AppDetails {
+            version: version.unwrap_or("unknown".to_string()),
+        },
+        user: settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION),
+    }
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn open_browser(window: Window, app_handle: AppHandle, url: String) -> () {
+    match webbrowser::open(url.as_str()) {
+        Ok(_) => {}
+        Err(err) => {
+            let error = format!(
+                "I am sorry, we are not able to open up the browser for '{}'",
+                url
+            );
+            alert::alert(
+                app_handle.app_handle(),
+                "Could not open Browser",
+                error.as_str(),
+                Some(anyhow::anyhow!(err)),
+                false,
+            );
+        }
+    }
+    window.close().expect("settings window to close");
 }
 
 fn write_settings(
     app: &AppHandle,
-    settings_details: &SettingsDetails,
+    settings_details: &SettingsUserDetails,
 ) -> Result<(), anyhow::Error> {
     let stores = app
         .app_handle()
         .try_state::<StoreCollection<Wry>>()
         .unwrap();
     let path = PathBuf::from(STORE_NAME);
-    with_store(app.app_handle().clone(), stores, path, |store| {
-        let json_data = serde_json::to_value(settings_details)
-            .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
-        store.insert("data".to_string(), json_data)?;
-        store.save()?;
-        Ok(())
-    })?;
+    let mut store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
+    let json_data = serde_json::to_value(settings_details)
+        .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
+    store.set("data".to_string(), json_data);
+    store.save()?;
     Ok(())
 }
 
-fn load_settings(app: &AppHandle) -> Result<SettingsDetails, anyhow::Error> {
+fn load_settings_store(app: &AppHandle) -> Result<SettingsUserDetails, anyhow::Error> {
     let stores = app
         .app_handle()
         .try_state::<StoreCollection<Wry>>()
         .unwrap();
     let path = PathBuf::from(STORE_NAME);
-    info!("loading settings: {:?}",app.path().app_data_dir()?.join(&path));
-    let details = with_store(app.app_handle().clone(), stores, path, |store| {
-        let data_json = store
-            .get("data".to_string())
-            .ok_or_else(|| tauri_plugin_store::Error::NotFound(PathBuf::from("data")))?;
+    info!(
+        "loading settings: {:?}",
+        app.path().app_data_dir()?.join(&path)
+    );
+    let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
 
-        let settings: SettingsDetails = serde_json::from_value(data_json.clone())
-            .map_err(|e| tauri_plugin_store::Error::Deserialize(Box::new(e)))?;
+    let data_json = store
+        .get("data".to_string())
+        .ok_or_else(|| tauri_plugin_store::Error::NotFound(PathBuf::from("data")))?;
 
-        Ok(settings)
-    })?;
+    let details: SettingsUserDetails = serde_json::from_value(data_json.clone())
+        .map_err(|e| tauri_plugin_store::Error::Deserialize(Box::new(e)))?;
+
     Ok(details)
 }
 
 pub fn set_settings(
     app: &AppHandle,
-    settings: SettingsDetails,
+    settings: SettingsUserDetails,
     time_start: bool,
 ) -> Result<(), anyhow::Error> {
     let timer = app.state::<CountdownTimerState>();
@@ -78,7 +110,10 @@ pub fn set_settings(
     write_settings(&app, &settings)?;
 
     // send tracking event
-    app.state::<TrackingState>().send_tracking(tracking::Event::SetTimer(settings.next_break_duration_minutes));
+    app.state::<TrackingState>()
+        .send_tracking(tracking::Event::SetTimer(
+            settings.next_break_duration_minutes,
+        ));
 
     if time_start {
         // activate new settings
@@ -93,11 +128,11 @@ pub fn set_settings(
     Ok(())
 }
 
-pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsDetails, anyhow::Error> {
-    load_settings(app_handle)
+pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsUserDetails, anyhow::Error> {
+    load_settings_store(app_handle)
 }
 
-fn new<R>(app: &AppHandle<R>) -> Result<WebviewWindow<R>, anyhow::Error>
+fn new<R>(app: &AppHandle<R>, start_with_about: bool) -> Result<WebviewWindow<R>, anyhow::Error>
 where
     R: Runtime,
 {
@@ -107,7 +142,7 @@ where
         tauri::WebviewUrl::App("/settings".into()),
     )
         .title("Settings")
-        .inner_size(800.0, 600.0)
+        .inner_size(800.0, 400.0)
         .center()
         .visible(false)
         .always_on_top(true)
@@ -117,6 +152,16 @@ where
         .effects(WindowEffectsConfig::default())
         .resizable(false)
         .build()?;
+
+    let handle = app.app_handle().clone();
+    window.on_window_event(move |event| match event {
+        WindowEvent::Focused(_) => {
+            model::event::SettingsStartEvent { start_with_about }
+                .emit(&handle)
+                .unwrap();
+        }
+        _ => {}
+    });
     Ok(window)
 }
 
@@ -124,11 +169,32 @@ pub fn show<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
 where
     R: Runtime,
 {
-    let _window = app.get_webview_window(WINDOW_LABEL).unwrap_or({
-        new(app.app_handle())?
-    });
+    match app.get_webview_window(WINDOW_LABEL) {
+        None => {
+            new(app, false)?;
+        }
+        Some(w) => {
+            if !w.is_visible()? {
+                w.show()?;
+            }
+        }
+    }
+    Ok(())
+}
 
-    // the window wil show itself, once it's mounted
-
+pub fn show_about<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
+where
+    R: Runtime,
+{
+    match app.get_webview_window(WINDOW_LABEL) {
+        None => {
+            new(app, true)?;
+        }
+        Some(w) => {
+            if !w.is_visible()? {
+                w.show()?;
+            }
+        }
+    }
     Ok(())
 }

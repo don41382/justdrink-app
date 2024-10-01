@@ -1,38 +1,13 @@
-use std::process::Command;
+use crate::countdown_timer::{PauseOrigin, TimerStatus};
+use crate::idle;
+use crate::{CountdownTimerState, SettingsDetailsState};
+use log::{debug, warn};
 use std::thread::sleep;
 use std::time::Duration;
-use anyhow::{Result, anyhow};
-use log::{debug, warn};
 use tauri::{AppHandle, Manager};
 use user_idle::UserIdle;
-use crate::{CountdownTimerState, SettingsDetailsState};
-use crate::countdown_timer::{PauseOrigin, TimerStatus};
 
-#[cfg(target_os = "macos")]
-fn sleep_is_prevented_by_apps() -> Result<bool, anyhow::Error> {
-    let output = Command::new("pmset")
-        .arg("-g")
-        .output()
-        .map_err(|e| anyhow!("Failed to execute pmset: {}", e))?;
-
-    let output_str = String::from_utf8_lossy(&output.stdout);
-
-    if output_str.contains("display sleep prevented by") {
-        Ok(true)
-    } else {
-        Ok(false)
-    }
-}
-
-#[cfg(target_os = "windows")]
-fn sleep_is_prevented_by_apps() -> Result<bool, anyhow::Error> {
-    // Placeholder implementation for Windows.
-    // On Windows, detecting if audio is playing can be done through the Windows API (e.g., using the Core Audio APIs).
-    // This is a non-trivial task and may require using crates like `winapi` or `cpal`.
-
-    // For now, we'll return an Ok(false) to indicate audio is not being detected.
-    Ok(false)
-}
+const SLEEP_PREVENTION_PAUSE_THRESHOLD_SECS: u32 = 120;
 
 pub enum Mode {
     Pause,
@@ -52,27 +27,45 @@ where
             let idle = UserIdle::get_time().unwrap();
 
             if let Ok(s) = settings.try_lock() {
-                let sleep_is_prevented = sleep_is_prevented_by_apps().unwrap_or_else(|e| {
+                let sleep_prevented_by = idle::sleep_is_prevented_by_apps().unwrap_or_else(|e| {
                     warn!("can't run audio check: ${:?}", e);
-                    false
+                    None
                 });
+
+                let timer_duration = if let TimerStatus::Active(duration) = timer.timer_status() {
+                    Some(duration)
+                } else {
+                    None
+                };
 
                 if s.as_ref().map(|s| s.active).unwrap_or(false) {
                     match mode {
                         Mode::Pause => {
-                            if !sleep_is_prevented && idle.as_seconds() < 60 {
+                            if sleep_prevented_by.is_none() && idle.as_seconds() < 60 {
                                 debug!("switch to working");
-                                if timer.timer_status() == TimerStatus::Paused(PauseOrigin::IdleOrVideo) {
+                                if timer.timer_status() == TimerStatus::Paused(PauseOrigin::Idle)
+                                    || timer.timer_status().is_prevent_sleep()
+                                {
                                     timer.resume();
                                 }
                                 mode = Mode::Working;
                             }
                         }
                         Mode::Working => {
-                            if sleep_is_prevented || idle.as_seconds() > 60 {
+                            if idle.as_seconds() > 60 {
                                 debug!("switch to pause");
-                                timer.pause(PauseOrigin::IdleOrVideo);
+                                timer.pause(PauseOrigin::Idle);
                                 mode = Mode::Pause;
+                            }
+                            // Pause the timer only if sleep is prevented and timer duration < X minutes
+                            else if let Some(app_name) = sleep_prevented_by {
+                                if timer_duration
+                                    .map_or(false, |d| d < SLEEP_PREVENTION_PAUSE_THRESHOLD_SECS)
+                                {
+                                    debug!("switch to pause due to sleep prevention and timer duration {} seconds", SLEEP_PREVENTION_PAUSE_THRESHOLD_SECS);
+                                    timer.pause(PauseOrigin::PreventSleep(app_name));
+                                    mode = Mode::Pause;
+                                }
                             }
                         }
                     }

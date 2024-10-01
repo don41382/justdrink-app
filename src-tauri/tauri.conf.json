@@ -1,8 +1,16 @@
 {
-  "$schema": "https://github.com/tauri-apps/tauri/releases/download/tauri-build-v2.0.0-beta.13/schema.json",
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-schema-generator/schemas/config.schema.json",
   "productName": "Motion Minute",
-  "version": "0.1.2",
-  "identifier": "com.rocketsolutions.minutemotion",
+  "version": "0.1.14",
+  "identifier": "com.rocketsolutions.motionminute",
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhENzNDNzJBMzdEMUY5OEQKUldTTitkRTNLc2R6algxQWp3WlJtR0JybDFsYlFZZFhpL294cElIdWxSeW1oWS9RSUxIZ0p4SWkK",
+      "endpoints": [
+        "https://github.com/don41382/motion-minute-app-releases/releases/latest/download/latest.json"
+      ]
+    }
+  },
   "app": {
     "macOSPrivateApi": true,
     "security": {
@@ -25,10 +33,12 @@
     "frontendDist": "../build"
   },
   "bundle": {
+    "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
         "installerIcon": "icons/icon.ico"
-      }
+      },
+      "signCommand": "trusted-signing-cli --endpoint https://weu.codesigning.azure.net --account motion-minute-sign --certificate motion-minute-certificate %1"
     },
     "active": true,
     "targets": "all",
@@ -41,6 +51,7 @@
     ],
     "copyright": "2024 - Rocket Solutions SL",
     "publisher": "Rocket Solutions SL",
+    "longDescription": "Motion Minute is your personal reminder to take regular, healthy breaks while working at your desk, boosting wellness and productivity.",
     "resources": [
       "videos/*",
       "audio/*",

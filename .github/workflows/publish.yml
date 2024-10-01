@@ -2,8 +2,8 @@ name: "publish"
 
 on:
   push:
-    tags:
-      - v*
+    branches:
+      - master
 
 jobs:
   publish-tauri:
@@ -13,16 +13,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # universal
+          - runs-on: "self-hosted-macos"
+            os: macos
+            self-hosted: true
+            arch: aarch64
             args: "--target universal-apple-darwin"
-          - platform: "windows-latest"
-            args: "--target i686-pc-windows-msvc"
+            enable: true
+          - runs-on: "self-hosted-windows"
+            os: windows
+            self-hosted: true
             arch: x64-windows
-          - platform: "windows-latest"
             args: "--target x86_64-pc-windows-msvc"
-            arch: x86-windows
+            enabled: true
+    env:
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      SIGNTOOL_PATH: 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe'
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,63 +44,89 @@ jobs:
         run: npm install -g pnpm
 
       - name: install Rust stable
+        if: matrix.os == 'macos'
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.arch == 'aarch64' && 'aarch64-apple-darwin,x86_64-apple-darwin' || ' x86_64-pc-windows-msvc' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        if: ${{ !matrix.self-hosted }}
+        with:
+          workspaces: "./src-tauri -> target"
 
       - name: install frontend dependencies
-        run: yarn install # change this to npm, pnpm or bun depending on which one you use.
+        run: pnpm install
 
       - name: Create videos directory and download videos
         run: |
-          mkdir -p src-tauri/videos
-          curl -L https://storage.googleapis.com/motion-minute-download/videos/v1.zip -o v1.zip
-          unzip v1.zip -d src-tauri/videos
+          mkdir src-tauri/videos
+          curl https://storage.googleapis.com/motion-minute-download/videos/v1.zip -o v1.zip
+          tar -xf v1.zip -C src-tauri/videos
           rm v1.zip # clean up the zip file
+
+      - name: install signtool (windows)
+        if: matrix.os == 'windows'
+        run:
+          curl https://github.com/Levminer/trusted-signing-cli/releases/download/0.3.0/trusted-signing-cli.exe -o trusted-signing-cli.exe
+
+
+      # Apple Certification
+      - name: Import Apple Developer Certificate (macos)
+        if: matrix.os == 'macos'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          security find-identity -v -p codesigning build.keychain
+
+      - name: Verify Certificate (macos)
+        if: matrix.os == 'macos'
+        run: |
+          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID")
+          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
+          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
+          echo "Certificate imported."
+
+      - name: Write Private API key to file (macos)
+        if: matrix.os == 'macos'
+        run: |
+          echo "${{ secrets.APPLE_PRIVATE_API_KEY }}" | base64 --decode > $HOME/apple_private_api_key.p8
+          echo "APPLE_API_KEY_PATH=$HOME/apple_private_api_key.p8" >> $GITHUB_ENV
 
       - uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MINUTE_MOTION_RELEASE_REPO_GITHUB_SECRET }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.CERT_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
         with:
           tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: "App v__VERSION__"
+          releaseName: "__VERSION__"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
+          releaseCommitish: "main"
+          owner: "don41382"
+          repo: "motion-minute-app-releases"
           args: ${{ matrix.args }}
 
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v2'
-        with:
-            credentials_json: "${{ secrets.GOOGLE_CLOUD_STORAGE_KEY }}"
-
-      - name: Upload to Google Cloud Storage - Mac
-        if: matrix.platform == 'macos-latest'
-        uses: google-github-actions/upload-cloud-storage@v1
-        with:
-          path: 'src-tauri/target/universal-apple-darwin/release/bundle/dmg/'
-          destination: 'motion-minute-download/releases'
-          glob: '*.dmg'
-          parent: false
-          gzip: false
-
-      - name: Upload to Google Cloud Storage - Windows 64
-        if: ${{ matrix.platform == 'windows-latest' && matrix.arch == 'x64-windows' }}
-        uses: google-github-actions/upload-cloud-storage@v1
-        with:
-          path: 'src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis'
-          destination: 'motion-minute-download/releases'
-          glob: '*.exe'
-          parent: false
-          gzip: false
-
-      - name: Upload to Google Cloud Storage - Windows 32
-        if: ${{ matrix.platform == 'windows-latest' && matrix.arch == 'x86-windows' }}
-        uses: google-github-actions/upload-cloud-storage@v1
-        with:
-          path: 'src-tauri/target/i686-pc-windows-msvc/release/bundle/nsis'
-          destination: 'motion-minute-download/releases'
-          glob: '*.exe'
-          parent: false
-          gzip: false
+      - name: Cleanup
+        if: success() || failure() && matrix.os == 'macos'
+        run: |
+          security delete-keychain build.keychain || true
+          if [ -n "${{ env.APPLE_API_KEY_PATH }}" ] && [ -f "${{ env.APPLE_API_KEY_PATH }}" ]; then
+            rm "${{ env.APPLE_API_KEY_PATH }}"
+          fi

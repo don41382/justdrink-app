@@ -1,70 +1,64 @@
+mod alert;
 mod countdown_timer;
+mod detect_idling;
 mod detect_mouse_state;
-mod menubar;
+mod idle;
 mod model;
 mod pretty_time;
 mod session_repository;
+mod tracking;
+mod tray;
+
 mod session_window;
 mod settings_window;
 mod start_soon_window;
-mod tracking;
-mod tray;
 mod welcome_window;
-mod alert;
-mod detect_idling;
+mod updater_window;
+mod fullscreen;
+mod settings_system;
 
 use log::{info, warn};
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
-use std::sync::{Mutex};
-use std::thread::spawn;
+use std::sync::Mutex;
 use std::time::Duration;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
 use crate::countdown_timer::CountdownTimer;
-use crate::model::settings::SettingsDetails;
 use crate::session_repository::SessionRepository;
 
-use tauri::{App, AppHandle, Manager, State, Window, WindowEvent};
+use crate::tracking::Tracking;
+use tauri::{App, AppHandle, Manager, Window, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
-use crate::tracking::{Event, Tracking};
+use crate::settings_system::SettingsSystem;
 
 #[specta::specta]
 #[tauri::command]
-fn update_settings(app_handle: AppHandle, settings: SettingsDetails) -> () {
+fn update_settings(app_handle: AppHandle, settings: model::settings::SettingsUserDetails) -> () {
     settings_window::set_settings(&app_handle, settings, true).unwrap_or_else(|err| {
-        alert::alert(app_handle.app_handle(), "Failed to update settings", "Motion minute is unable to update settings.", Some(err), false);
+        alert::alert(
+            app_handle.app_handle(),
+            "Failed to update settings",
+            "Motion minute is unable to update settings.",
+            Some(err),
+            false,
+        );
         ()
     });
 }
 
-#[specta::specta]
-#[tauri::command]
-fn start_first_session(
-    app_handle: AppHandle,
+fn start_first_session_(
+    app_handle: &AppHandle,
     welcome_window: Window,
     next_break_duration_minutes: u32,
     enable_on_startup: bool,
-) -> Result<(), String> {
-    spawn(move || {
-        info!("starting first session");
-        match start_first_session_(&app_handle.app_handle(), welcome_window, next_break_duration_minutes, enable_on_startup) {
-            Ok(_) => {}
-            Err(error) => {
-                alert::alert(&app_handle.app_handle(), "Not able to start first session", format!("{:?}", error).as_str(), Some(error), false)
-            }
-        }
-    });
-    Ok(())
-}
-
-fn start_first_session_(app_handle: &AppHandle, welcome_window: Window, next_break_duration_minutes: u32, enable_on_startup: bool) -> Result<(), anyhow::Error> {
+) -> Result<(), anyhow::Error> {
     settings_window::set_settings(
         &app_handle,
-        SettingsDetails {
+        model::settings::SettingsUserDetails {
             active: true,
             next_break_duration_minutes,
             allow_tracking: true,
@@ -77,33 +71,8 @@ fn start_first_session_(app_handle: &AppHandle, welcome_window: Window, next_bre
     Ok(())
 }
 
-#[specta::specta]
-#[tauri::command]
-fn end_session(window: Window, timer: State<CountdownTimerState>, reason: model::session::SessionEndingReason, tracking: State<TrackingState>) {
-    timer.restart();
-    window.close().unwrap();
-    tracking.send_tracking(Event::EndSession(reason));
-}
-
-#[specta::specta]
-#[tauri::command]
-fn load_session_details(
-    app: AppHandle,
-    session_repository: State<SessionRepositoryState>,
-) -> Option<model::session::SessionDetail> {
-    {
-        let mut repo = session_repository.lock().unwrap();
-        match repo.pick_random_session() {
-            None => {
-                alert::alert(&app, "Session is missing", "There is no session available", None, false);
-                None
-            }
-            Some(session) => Some(session.clone()),
-        }
-    }
-}
-
-type SettingsDetailsState = Mutex<Option<SettingsDetails>>;
+type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
+type SettingsSystemState = Mutex<SettingsSystem>;
 type CountdownTimerState = CountdownTimer;
 type TrackingState = Tracking;
 type SessionRepositoryState = Mutex<SessionRepository>;
@@ -112,29 +81,33 @@ type SessionRepositoryState = Mutex<SessionRepository>;
 pub fn run() {
     let builder = build_typescript_interfaces(
         collect_commands![
-            end_session,
             update_settings,
-            start_first_session,
-            load_session_details,
-            settings_window::load_settings_details,
+            session_window::start_first_session,
+            session_window::load_session_details,
+            session_window::end_session,
+            settings_window::load_settings,
+            settings_window::open_browser,
             alert::close_error_window,
-            alert::close_error_and_send
+            alert::close_error_and_send,
+            updater_window::updater_close,
         ],
         collect_events![
+            model::event::SettingsStartEvent,
             model::event::SessionStartEvent,
             model::event::AlertEvent,
             model::session::SessionEndingReason,
-            model::settings::SettingsDetails,
+            model::settings::Settings,
+            model::settings::SettingsUserDetails,
             countdown_timer::CountdownEvent,
             countdown_timer::TimerStatus,
-
         ],
     )
-        .unwrap();
+    .unwrap();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_autostart::init(
@@ -147,10 +120,13 @@ pub fn run() {
                     Target::new(tauri_plugin_log::TargetKind::Stdout),
                     Target::new(tauri_plugin_log::TargetKind::Webview),
                     Target::new(tauri_plugin_log::TargetKind::LogDir {
-                        file_name: Some("motion-minutes".to_string())
-                    })
+                        file_name: Some("motion-minutes".to_string()),
+                    }),
                 ])
-                .level_for("tao::platform_impl::platform::window_delegate", log::LevelFilter::Info)
+                .level_for(
+                    "tao::platform_impl::platform::window_delegate",
+                    log::LevelFilter::Info,
+                )
                 .level_for("tao::platform_impl::platform::view", log::LevelFilter::Info)
                 .level(log::LevelFilter::Trace)
                 .build(),
@@ -163,6 +139,7 @@ pub fn run() {
 
             app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
             app.manage::<TrackingState>(Tracking::new(app.app_handle()).unwrap());
+            app.manage::<SettingsSystemState>(Mutex::new(settings_system::SettingsSystem::load(app.app_handle())));
 
             match settings_window::get_settings(app.app_handle()) {
                 Ok(settings) => {
@@ -173,7 +150,9 @@ pub fn run() {
                     warn!("could not load settings: {}", err);
                     welcome_window::show(app.app_handle())?;
                     info!("display welcome screen");
-                    app.manage::<SettingsDetailsState>(Mutex::new(None::<SettingsDetails>));
+                    app.manage::<SettingsDetailsState>(Mutex::new(
+                        None::<model::settings::SettingsUserDetails>,
+                    ));
                 }
             }
 
@@ -185,6 +164,9 @@ pub fn run() {
             app.set_activation_policy(ActivationPolicy::Accessory);
 
             tray::create_tray(app.handle())?;
+
+            info!("show updater window");
+            updater_window::show_if_update_available(app.handle(), true);
 
             Ok(())
         })
@@ -221,7 +203,10 @@ fn build_typescript_interfaces(
     Ok(builder)
 }
 
-fn setup_timer(app: &mut App, settings: SettingsDetails) -> Result<(), Box<dyn std::error::Error>> {
+fn setup_timer(
+    app: &mut App,
+    settings: model::settings::SettingsUserDetails,
+) -> Result<(), Box<dyn std::error::Error>> {
     let timer = app.state::<CountdownTimerState>();
 
     if settings.active {

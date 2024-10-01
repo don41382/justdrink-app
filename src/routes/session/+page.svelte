@@ -1,6 +1,6 @@
 <script lang="ts">
     import {error, info} from '@tauri-apps/plugin-log';
-    import {commands, type SessionDetail, type SessionEndingReason} from '../../bindings';
+    import {commands, type SessionEndingReason, type SessionDetail} from '../../bindings';
     import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
     import {fade} from 'svelte/transition';
@@ -51,7 +51,6 @@
     }
 
     async function init() {
-        await info("mount window");
         let resource_dir = await tauri_path.resourceDir();
         finishSound.src = convertFileSrc(`${resource_dir}/audio/session-end.mp3`)
         music.play();
@@ -65,6 +64,7 @@
     }
 
     onMount(async () => {
+        await info("mount session window")
         await init().catch((err) => {
             error(`error during init: ${err}`);
         })

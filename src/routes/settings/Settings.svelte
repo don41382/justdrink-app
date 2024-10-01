@@ -1,37 +1,37 @@
 <script lang="ts">
     import { isEnabled, enable, disable } from "@tauri-apps/plugin-autostart";
-    import type { SettingsDetails } from '../../bindings';
+    import type {Settings, SettingsUserDetails} from '../../bindings';
 
-    export let settings: SettingsDetails;
-    export let updateSettings: (updatedSettings: SettingsDetails) => Promise<void>;
+    export let user: SettingsUserDetails;
+    export let updateSettings: (updatedSettings: SettingsUserDetails) => Promise<void>;
 
-    let next_break_duration_minutes: string = settings.next_break_duration_minutes.toString();
+    let next_break_duration_minutes: string = user.next_break_duration_minutes.toString();
 
     async function submit() {
         if (next_break_duration_minutes) {
-            settings.next_break_duration_minutes = parseInt(next_break_duration_minutes);
+            user.next_break_duration_minutes = parseInt(next_break_duration_minutes);
         }
-        if (await isEnabled() != settings.enable_on_startup) {
-            if (settings.enable_on_startup) {
+        if (await isEnabled() != user.enable_on_startup) {
+            if (user.enable_on_startup) {
                 await enable()
             } else {
                 await disable()
             }
         }
-        await updateSettings(settings);
+        await updateSettings(user);
     }
 </script>
 
-<div class="p-8 space-y-6">
+<div class="space-y-6">
     <h2 class="text-lg font-semibold text-gray-900">Next Session</h2>
     <div class="mt-2 space-y-2">
         <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
             <span class="text-gray-700">Active</span>
-            <input bind:checked={settings.active} class="toggle-checkbox" on:change={submit} type="checkbox">
+            <input bind:checked={user.active} class="toggle-checkbox" on:change={submit} type="checkbox">
         </label>
         <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
             <span class="text-gray-700">Enable on startup</span>
-            <input bind:checked={settings.enable_on_startup} class="toggle-checkbox" on:change={submit} type="checkbox">
+            <input bind:checked={user.enable_on_startup} class="toggle-checkbox" on:change={submit} type="checkbox">
         </label>
         <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
             <div class="flex justify-between items-center">

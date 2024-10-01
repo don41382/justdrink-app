@@ -5,10 +5,7 @@
 
 
 export const commands = {
-async endSession(reason: SessionEndingReason) : Promise<void> {
-    await TAURI_INVOKE("end_session", { reason });
-},
-async updateSettings(settings: SettingsDetails) : Promise<null> {
+async updateSettings(settings: SettingsUserDetails) : Promise<null> {
     return await TAURI_INVOKE("update_settings", { settings });
 },
 async startFirstSession(nextBreakDurationMinutes: number, enableOnStartup: boolean) : Promise<Result<null, string>> {
@@ -22,14 +19,23 @@ async startFirstSession(nextBreakDurationMinutes: number, enableOnStartup: boole
 async loadSessionDetails() : Promise<SessionDetail | null> {
     return await TAURI_INVOKE("load_session_details");
 },
-async loadSettingsDetails() : Promise<SettingsDetails> {
-    return await TAURI_INVOKE("load_settings_details");
+async endSession(reason: SessionEndingReason) : Promise<void> {
+    await TAURI_INVOKE("end_session", { reason });
+},
+async loadSettings() : Promise<Settings> {
+    return await TAURI_INVOKE("load_settings");
+},
+async openBrowser(url: string) : Promise<null> {
+    return await TAURI_INVOKE("open_browser", { url });
 },
 async closeErrorWindow() : Promise<void> {
     await TAURI_INVOKE("close_error_window");
 },
 async closeErrorAndSend(message: string) : Promise<null> {
     return await TAURI_INVOKE("close_error_and_send", { message });
+},
+async updaterClose(restart: boolean) : Promise<void> {
+    await TAURI_INVOKE("updater_close", { restart });
 }
 }
 
@@ -41,14 +47,18 @@ alertEvent: AlertEvent,
 countdownEvent: CountdownEvent,
 sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
-settingsDetails: SettingsDetails,
+settings: Settings,
+settingsStartEvent: SettingsStartEvent,
+settingsUserDetails: SettingsUserDetails,
 timerStatus: TimerStatus
 }>({
 alertEvent: "alert-event",
 countdownEvent: "countdown-event",
 sessionEndingReason: "session-ending-reason",
 sessionStartEvent: "session-start-event",
-settingsDetails: "settings-details",
+settings: "settings",
+settingsStartEvent: "settings-start-event",
+settingsUserDetails: "settings-user-details",
 timerStatus: "timer-status"
 })
 
@@ -59,13 +69,16 @@ timerStatus: "timer-status"
 /** user-defined types **/
 
 export type AlertEvent = { title: string; message: string }
+export type AppDetails = { version: string }
 export type CountdownEvent = { status: TimerStatus }
-export type PauseOrigin = "IdleOrVideo" | "User"
+export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"
 export type SessionDetail = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
 export type SessionEndingReason = "EndOfTime" | "UserEscape"
 export type SessionId = string
 export type SessionStartEvent = { details: SessionDetail }
-export type SettingsDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
+export type Settings = { app: AppDetails; user: SettingsUserDetails }
+export type SettingsStartEvent = { start_with_about: boolean }
+export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
 export type TimerStatus = "NotStarted" | { Active: number } | { Paused: PauseOrigin } | "Finished"
 
 /** tauri-specta globals **/

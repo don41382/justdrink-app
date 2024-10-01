@@ -1,4 +1,4 @@
-use crate::countdown_timer::{TimerStatus};
+use crate::countdown_timer::TimerStatus;
 use crate::{countdown_timer, detect_mouse_state, settings_window, CountdownTimerState};
 use mouse_position::mouse_position::Mouse;
 use std::thread::sleep;
@@ -31,9 +31,9 @@ where
                 countdown > 0
                     && countdown < START_SOON_TIME
                     && !app_handle_show
-                    .get_webview_window(settings_window::WINDOW_LABEL)
-                    .map(|w| w.is_visible().unwrap_or(false))
-                    .unwrap_or(false)
+                        .get_webview_window(settings_window::WINDOW_LABEL)
+                        .map(|w| w.is_visible().unwrap_or(false))
+                        .unwrap_or(false)
             }
             _ => false,
         };
@@ -52,9 +52,13 @@ where
 
     let app_handle_shake = app.app_handle().clone();
     detect_mouse_state::detect_mouse_shake(Box::new(move |_| {
-        if app_handle_shake.get_webview_window(WINDOW_LABEL).map(|w| w.is_visible().unwrap_or(false)).unwrap_or(false) {
-            let timer = app_handle_shake.state::<CountdownTimerState>();
-            timer.restart();
+        if let Some(window) = app_handle_shake.get_webview_window(WINDOW_LABEL) {
+            if window.is_visible().unwrap_or(false) {
+                window.hide().unwrap();
+
+                let timer = app_handle_shake.state::<CountdownTimerState>();
+                timer.restart();
+            }
         }
     }));
 
@@ -103,20 +107,20 @@ where
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/startsoon".into()),
     )
-        .title("Start Soon Message")
-        .center()
-        .visible(false)
-        .always_on_top(true)
-        .transparent(true)
-        .decorations(false)
-        .skip_taskbar(true)
-        .resizable(true)
-        .transparent(true)
-        .shadow(false)
-        .build()
-        .map_err(|e| {
-            log::error!("Failed to build WebviewWindow: {:?}", e);
-            "Failed to build WebviewWindow".to_string()
-        })?;
+    .title("Start Soon Message")
+    .center()
+    .visible(false)
+    .always_on_top(true)
+    .transparent(true)
+    .decorations(false)
+    .skip_taskbar(true)
+    .resizable(true)
+    .transparent(true)
+    .shadow(false)
+    .build()
+    .map_err(|e| {
+        log::error!("Failed to build WebviewWindow: {:?}", e);
+        "Failed to build WebviewWindow".to_string()
+    })?;
     Ok(window)
 }

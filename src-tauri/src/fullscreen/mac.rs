@@ -1,14 +1,9 @@
-#[cfg(target_os = "macos")]
 use cocoa::appkit::{NSApplication, NSApplicationPresentationOptions};
-#[cfg(target_os = "macos")]
 use cocoa::base::id;
-#[cfg(target_os = "macos")]
 use objc::class;
-#[cfg(target_os = "macos")]
 use objc::{msg_send, sel, sel_impl};
 
-#[cfg(target_os = "macos")]
-pub fn set_persistent_presentation_mode(hide: bool) {
+pub fn enforce_full_screen(hide: bool) {
     unsafe {
         let ns_app: id = msg_send![class!(NSApplication), sharedApplication];
         let option = if hide {
@@ -21,9 +16,4 @@ pub fn set_persistent_presentation_mode(hide: bool) {
         };
         ns_app.setPresentationOptions_(option);
     }
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn set_persistent_presentation_mode(_hide: bool) {
-    // No-op for non-macOS platforms
 }

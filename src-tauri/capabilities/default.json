@@ -7,7 +7,8 @@
     "settings",
     "start_soon",
     "welcome",
-    "alert"
+    "alert",
+    "updater"
   ],
   "permissions": [
     "core:default",
@@ -30,6 +31,8 @@
     "os:allow-arch",
     "os:allow-hostname",
     "os:allow-os-type",
-    "http:default"
+    "http:default",
+    "updater:allow-check",
+    "updater:allow-download-and-install"
   ]
 }

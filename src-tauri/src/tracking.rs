@@ -1,15 +1,16 @@
-use std::time::Duration;
+use crate::model::session::SessionEndingReason;
+use crate::SettingsDetailsState;
 use log::{info, warn};
 use serde_json::{json, Value};
+use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest::blocking::{Client, ClientBuilder};
-use crate::model::session::{SessionEndingReason};
-use crate::SettingsDetailsState;
 
 pub(crate) struct Tracking {
     client: Client,
     app_handle: AppHandle,
     machine_id: String,
+    app_version: String,
     platform: String,
     arch: String,
 }
@@ -28,8 +29,8 @@ impl Event {
             Event::SetTimer(minutes) => String::from(format!("set_timer_{}", minutes)),
             Event::EndSession(end) => match end {
                 SessionEndingReason::EndOfTime => String::from("session_end_time"),
-                SessionEndingReason::UserEscape => String::from("session_end_user_escape")
-            }
+                SessionEndingReason::UserEscape => String::from("session_end_user_escape"),
+            },
         }
     }
 }
@@ -45,6 +46,7 @@ impl Tracking {
         Ok(Tracking {
             client: ClientBuilder::new().build()?,
             machine_id: id,
+            app_version: app_handle.config().clone().version.unwrap_or("unknown".to_string()),
             app_handle: app_handle.clone(),
             platform,
             arch,
@@ -68,6 +70,7 @@ impl Tracking {
                 "event": event.name(),
                 "distinct_id": self.machine_id,
                 "properties": {
+                    "app_version": self.app_version,
                     "platform": self.platform,
                     "arch": self.arch
                 }
@@ -83,7 +86,8 @@ impl Tracking {
     }
 
     fn send(event_data: &Value, client_clone: Client) -> Result<(), anyhow::Error> {
-        let res = client_clone.post("https://eu.i.posthog.com/capture/")
+        let res = client_clone
+            .post("https://eu.i.posthog.com/capture/")
             .header("Content-Type", "application/json")
             .json(&event_data)
             .timeout(Duration::from_secs(10))

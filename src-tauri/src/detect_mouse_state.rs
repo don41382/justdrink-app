@@ -1,4 +1,4 @@
-use mouse_position::mouse_position::{Mouse};
+use mouse_position::mouse_position::Mouse;
 use std::collections::VecDeque;
 use std::thread::sleep;
 use std::time::Duration;

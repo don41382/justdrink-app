@@ -11,7 +11,6 @@
     };
 
     async function init() {
-        await info("alert window is mounted");
         await events.alertEvent.listen(async ({payload}) => {
             alert = payload;
             await getCurrentWindow().show();
@@ -20,6 +19,7 @@
     }
 
     onMount(async () => {
+        await info("mount alert window")
         await init().catch((e) => {
             error(`error during init: ${e}`)
         })

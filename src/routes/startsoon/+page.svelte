@@ -14,6 +14,7 @@
     let icon_path: string;
 
     onMount(async () => {
+        await info("mount start soon window")
         let resource_dir = await tauri_path.resourceDir();
         icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
         eventTickerUnListen = await events.countdownEvent.listen(async ({payload}) => {
