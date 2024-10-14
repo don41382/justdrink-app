@@ -124,7 +124,7 @@ jobs:
           args: ${{ matrix.args }}
 
       - name: Cleanup
-        if: success() || failure() && matrix.os == 'macos'
+        if: matrix.os == 'macos' && (success() || failure())
         run: |
           security delete-keychain build.keychain || true
           if [ -n "${{ env.APPLE_API_KEY_PATH }}" ] && [ -f "${{ env.APPLE_API_KEY_PATH }}" ]; then
