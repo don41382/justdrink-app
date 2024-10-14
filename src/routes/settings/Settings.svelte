@@ -39,11 +39,10 @@
                 <select bind:value={next_break_duration_minutes}
                         class="p-2 border rounded-l shadow-sm text-right text-black w-24"
                         on:change={submit}>
-                    <option value="10">10 min</option>
                     <option value="30">30 min</option>
                     <option value="60">1 hour</option>
-                    <option value="120">2 hours</option>
                     <option value="180">3 hours</option>
+                    <option value="240">4 hours</option>
                 </select>
             </div>
             <p class="text-gray-500 text-sm mt-1">Time until the next session</p>

@@ -4,11 +4,21 @@
     import {info, warn} from "@tauri-apps/plugin-log";
     import {onMount} from "svelte";
     import BackgroundVideo from "../BackgroundVideo.svelte";
+    import * as tauri_path from "@tauri-apps/api/path";
+    import {convertFileSrc} from "@tauri-apps/api/core";
 
-    let next_break_duration_minutes: string = "180"
+    let initialDuration = 180
+
+    let next_break_duration_minutes: number = initialDuration
     let enable_on_startup = true;
 
-    let backgroundVideoLoaded: boolean = false;
+
+    let icon_path: string;
+
+    onMount(async () => {
+        await info("welcome video mounted")
+        icon_path = convertFileSrc(`${await tauri_path.resourceDir()}/icons/128x128.png`);
+    });
 
     async function startSession() {
         await info("start session")
@@ -17,10 +27,14 @@
         }
 
         await commands.startFirstSession(
-            parseInt(next_break_duration_minutes),
+            next_break_duration_minutes,
             enable_on_startup
         );
 
+    }
+    
+    function selectDuration(duration: number) {
+        next_break_duration_minutes = duration;
     }
 
     // allows no context menu
@@ -28,38 +42,43 @@
 </script>
 
 
-<div class="{backgroundVideoLoaded ? 'video-background-ready' : 'video-not-ready'} h-screen flex flex-col items-center justify-center cursor-default rounded-2xl">
-    <div class="relative z-10 flex flex-col items-center p-8">
-        <h1 class="text-4xl mb-4 accent-mm-blue">Welcome to</h1>
-        <h2 class="text-6xl text-mm-orange mb-8">Motion Minutes</h2>
-        <p class="px-16 text-xl text-center italic mb-16 block">
+<div class="bg-gray-100 h-screen flex flex-col items-center justify-center cursor-default rounded-2xl">
+    <div class="px-16 z-10">
+        <div class="mb-6 text-center" id="logo">
+            <div class="flex items-center justify-center">
+                <img alt="logo" class="w-32 h-32" src="{icon_path}">
+            </div>
+        </div>
+
+        <h1 class="text-4xl text-mm-orange text-center mb-2">Motion Minute</h1>
+
+        <p class="text-center text-neutral-600 mb-8">
             Stay active and energized throughout your day with gentle reminders to stretch and move.
         </p>
-        <label class="flex items-center space-x-4 mb-4">
-            <span class="text-gray-700 font-thin">Load on startup</span><input bind:checked={enable_on_startup}
-                                                                               class="checked:bg-mm-blue-50 bg-mm-blue-50"
-                                                                               type="checkbox">
-        </label>
-        <div class="flex items-center space-x-4 mb-6">
-            <p class="text-xl">Start my session every</p>
-            <select
-                    bind:value={next_break_duration_minutes}
-                    class="p-2 bg-transparent bg-mm-pink-100 rounded-l shadow-sm text-right text-black w-24">
-                <option class="p-2" value=10>10 min</option>
-                <option class="p-2" value=30>30 min</option>
-                <option class="p-2" value=60>1 hour</option>
-                <option class="p-2" value=120>2 hours</option>
-                <option class="p-2" value=180>3 hours</option>
-            </select>
+
+        <div class="mb-8" id="session-options">
+            <h2 class="text-lg font-semibold mb-3">How often do you want to exercise?</h2>
+            <div class="grid grid-cols-1 gap-3">
+                    {#each [30, 60, initialDuration, 240] as duration}
+                        <button 
+                                on:click={() => selectDuration(duration)}
+                                class="{next_break_duration_minutes === duration ? 'text-white bg-mm-green' : 'text-black bg-gray-200'} hover:bg-mm-green-300 py-2 rounded-md">
+                            <span class="font-thin">every</span>
+                            {duration >= 60 ?  `${duration / 60} hour` : `${duration} minutes`}
+                        </button>
+                    {/each}
+                </div>
         </div>
-        <div>
-            <button class="bg-mm-orange-100 hover:bg-mm-orange hover:text-white text-mm-blue-500 font-medium py-2 px-4 rounded-xl text-xl cursor-pointer"
-                    on:click={startSession}>
-                Start your first session
-            </button>
+
+        <div class="flex items-center mb-8" >
+            <input bind:checked={enable_on_startup} class="mr-2 h-4 w-4 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500" type="checkbox">
+            <label class="text-sm text-neutral-600" for="load-startup">Load on startup</label>
         </div>
+
+        <button class="w-full bg-mm-orange hover:bg-mm-orange-200 text-white py-2 rounded-md" on:click={startSession}>
+            Start your first session
+        </button>
     </div>
-    <BackgroundVideo bind:backgroundVideoLoaded={backgroundVideoLoaded}></BackgroundVideo>
 </div>
 
 <style>
