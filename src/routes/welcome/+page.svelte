@@ -2,27 +2,41 @@
     import {commands} from '../../bindings';
     import {enable} from "@tauri-apps/plugin-autostart";
     import {info, warn} from "@tauri-apps/plugin-log";
-    import {onMount} from "svelte";
+    import {afterUpdate, beforeUpdate, onMount} from "svelte";
     import BackgroundVideo from "../BackgroundVideo.svelte";
     import * as tauri_path from "@tauri-apps/api/path";
     import {convertFileSrc} from "@tauri-apps/api/core";
+    import {getCurrentWindow, LogicalSize, PhysicalSize} from "@tauri-apps/api/window";
 
     let initialDuration = 180
 
     let next_break_duration_minutes: number = initialDuration
     let enable_on_startup = true;
 
+    let width: number;
+    let height: number;
 
     let icon_path: string;
 
+
     onMount(async () => {
-        await info("welcome video mounted")
+        await info("welcome video mounted!")
         icon_path = convertFileSrc(`${await tauri_path.resourceDir()}/icons/128x128.png`);
+    });
+
+    beforeUpdate(async () => {
+        await info(`welcome video beforeUpdate: ${width}x${height}`)
+        width && height && await getCurrentWindow().setSize(new LogicalSize(width, height)).catch(e => {
+            warn(`failed to set window size: ${e}`)
+        }).then(async () => {
+            await getCurrentWindow().center();
+        })
     });
 
     async function startSession() {
         await info("start session")
         if (enable_on_startup) {
+            await info("enable startup")
             await enable()
         }
 
@@ -42,11 +56,11 @@
 </script>
 
 
-<div class="bg-gray-100 h-screen flex flex-col items-center justify-center cursor-default rounded-2xl">
-    <div class="px-16 z-10">
+<div bind:clientHeight={height} bind:clientWidth={width} class="bg-gray-100 w-[500px] h-full p-16 flex flex-col items-center justify-center cursor-default rounded-2xl">
+    <div class="z-10">
         <div class="mb-6 text-center" id="logo">
             <div class="flex items-center justify-center">
-                <img alt="logo" class="w-32 h-32" src="{icon_path}">
+                <img alt="logo" class="w-32 h-32 transform scale-125" src="{icon_path}">
             </div>
         </div>
 
@@ -80,14 +94,3 @@
         </button>
     </div>
 </div>
-
-<style>
-    .video-background-ready {
-        opacity: 1.0;
-        transition: opacity 1s;
-    }
-
-    .video-not-ready {
-        opacity: 0;
-    }
-</style>

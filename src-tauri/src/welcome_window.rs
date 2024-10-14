@@ -10,14 +10,13 @@ pub fn show(app: &AppHandle) -> Result<(), anyhow::Error> {
     )
     .title("Welcome to Motion Minute")
     .center()
-    .inner_size(550.0, 750.0)
     .transparent(true)
     .always_on_top(true)
     .focused(true)
     .decorations(false)
     .skip_taskbar(true)
     .resizable(true)
-    .shadow(false)
+    .shadow(true)
     .build()?;
 
     window.show()?;
