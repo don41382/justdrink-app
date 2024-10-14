@@ -1,12 +1,10 @@
 use std::path::PathBuf;
 use std::string::ToString;
-use std::sync::Mutex;
 use anyhow::Error;
 use chrono::{Duration, Utc};
 use log::warn;
-use tauri::{AppHandle, Manager, Runtime, Wry};
-use tauri_plugin_store::{StoreBuilder, StoreCollection};
-use crate::model;
+use tauri::{AppHandle, Manager, Runtime};
+use tauri_plugin_store::{StoreBuilder};
 use crate::model::settings::SettingsSystemDetails;
 
 const STORE_NAME: &str = "mm-system-config.json";
@@ -33,10 +31,6 @@ impl SettingsSystem {
         }
     }
 
-    pub fn get_settings(&self) -> SettingsSystemDetails {
-        self.settings.clone()
-    }
-
     pub fn set_last_check_date<R>(&mut self, app: &AppHandle<R>) -> Result<(), Error>
     where
         R: Runtime,
@@ -52,11 +46,11 @@ impl SettingsSystem {
 
     fn write_settings<R>(
         &self,
-        app: &AppHandle<R>
+        app: &AppHandle<R>,
     ) -> Result<(), anyhow::Error> where
         R: Runtime,
     {
-        let mut store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
+        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
 
         let json_data =
             serde_json::to_value(self.settings.clone())
@@ -69,11 +63,7 @@ impl SettingsSystem {
     }
 
     fn load_settings_store(app: &AppHandle) -> Result<SettingsSystemDetails, anyhow::Error> {
-        let stores = app
-            .app_handle()
-            .try_state::<StoreCollection<Wry>>().unwrap();
-
-        let mut store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
+        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
 
         let data_json = store
             .get(ROOT_PATH.to_string())

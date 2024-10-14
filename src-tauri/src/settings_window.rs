@@ -4,8 +4,8 @@ use log::info;
 use std::path::PathBuf;
 use std::time::Duration;
 use tauri::utils::config::WindowEffectsConfig;
-use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window, WindowEvent, Wry};
-use tauri_plugin_store::{StoreBuilder, StoreCollection};
+use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window, WindowEvent};
+use tauri_plugin_store::{StoreBuilder};
 use tauri_specta::Event;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
@@ -60,12 +60,7 @@ fn write_settings(
     app: &AppHandle,
     settings_details: &SettingsUserDetails,
 ) -> Result<(), anyhow::Error> {
-    let stores = app
-        .app_handle()
-        .try_state::<StoreCollection<Wry>>()
-        .unwrap();
-    let path = PathBuf::from(STORE_NAME);
-    let mut store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
+    let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
     let json_data = serde_json::to_value(settings_details)
         .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
     store.set("data".to_string(), json_data);
@@ -74,10 +69,6 @@ fn write_settings(
 }
 
 fn load_settings_store(app: &AppHandle) -> Result<SettingsUserDetails, anyhow::Error> {
-    let stores = app
-        .app_handle()
-        .try_state::<StoreCollection<Wry>>()
-        .unwrap();
     let path = PathBuf::from(STORE_NAME);
     info!(
         "loading settings: {:?}",

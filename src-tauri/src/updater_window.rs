@@ -1,9 +1,7 @@
-use anyhow::Error;
 use log::debug;
 use tauri::{AppHandle, Manager, Runtime, Window};
 use tauri_plugin_updater::UpdaterExt;
-use crate::{alert, settings_system, SettingsSystemState};
-use crate::settings_system::SettingsSystem;
+use crate::{alert, SettingsSystemState};
 
 const WINDOW_LABEL: &str = "updater";
 
