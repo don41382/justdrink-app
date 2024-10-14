@@ -7,6 +7,7 @@
     import * as tauri_path from "@tauri-apps/api/path";
     import {convertFileSrc} from "@tauri-apps/api/core";
     import {getCurrentWindow, LogicalSize, PhysicalSize} from "@tauri-apps/api/window";
+    import {platform} from "@tauri-apps/plugin-os";
 
     let initialDuration = 180
 
@@ -26,13 +27,16 @@
 
     beforeUpdate(async () => {
         await info(`welcome video beforeUpdate: ${width}x${height}`)
-        width && height && await getCurrentWindow().setSize(new LogicalSize(width, height)).catch(e => {
+
+        const os = platform();
+        const SizeClass = os === 'macos' ? LogicalSize : PhysicalSize;
+
+        width && height && await getCurrentWindow().setSize(new SizeClass(width, height)).catch(e => {
             warn(`failed to set window size: ${e}`)
         }).then(async () => {
             await getCurrentWindow().center();
         })
     });
-
     async function startSession() {
         await info("start session")
         if (enable_on_startup) {
