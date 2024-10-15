@@ -1,11 +1,14 @@
 <script lang="ts">
     import {fade} from 'svelte/transition';
     import {check, Update} from '@tauri-apps/plugin-updater';
-    import {onMount} from "svelte";
+    import {afterUpdate, onMount} from "svelte";
     import {info} from "@tauri-apps/plugin-log";
     import {commands} from "../../bindings";
     import * as tauri_path from "@tauri-apps/api/path";
     import {convertFileSrc} from "@tauri-apps/api/core";
+    import {fitAndShowWindow} from "../../helper";
+
+    let contentDiv: HTMLDivElement;
 
     type State = "init" | "started" | "progress" | "finished" | "newest" | "error"
 
@@ -25,20 +28,26 @@
     }
 
     onMount(async () => {
+        await info("mount update window")
         let resource_dir = await tauri_path.resourceDir();
         icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
-        await info("mount update window")
-        update = await check().then(res => {
+
+        update = await check().then(async (res) => {
             if (res == null) {
                 state = "newest"
             }
             return res;
-        }).catch(e => {
-            info(`error while checking for update: ${e}`)
+        }).catch(async (e) => {
+            await info(`error while checking for update: ${e}`)
+            await fitAndShowWindow(contentDiv);
             error = `Error while checking for update: ${e}`
             state = "error"
             return null;
         });
+    });
+
+    afterUpdate(async () => {
+        await fitAndShowWindow(contentDiv);
     });
 
     async function installUpdate() {
@@ -65,7 +74,7 @@
 
 </script>
 
-<div class="bg-white rounded-lg border-mm-blue-50 border-2 outline-mm-blue w-full p-6">
+<div bind:this={contentDiv} class="bg-white rounded-lg border-mm-blue-50 border-2 outline-mm-blue w-full p-6">
     {#if update}
         <!-- Logo and Update Info -->
         <div class="flex items-start mb-4">

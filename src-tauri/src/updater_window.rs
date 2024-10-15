@@ -65,9 +65,6 @@ where
             tauri::WebviewUrl::App("/updater".into()),
         )
             .title("New version is available")
-            .center()
-            .visible(true)
-            .auto_resize()
             .resizable(false)
             .always_on_top(true)
             .transparent(true)
@@ -75,7 +72,7 @@ where
             .skip_taskbar(true)
             .resizable(true)
             .transparent(true)
-            .shadow(false)
+            .shadow(true)
             .build()?;
     }
 
