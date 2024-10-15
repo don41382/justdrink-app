@@ -8,18 +8,17 @@ pub fn show(app: &AppHandle) -> Result<(), anyhow::Error> {
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/welcome".into()),
     )
-    .title("Welcome to Motion Minute")
-    .center()
-    .transparent(true)
-    .always_on_top(true)
-    .focused(true)
-    .decorations(false)
-    .skip_taskbar(true)
-    .resizable(true)
-    .shadow(true)
-    .build()?;
-
-    window.show()?;
+        .title("Welcome to Motion Minute")
+        .center()
+        .transparent(true)
+        .always_on_top(true)
+        .focused(true)
+        .decorations(false)
+        .skip_taskbar(true)
+        .resizable(true)
+        .shadow(true)
+        .visible(false)
+        .build()?;
 
     Ok(())
 }

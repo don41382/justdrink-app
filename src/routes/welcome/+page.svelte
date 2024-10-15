@@ -2,41 +2,26 @@
     import {commands} from '../../bindings';
     import {enable} from "@tauri-apps/plugin-autostart";
     import {info, warn} from "@tauri-apps/plugin-log";
-    import {afterUpdate, beforeUpdate, onMount} from "svelte";
-    import BackgroundVideo from "../BackgroundVideo.svelte";
+    import {onMount} from "svelte";
     import * as tauri_path from "@tauri-apps/api/path";
     import {convertFileSrc} from "@tauri-apps/api/core";
-    import {getCurrentWindow, LogicalSize, PhysicalSize} from "@tauri-apps/api/window";
-    import {platform} from "@tauri-apps/plugin-os";
+    import {fitAndShowWindow} from "../../helper";
 
     let initialDuration = 180
 
     let next_break_duration_minutes: number = initialDuration
     let enable_on_startup = true;
 
-    let width: number;
-    let height: number;
-
     let icon_path: string;
 
+    let contentDiv: HTMLDivElement;
 
     onMount(async () => {
         await info("welcome video mounted!")
         icon_path = convertFileSrc(`${await tauri_path.resourceDir()}/icons/128x128.png`);
+        await fitAndShowWindow(contentDiv);
     });
 
-    beforeUpdate(async () => {
-        await info(`welcome video beforeUpdate: ${width}x${height}`)
-
-        const os = platform();
-        const SizeClass = os === 'macos' ? LogicalSize : PhysicalSize;
-
-        width && height && await getCurrentWindow().setSize(new SizeClass(width, height)).catch(e => {
-            warn(`failed to set window size: ${e}`)
-        }).then(async () => {
-            await getCurrentWindow().center();
-        })
-    });
     async function startSession() {
         await info("start session")
         if (enable_on_startup) {
@@ -50,7 +35,7 @@
         );
 
     }
-    
+
     function selectDuration(duration: number) {
         next_break_duration_minutes = duration;
     }
@@ -60,7 +45,8 @@
 </script>
 
 
-<div bind:clientHeight={height} bind:clientWidth={width} class="bg-gray-100 w-[500px] h-full p-16 flex flex-col items-center justify-center cursor-default rounded-2xl">
+<div bind:this={contentDiv}
+     class="bg-gray-100 w-[500px] h-full p-16 flex flex-col items-center justify-center cursor-default rounded-2xl">
     <div class="z-10">
         <div class="mb-6 text-center" id="logo">
             <div class="flex items-center justify-center">
@@ -77,19 +63,21 @@
         <div class="mb-8" id="session-options">
             <h2 class="text-lg font-semibold mb-3">How often do you want to exercise?</h2>
             <div class="grid grid-cols-1 gap-3">
-                    {#each [30, 60, initialDuration, 240] as duration}
-                        <button 
-                                on:click={() => selectDuration(duration)}
-                                class="{next_break_duration_minutes === duration ? 'text-white bg-mm-green' : 'text-black bg-gray-200'} hover:bg-mm-green-300 py-2 rounded-md">
-                            <span class="font-thin">every</span>
-                            {duration >= 60 ?  `${duration / 60} hour` : `${duration} minutes`}
-                        </button>
-                    {/each}
-                </div>
+                {#each [30, 60, initialDuration, 240] as duration}
+                    <button
+                            on:click={() => selectDuration(duration)}
+                            class="{next_break_duration_minutes === duration ? 'text-white bg-mm-green' : 'text-black bg-gray-200'} hover:bg-mm-green-300 py-2 rounded-md">
+                        <span class="font-thin">every</span>
+                        {duration >= 60 ? `${duration / 60} hour` : `${duration} minutes`}
+                    </button>
+                {/each}
+            </div>
         </div>
 
-        <div class="flex items-center mb-8" >
-            <input bind:checked={enable_on_startup} class="mr-2 h-4 w-4 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500" type="checkbox">
+        <div class="flex items-center mb-8">
+            <input bind:checked={enable_on_startup}
+                   class="mr-2 h-4 w-4 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500"
+                   type="checkbox">
             <label class="text-sm text-neutral-600" for="load-startup">Load on startup</label>
         </div>
 
