@@ -66,13 +66,13 @@ impl Tracking {
         if allow_tracking {
             info!("send event: {:?}", event);
             let event_data = json!({
-                "api_key": "phc_mkp1psX6jauuoZon4F0UhJFEeBmOFOrNUao4QftORej",
                 "event": event.name(),
-                "distinct_id": self.machine_id,
                 "properties": {
+                    "token": "9f58d004510c838794b55947a21a4658",
                     "app_version": self.app_version,
                     "platform": self.platform,
-                    "arch": self.arch
+                    "arch": self.arch,
+                    "distinct_id": self.machine_id,
                 }
             });
             let client_clone = self.client.clone();
@@ -87,7 +87,7 @@ impl Tracking {
 
     fn send(event_data: &Value, client_clone: Client) -> Result<(), anyhow::Error> {
         let res = client_clone
-            .post("https://eu.i.posthog.com/capture/")
+            .post("https://api.mixpanel.com/track?ip=1")
             .header("Content-Type", "application/json")
             .json(&event_data)
             .timeout(Duration::from_secs(10))
