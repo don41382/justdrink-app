@@ -1,5 +1,5 @@
 use anyhow::Error;
-use log::{error, warn};
+use log::{error};
 use tauri::{AppHandle, Manager, Runtime};
 
 use crate::model::event::AlertEvent;

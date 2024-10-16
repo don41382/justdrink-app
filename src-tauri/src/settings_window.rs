@@ -5,12 +5,10 @@ use std::path::PathBuf;
 use std::string::ToString;
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
-use specta::Type;
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window, WindowEvent};
 use tauri_plugin_store::{StoreBuilder};
 use tauri_specta::Event;
-use crate::model::event::EventType::Settings;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
