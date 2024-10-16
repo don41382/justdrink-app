@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use specta::Type;
+use tauri::http::Version;
 use tauri_specta::Event;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]

@@ -2,22 +2,32 @@ use crate::model::settings::SettingsUserDetails;
 use crate::{alert, model, tracking, CountdownTimerState, SettingsDetailsState, TrackingState};
 use log::info;
 use std::path::PathBuf;
+use std::string::ToString;
 use std::time::Duration;
+use serde::{Deserialize, Serialize};
+use specta::Type;
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window, WindowEvent};
 use tauri_plugin_store::{StoreBuilder};
 use tauri_specta::Event;
+use crate::model::event::EventType::Settings;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
 const STORE_NAME: &str = "mm-config.json";
 
 const DEFAULT_SESSION: SettingsUserDetails = SettingsUserDetails {
-    next_break_duration_minutes: 120,
+    next_break_duration_minutes: 60,
     active: true,
     allow_tracking: true,
     enable_on_startup: true,
 };
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct UserSettingsStore {
+    version: String,
+    details: SettingsUserDetails,
+}
 
 #[specta::specta]
 #[tauri::command]
@@ -61,14 +71,19 @@ fn write_settings(
     settings_details: &SettingsUserDetails,
 ) -> Result<(), anyhow::Error> {
     let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
-    let json_data = serde_json::to_value(settings_details)
-        .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
+    let version = app.app_handle().config().version.clone();
+
+    let json_data = serde_json::to_value(UserSettingsStore {
+        version: version.unwrap_or("0.0.0".to_string()),
+        details: settings_details.clone(),
+    }).map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
+
     store.set("data".to_string(), json_data);
     store.save()?;
     Ok(())
 }
 
-fn load_settings_store(app: &AppHandle) -> Result<SettingsUserDetails, anyhow::Error> {
+fn load_settings_store(app: &AppHandle) -> Result<UserSettingsStore, anyhow::Error> {
     let path = PathBuf::from(STORE_NAME);
     info!(
         "loading settings: {:?}",
@@ -80,7 +95,7 @@ fn load_settings_store(app: &AppHandle) -> Result<SettingsUserDetails, anyhow::E
         .get("data".to_string())
         .ok_or_else(|| tauri_plugin_store::Error::NotFound(PathBuf::from("data")))?;
 
-    let details: SettingsUserDetails = serde_json::from_value(data_json.clone())
+    let details: UserSettingsStore = serde_json::from_value(data_json.clone())
         .map_err(|e| tauri_plugin_store::Error::Deserialize(Box::new(e)))?;
 
     Ok(details)
@@ -120,7 +135,8 @@ pub fn set_settings(
 }
 
 pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsUserDetails, anyhow::Error> {
-    load_settings_store(app_handle)
+    let settings = load_settings_store(app_handle)?;
+    Ok(settings.details)
 }
 
 fn new<R>(app: &AppHandle<R>, start_with_about: bool) -> Result<WebviewWindow<R>, anyhow::Error>

@@ -147,12 +147,12 @@ pub fn run() {
                     setup_timer(app, settings.clone()).unwrap();
                 }
                 Err(err) => {
-                    info!("display welcome screen");
-                    welcome_window::show(app.app_handle())?;
                     warn!("could not load settings: {}", err);
                     app.manage::<SettingsDetailsState>(Mutex::new(
                         None::<model::settings::SettingsUserDetails>,
                     ));
+                    info!("display welcome screen");
+                    welcome_window::show(app.app_handle())?;
                 }
             }
 
