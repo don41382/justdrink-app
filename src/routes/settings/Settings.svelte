@@ -1,15 +1,17 @@
 <script lang="ts">
     import { isEnabled, enable, disable } from "@tauri-apps/plugin-autostart";
     import type {Settings, SettingsUserDetails} from '../../bindings';
+    import {formatDuration, sessionTimes} from "../session-times";
+    import {info} from "@tauri-apps/plugin-log";
 
     export let user: SettingsUserDetails;
     export let updateSettings: (updatedSettings: SettingsUserDetails) => Promise<void>;
 
-    let next_break_duration_minutes: string = user.next_break_duration_minutes.toString();
+    let next_break_duration_minutes: number = user.next_break_duration_minutes;
 
     async function submit() {
         if (next_break_duration_minutes) {
-            user.next_break_duration_minutes = parseInt(next_break_duration_minutes);
+            user.next_break_duration_minutes = next_break_duration_minutes;
         }
         if (await isEnabled() != user.enable_on_startup) {
             if (user.enable_on_startup) {
@@ -39,10 +41,9 @@
                 <select bind:value={next_break_duration_minutes}
                         class="p-2 border rounded-l shadow-sm text-right text-black w-24"
                         on:change={submit}>
-                    <option value="30">30 min</option>
-                    <option value="60">1 hour</option>
-                    <option value="180">3 hours</option>
-                    <option value="240">4 hours</option>
+                    {#each sessionTimes as duration}
+                        <option value="{duration}">{formatDuration(duration)}</option>
+                    {/each}
                 </select>
             </div>
             <p class="text-gray-500 text-sm mt-1">Time until the next session</p>

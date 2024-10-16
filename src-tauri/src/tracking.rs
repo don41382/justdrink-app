@@ -3,6 +3,7 @@ use crate::SettingsDetailsState;
 use log::{info, warn};
 use serde_json::{json, Value};
 use std::time::Duration;
+use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest::blocking::{Client, ClientBuilder};
 
@@ -17,6 +18,7 @@ pub(crate) struct Tracking {
 
 #[derive(Debug)]
 pub enum Event {
+    Install,
     StartSession,
     SetTimer(u32),
     EndSession(SessionEndingReason),
@@ -25,6 +27,7 @@ pub enum Event {
 impl Event {
     fn name(&self) -> String {
         match self {
+            Event::Install => String::from("install"),
             Event::StartSession => String::from("start_session"),
             Event::SetTimer(minutes) => String::from(format!("set_timer_{}", minutes)),
             Event::EndSession(end) => match end {
@@ -37,10 +40,7 @@ impl Event {
 
 impl Tracking {
     pub fn new(app_handle: &AppHandle) -> Result<Self, anyhow::Error> {
-        let id = machine_uid::get().unwrap_or_else(|e| {
-            warn!("can't get machine uid: {}", e);
-            "unknown".to_string()
-        });
+        let id = Self::get_machine_id();
         let platform = tauri_plugin_os::platform().to_string();
         let arch = tauri_plugin_os::arch().to_string();
         Ok(Tracking {
@@ -51,6 +51,14 @@ impl Tracking {
             platform,
             arch,
         })
+    }
+
+    pub fn get_machine_id() -> String {
+        let id = machine_uid::get().unwrap_or_else(|e| {
+            warn!("can't get machine uid: {}", e);
+            "unknown".to_string()
+        });
+        format!("{:x}", Sha256::digest(id.as_bytes()))
     }
 
     pub fn send_tracking(&self, event: Event) {
@@ -65,7 +73,7 @@ impl Tracking {
         };
         if allow_tracking {
             info!("send event: {:?}", event);
-            let event_data = json!({
+            let event_data = json!([{
                 "event": event.name(),
                 "properties": {
                     "token": "9f58d004510c838794b55947a21a4658",
@@ -74,7 +82,7 @@ impl Tracking {
                     "arch": self.arch,
                     "distinct_id": self.machine_id,
                 }
-            });
+            }]);
             let client_clone = self.client.clone();
             std::thread::spawn(move || {
                 Self::send(&event_data, client_clone).unwrap_or_else(|e| {
@@ -87,13 +95,23 @@ impl Tracking {
 
     fn send(event_data: &Value, client_clone: Client) -> Result<(), anyhow::Error> {
         let res = client_clone
-            .post("https://api.mixpanel.com/track?ip=1")
+            .post("https://api.mixpanel.com/track?ip=1&verbose=1")
+            .header("Accept", "text/plain")
             .header("Content-Type", "application/json")
             .json(&event_data)
             .timeout(Duration::from_secs(10))
             .send()?;
 
-        res.error_for_status()?;
-        Ok(())
+        let json = res.error_for_status()?.json::<Value>()?;
+        let status =
+            json.get("status")
+                .map(|v| v.as_u64().unwrap_or(0))
+                .ok_or(anyhow::anyhow!("expected status from tracking request"))?;
+
+        if status == 1 {
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!("error sending tracking event: {}", json))
+        }
     }
 }

@@ -1,9 +1,12 @@
-use tauri::AppHandle;
+use log::warn;
+use tauri::{AppHandle, Manager};
+use crate::{tracking, TrackingState};
+use crate::tracking::Tracking;
 
 const WINDOW_LABEL: &str = "welcome";
 
 pub fn show(app: &AppHandle) -> Result<(), anyhow::Error> {
-    let window = tauri::WebviewWindowBuilder::new(
+    let _window = tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/welcome".into()),
@@ -20,5 +23,18 @@ pub fn show(app: &AppHandle) -> Result<(), anyhow::Error> {
         .visible(false)
         .build()?;
 
+    app.state::<TrackingState>().send_tracking(tracking::Event::Install);
+    open_thank_you();
+
     Ok(())
+}
+
+pub fn open_thank_you() {
+    let url = format!("https://www.motionminute.app/thank-you/{}", Tracking::get_machine_id());
+    match webbrowser::open(url.as_str()) {
+        Ok(_) => {}
+        Err(err) => {
+            warn!("can't open thank you page with browser: {}", err);
+        }
+    }
 }

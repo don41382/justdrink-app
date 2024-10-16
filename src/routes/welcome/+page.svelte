@@ -6,10 +6,9 @@
     import * as tauri_path from "@tauri-apps/api/path";
     import {convertFileSrc} from "@tauri-apps/api/core";
     import {fitAndShowWindow} from "../../helper";
+    import {formatDuration, sessionTimes} from "../session-times";
 
-    let initialDuration = 180
-
-    let next_break_duration_minutes: number = initialDuration
+    let next_break_duration_minutes: number = sessionTimes[sessionTimes.length-2];
     let enable_on_startup = true;
 
     let icon_path: string;
@@ -63,12 +62,12 @@
         <div class="mb-8" id="session-options">
             <h2 class="text-lg font-semibold mb-3">How often do you want to exercise?</h2>
             <div class="grid grid-cols-1 gap-3">
-                {#each [30, 60, initialDuration, 240] as duration}
+                {#each sessionTimes as duration}
                     <button
                             on:click={() => selectDuration(duration)}
                             class="{next_break_duration_minutes === duration ? 'text-white bg-mm-green' : 'text-black bg-gray-200'} hover:bg-mm-green-300 py-2 rounded-md">
                         <span class="font-thin">every</span>
-                        {duration >= 60 ? `${duration / 60} hour` : `${duration} minutes`}
+                        {formatDuration(duration)}
                     </button>
                 {/each}
             </div>

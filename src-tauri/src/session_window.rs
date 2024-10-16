@@ -34,12 +34,12 @@ pub fn start<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
 where
     R: tauri::Runtime,
 {
-    info!("start session window: stop timer");
     // stop current running timer
+    info!("start session window: stop timer");
     app.state::<CountdownTimerState>().stop();
 
-    info!("start session window: send tracking");
     // send tracking event
+    info!("start session window: send tracking");
     app.state::<TrackingState>()
         .send_tracking(tracking::Event::StartSession);
 

@@ -7,6 +7,7 @@ use crate::model::event::AlertEvent;
 use tauri::ActivationPolicy;
 use tauri_plugin_http::reqwest::blocking::ClientBuilder;
 use tauri_specta::Event;
+use crate::tracking::Tracking;
 
 const WINDOW_LABEL: &str = "alert";
 
@@ -19,17 +20,17 @@ where
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/alert".into()),
     )
-    .title("Oops, we didn't expect this")
-    .center()
-    .inner_size(600.0, 300.0)
-    .visible(false)
-    .transparent(true)
-    .always_on_top(false)
-    .decorations(false)
-    .skip_taskbar(true)
-    .resizable(true)
-    .shadow(false)
-    .build()?;
+        .title("Oops, we didn't expect this")
+        .center()
+        .inner_size(600.0, 300.0)
+        .visible(false)
+        .transparent(true)
+        .always_on_top(false)
+        .decorations(false)
+        .skip_taskbar(true)
+        .resizable(true)
+        .shadow(false)
+        .build()?;
 
     Ok(())
 }
@@ -90,10 +91,7 @@ fn send_error<R>(app: &AppHandle<R>, message: String) -> Result<(), Error>
 where
     R: Runtime,
 {
-    let id = machine_uid::get().unwrap_or_else(|e| {
-        warn!("can't get machine uid, while sending error: {}", e);
-        "unknown".to_string()
-    });
+    let id = Tracking::get_machine_id();
     let platform = tauri_plugin_os::platform().to_string();
     let platform_version = tauri_plugin_os::version().to_string();
     let version = app
@@ -135,7 +133,7 @@ where
         title: title.to_string(),
         message: message.to_string(),
     }
-    .emit(alert_window.app_handle())?;
+        .emit(alert_window.app_handle())?;
 
     Ok(())
 }
