@@ -139,6 +139,9 @@
                 </div>
             </div>
         {/if}
+        <div class="absolute top-14 right-14 z-20 text-gray-600 flex flex-col items-center">
+            <span class="text-black">Trail Information</span>
+        </div>
         <div class="absolute bottom-14 right-14 z-20 text-gray-600 flex flex-col items-center">
             <div class="text-3xl mb-6">
                 {#if countdownSeconds && countdownSeconds > 0}

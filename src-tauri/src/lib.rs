@@ -16,6 +16,7 @@ mod welcome_window;
 mod updater_window;
 mod fullscreen;
 mod settings_system;
+mod license_manager;
 
 use log::{info, warn};
 #[cfg(debug_assertions)]
@@ -102,7 +103,7 @@ pub fn run() {
             countdown_timer::TimerStatus,
         ],
     )
-    .unwrap();
+        .unwrap();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -136,6 +137,9 @@ pub fn run() {
         .setup(move |app| {
             builder.mount_events(app.app_handle());
             alert::init(app.app_handle())?;
+
+            // let device_id = model::device::DeviceId::lookup()?;
+            // let licence_manager = license_manager::LicenseManager::new(&device_id)?;
 
             app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
             app.manage::<TrackingState>(Tracking::new(app.app_handle()).unwrap());

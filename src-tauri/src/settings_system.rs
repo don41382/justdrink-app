@@ -5,16 +5,16 @@ use chrono::{Duration, Utc};
 use log::warn;
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_store::{StoreBuilder};
+use crate::license_manager;
+use crate::model::device::DeviceId;
 use crate::model::settings::SettingsSystemDetails;
 
 const STORE_NAME: &str = "mm-system-config.json";
 const ROOT_PATH: &str = "system";
 
-
 pub(crate) struct SettingsSystem {
     settings: SettingsSystemDetails,
 }
-
 
 impl SettingsSystem {
     pub fn load(app: &AppHandle) -> SettingsSystem {
