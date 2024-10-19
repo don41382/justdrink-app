@@ -8,6 +8,7 @@ use tauri::ActivationPolicy;
 use crate::{alert, countdown_timer, fullscreen, model, start_first_session_, tracking, updater_window, CountdownTimerState, SessionRepositoryState, TrackingState};
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window};
 use tauri_specta::Event;
+use crate::alert::Alert;
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -98,8 +99,7 @@ pub fn start_first_session(
             enable_on_startup,
         ) {
             Ok(_) => {}
-            Err(error) => alert::alert(
-                &app_handle.app_handle(),
+            Err(error) => app_handle.alert(
                 "Not able to start first session",
                 format!("{:?}", error).as_str(),
                 Some(error),
@@ -120,8 +120,7 @@ pub fn load_session_details(
         let mut repo = session_repository.lock().unwrap();
         match repo.pick_random_session() {
             None => {
-                alert::alert(
-                    &app,
+                app.alert(
                     "Session is missing",
                     "There is no session available",
                     None,

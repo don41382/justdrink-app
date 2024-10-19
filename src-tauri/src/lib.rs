@@ -23,6 +23,7 @@ use log::{info, warn};
 use specta_typescript::Typescript;
 use std::sync::Mutex;
 use std::time::Duration;
+use serde_json::json;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
@@ -31,17 +32,19 @@ use crate::session_repository::SessionRepository;
 
 use crate::tracking::Tracking;
 use tauri::{App, AppHandle, Manager, Window, WindowEvent};
+use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
+use crate::alert::Alert;
+use crate::license_manager::LicenseManager;
 use crate::settings_system::SettingsSystem;
 
 #[specta::specta]
 #[tauri::command]
 fn update_settings(app_handle: AppHandle, settings: model::settings::SettingsUserDetails) -> () {
     settings_window::set_settings(&app_handle, settings, true).unwrap_or_else(|err| {
-        alert::alert(
-            app_handle.app_handle(),
+        app_handle.alert(
             "Failed to update settings",
             "Motion minute is unable to update settings.",
             Some(err),
@@ -77,6 +80,7 @@ type SettingsSystemState = Mutex<SettingsSystem>;
 type CountdownTimerState = CountdownTimer;
 type TrackingState = Tracking;
 type SessionRepositoryState = Mutex<SessionRepository>;
+type LicenseManagerState = Mutex<license_manager::LicenseManager>;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -89,13 +93,11 @@ pub fn run() {
             settings_window::load_settings,
             settings_window::open_browser,
             alert::close_error_window,
-            alert::close_error_and_send,
             updater_window::updater_close,
         ],
         collect_events![
             model::event::SettingsStartEvent,
             model::event::SessionStartEvent,
-            model::event::AlertEvent,
             model::session::SessionEndingReason,
             model::settings::Settings,
             model::settings::SettingsUserDetails,
@@ -116,6 +118,16 @@ pub fn run() {
             None,
         ))
         .plugin(
+            tauri_plugin_aptabase::Builder::new("A-EU-5037339452")
+                .with_panic_hook(Box::new(|client, info, msg| {
+                    let location = info.location().map(|loc| format!("{}:{}:{}", loc.file(), loc.line(), loc.column())).unwrap_or_else(|| "".to_string());
+                    client.track_event("panic", Some(json!({
+                        "info": format!("{} ({})", msg, location),
+                    })));
+                }))
+                .build()
+        )
+        .plugin(
             tauri_plugin_log::Builder::default()
                 .targets([
                     Target::new(tauri_plugin_log::TargetKind::Stdout),
@@ -129,17 +141,15 @@ pub fn run() {
                     log::LevelFilter::Info,
                 )
                 .level_for("tao::platform_impl::platform::view", log::LevelFilter::Info)
+                .level_for("tauri_plugin_aptabase::dispatcher", log::LevelFilter::Info)
                 .level(log::LevelFilter::Trace)
                 .build(),
         )
         .invoke_handler(builder.invoke_handler())
         .manage::<SessionRepositoryState>(Mutex::new(SessionRepository::new()))
         .setup(move |app| {
+            app.track_event("app_started", None);
             builder.mount_events(app.app_handle());
-            alert::init(app.app_handle())?;
-
-            // let device_id = model::device::DeviceId::lookup()?;
-            // let licence_manager = license_manager::LicenseManager::new(&device_id)?;
 
             app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
             app.manage::<TrackingState>(Tracking::new(app.app_handle()).unwrap());
@@ -159,6 +169,9 @@ pub fn run() {
                     welcome_window::show(app.app_handle())?;
                 }
             }
+
+            let device_id = model::device::DeviceId::lookup()?;
+            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(app.app_handle(), &device_id)));
 
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::string::ToString;
 use anyhow::Error;
 use chrono::{Duration, Utc};
-use log::warn;
+use log::{debug, warn};
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_store::{StoreBuilder};
 use crate::license_manager;
@@ -50,6 +50,7 @@ impl SettingsSystem {
     ) -> Result<(), anyhow::Error> where
         R: Runtime,
     {
+        debug!("save system settings");
         let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
 
         let json_data =

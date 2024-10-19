@@ -18,9 +18,3 @@ pub struct SettingsStartEvent {
 pub struct SessionStartEvent {
     pub(crate) details: SessionDetail,
 }
-
-#[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
-pub struct AlertEvent {
-    pub(crate) title: String,
-    pub(crate) message: String,
-}

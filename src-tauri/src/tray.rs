@@ -4,20 +4,13 @@ use crate::{alert, session_window, settings_window, updater_window};
 use anyhow::anyhow;
 use std::time::Duration;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
-use tauri::{
-    menu::{Menu, MenuItem},
-    tray::TrayIconBuilder,
-    Manager, Runtime,
-};
+use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, AppHandle, Wry};
 use tauri_specta::Event;
+use crate::alert::Alert;
 
 const TRAY_ID: &'static str = "tray";
 
-pub fn create_tray<R, M>(main_app: &M) -> tauri::Result<()>
-where
-    R: Runtime,
-    M: Manager<R>,
-{
+pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
     let timer = main_app.state::<CountdownTimer>();
 
     let menu_status = MenuItem::with_id(
@@ -85,8 +78,7 @@ where
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "start" => {
                 session_window::start(app.app_handle()).unwrap_or_else(|e| {
-                    alert::alert(
-                        app,
+                    app.alert(
                         "Error while starting the session",
                         "I am sorry, we are unable to start the session.",
                         Some(e),
@@ -96,8 +88,7 @@ where
             }
             "settings" => {
                 settings_window::show(app).unwrap_or_else(|e| {
-                    alert::alert(
-                        app,
+                    app.alert(
                         "Error while opening settings",
                         "I am sorry, we are unable to open up the settings.",
                         Some(anyhow!(e)),
@@ -115,8 +106,7 @@ where
             }
             "updater" => {
                 updater_window::show(app.app_handle()).unwrap_or_else(|e| {
-                    alert::alert(
-                        app,
+                    app.alert(
                         "Error while opening updater",
                         "I am sorry, we are unable to open the updater.",
                         Some(anyhow!(e)),
@@ -126,8 +116,7 @@ where
             }
             "about" => {
                 settings_window::show_about(app).unwrap_or_else(|e| {
-                    alert::alert(
-                        app,
+                    app.alert(
                         "Error while opening settings",
                         "I am sorry, we are unable to open up the settings.",
                         Some(anyhow!(e)),
@@ -140,7 +129,7 @@ where
             }
             _ => {}
         })
-        .build(main_app);
+        .build(main_app)?;
 
     let app_handle_tray_update = main_app.app_handle().clone();
     CountdownEvent::listen(main_app.app_handle(), move |event| {
@@ -152,12 +141,8 @@ where
     Ok(())
 }
 
-pub fn update_tray_title<R, M>(app_handle: &M, status: TimerStatus) -> tauri::Result<()>
-where
-    R: Runtime,
-    M: Manager<R>,
-{
-    if let Some(tray) = app_handle.app_handle().tray_by_id(TRAY_ID) {
+pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> tauri::Result<()> {
+    if let Some(tray) = app_handle.tray_by_id(TRAY_ID) {
         let tray_text = match status {
             TimerStatus::NotStarted => None,
             TimerStatus::Active(duration) => {

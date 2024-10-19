@@ -9,6 +9,7 @@ use tauri::utils::config::WindowEffectsConfig;
 use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window, WindowEvent};
 use tauri_plugin_store::{StoreBuilder};
 use tauri_specta::Event;
+use crate::alert::Alert;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
@@ -52,8 +53,7 @@ pub fn open_browser(window: Window, app_handle: AppHandle, url: String) -> () {
                 "I am sorry, we are not able to open up the browser for '{}'",
                 url
             );
-            alert::alert(
-                app_handle.app_handle(),
+            app_handle.alert(
                 "Could not open Browser",
                 error.as_str(),
                 Some(anyhow::anyhow!(err)),

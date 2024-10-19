@@ -31,9 +31,6 @@ async openBrowser(url: string) : Promise<null> {
 async closeErrorWindow() : Promise<void> {
     await TAURI_INVOKE("close_error_window");
 },
-async closeErrorAndSend(message: string) : Promise<null> {
-    return await TAURI_INVOKE("close_error_and_send", { message });
-},
 async updaterClose(restart: boolean) : Promise<void> {
     await TAURI_INVOKE("updater_close", { restart });
 }
@@ -43,7 +40,6 @@ async updaterClose(restart: boolean) : Promise<void> {
 
 
 export const events = __makeEvents__<{
-alertEvent: AlertEvent,
 countdownEvent: CountdownEvent,
 sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
@@ -52,7 +48,6 @@ settingsStartEvent: SettingsStartEvent,
 settingsUserDetails: SettingsUserDetails,
 timerStatus: TimerStatus
 }>({
-alertEvent: "alert-event",
 countdownEvent: "countdown-event",
 sessionEndingReason: "session-ending-reason",
 sessionStartEvent: "session-start-event",
@@ -68,7 +63,6 @@ timerStatus: "timer-status"
 
 /** user-defined types **/
 
-export type AlertEvent = { title: string; message: string }
 export type AppDetails = { version: string }
 export type CountdownEvent = { status: TimerStatus }
 export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"

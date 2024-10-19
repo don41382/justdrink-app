@@ -1,56 +1,63 @@
+use anyhow::Error;
 use log::debug;
-use tauri::{AppHandle, Manager, Runtime, Window};
+use tauri::{AppHandle, Manager, Runtime, State, Window};
 use tauri_plugin_updater::UpdaterExt;
 use crate::{alert, SettingsSystemState};
+use crate::alert::Alert;
 
 const WINDOW_LABEL: &str = "updater";
 
-pub fn show_if_update_available<R>(app: &AppHandle<R>, ignore_check_duration: bool) -> ()
-where
-    R: Runtime,
-{
+pub fn show_if_update_available(app: &AppHandle, skip_duration_check: bool) -> () {
     debug!("updater info checking ...");
     let app_handle = app.app_handle().clone();
     tauri::async_runtime::spawn(async move {
-        match show_if_update_available_run(&app_handle, ignore_check_duration).await {
+        match show_if_update_available_run(&app_handle, skip_duration_check).await {
             Ok(_) => {
                 debug!("Check update finished");
             }
             Err(err) => {
-                alert::alert(&app_handle, "Can't show update dialog", "Error while show update dialog.", Some(err), false);
+                app_handle.alert("Can't show update dialog", "Error while show update dialog.", Some(err), false);
             }
         }
     });
 }
 
-async fn show_if_update_available_run<R>(app_handle: &AppHandle<R>, ignore_check_duration: bool) -> Result<(), anyhow::Error>
+async fn show_if_update_available_run<R>(app_handle: &AppHandle<R>, skip_duration_check: bool) -> Result<(), anyhow::Error>
 where
     R: Runtime,
 {
-    {
-        let settings_system = app_handle.state::<SettingsSystemState>();
-        let mut settings_system = settings_system.lock().map_err(|e| anyhow::anyhow!(e.to_string()))?;
-
-        if ignore_check_duration {
-            debug!("checking for updates, ignore last check duration");
-        } else {
-            if !settings_system.updater_check_needed() {
-                debug!("no update check required, last check is still recent enough");
-                return Ok(());
-            } else {
-                settings_system.set_last_check_date(app_handle)?;
-                debug!("let's check for updates, it's been a while");
-            }
+    if check_for_new_version_required(app_handle.app_handle(), skip_duration_check)? {
+        if is_new_version_available(app_handle.app_handle()).await? {
+            debug!("found new version. show update dialog.");
+            let _ = show(&app_handle)?;
         }
-        drop(settings_system);
-    }
-
-    if check_for_update_available(app_handle.app_handle()).await? {
-        debug!("found new version. show update dialog.");
-        let _ = show(&app_handle)?;
     }
 
     Ok(())
+}
+
+fn check_for_new_version_required<R : Runtime>(app_handle: &AppHandle<R>, skip_duration_check: bool) -> Result<bool, Error> {
+    let settings_system = app_handle.state::<SettingsSystemState>();
+    let mut settings_system = settings_system.lock().map_err(|e| anyhow::anyhow!(e.to_string()))?;
+
+    let check_for_updates = if skip_duration_check {
+        debug!("checking for updates, ignore last check duration");
+        true
+    } else {
+        if settings_system.updater_check_needed() {
+            debug!("let's check for updates, it's been a while");
+            true
+        } else {
+            debug!("no update check required, last check is still recent enough");
+            false
+        }
+    };
+
+    if check_for_updates {
+        settings_system.set_last_check_date(app_handle)?;
+    }
+
+    Ok(check_for_updates)
 }
 
 pub fn show<R>(app_handle: &AppHandle<R>) -> Result<(), anyhow::Error>
@@ -79,7 +86,7 @@ where
     Ok(())
 }
 
-async fn check_for_update_available<R>(app: &AppHandle<R>) -> Result<bool, anyhow::Error>
+async fn is_new_version_available<R>(app: &AppHandle<R>) -> Result<bool, anyhow::Error>
 where
     R: Runtime,
 {

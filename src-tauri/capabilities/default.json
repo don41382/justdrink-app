@@ -11,6 +11,7 @@
     "updater"
   ],
   "permissions": [
+    "aptabase:allow-track-event",
     "core:default",
     "core:window:default",
     "core:window:allow-show",
@@ -36,5 +37,7 @@
     "http:default",
     "updater:allow-check",
     "updater:allow-download-and-install"
-  ]
+  ],
+  "capabilities": [
+]
 }

@@ -1,119 +1,92 @@
+use std::sync::TryLockResult;
 use anyhow::Error;
 use log::{error};
-use tauri::{AppHandle, Manager, Runtime};
+use serde_json::json;
+use tauri::{AppHandle, Manager, Runtime, WindowEvent};
 
-use crate::model::event::AlertEvent;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
+use tauri::webview::{PageLoadEvent, PageLoadPayload};
+use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_http::reqwest::blocking::ClientBuilder;
 use tauri_specta::Event;
+use urlencoding::encode;
+use crate::SettingsDetailsState;
 use crate::tracking::Tracking;
 
 const WINDOW_LABEL: &str = "alert";
 
-pub fn init<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
-where
-    R: tauri::Runtime,
-{
-    let _ = tauri::WebviewWindowBuilder::new(
+pub trait Alert {
+    fn alert(&self, title: &str, message: &str, error: Option<anyhow::Error>, silence: bool) -> ();
+}
+
+impl Alert for AppHandle {
+    fn alert(&self, title: &str, message: &str, error: Option<Error>, silence: bool) -> () {
+        let allow_sending_error = self
+            .state::<SettingsDetailsState>()
+            .try_lock()
+            .ok()
+            .and_then(|settings| settings.as_ref().map(|s| s.allow_tracking))
+            .unwrap_or(false);
+
+        if let Some(e) = error {
+            error!("error '{}' with message '{}', error: {:?}",title, message, e);
+            if allow_sending_error {
+                self.track_event(
+                    title,
+                    Some(json!({
+                    "info": message.to_string(),
+                    "error": e.to_string(),
+                })),
+                );
+            }
+        } else {
+            error!("error '{}' with message '{}'", title, message);
+            if allow_sending_error {
+                self.track_event(title, Some(json!({
+                "info": format!("{}", message)
+            })));
+            }
+        }
+
+        if !silence {
+            match display_alert(self.app_handle(), title, message) {
+                Ok(_) => {}
+                Err(e) => {
+                    error!("unable to display error {:?}", e);
+                    self.exit(-1);
+                }
+            }
+        }
+    }
+}
+
+fn show_alert<R: Runtime>(app: &AppHandle<R>, title: String, message: String) -> Result<(), anyhow::Error> {
+    let _window = tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
-        tauri::WebviewUrl::App("/alert".into()),
+        tauri::WebviewUrl::App(format!("/alert?title={title}&message={message}", title = encode(&title), message = encode(&message)).into()),
     )
         .title("Oops, we didn't expect this")
-        .center()
-        .inner_size(600.0, 300.0)
         .visible(false)
         .transparent(true)
         .always_on_top(false)
         .decorations(false)
         .skip_taskbar(true)
         .resizable(true)
-        .shadow(false)
+        .shadow(true)
+        .visible(false)
         .build()?;
 
     Ok(())
-}
-
-pub fn alert<R>(
-    app: &AppHandle<R>,
-    title: &str,
-    message: &str,
-    error: Option<anyhow::Error>,
-    silence: bool,
-) -> ()
-where
-    R: Runtime,
-{
-    if let Some(e) = error {
-        error!(
-            "error '{}' with message '{}', error: {:?}",
-            title, message, e
-        );
-    } else {
-        error!("error '{}' with message '{}'", title, message);
-    }
-
-    if !silence {
-        match display_alert(app, title, message) {
-            Ok(_) => {}
-            Err(e) => {
-                error!("unable to display error {:?}", e);
-                app.exit(-1);
-            }
-        }
-    }
-}
-
-#[specta::specta]
-#[tauri::command]
-pub fn close_error_and_send(app: AppHandle, window: tauri::Window, message: String) -> () {
-    match send_error(app.app_handle(), message.clone()) {
-        Ok(_) => {}
-        Err(err) => {
-            error!("unable to send error '{}' to server: {:?}", message, err);
-        }
-    }
-    window
-        .hide()
-        .expect("alert window must exists and should never be closed");
 }
 
 #[specta::specta]
 #[tauri::command]
 pub fn close_error_window(window: tauri::Window) {
     window
-        .hide()
+        .close()
         .expect("alert window must exists and should never be closed");
-}
-
-fn send_error<R>(app: &AppHandle<R>, message: String) -> Result<(), Error>
-where
-    R: Runtime,
-{
-    let id = Tracking::get_machine_id();
-    let platform = tauri_plugin_os::platform().to_string();
-    let platform_version = tauri_plugin_os::version().to_string();
-    let version = app
-        .config()
-        .clone()
-        .version
-        .unwrap_or("unknown-version".to_string());
-
-    let client = ClientBuilder::new().build()?;
-    let result = client
-        .get(format!("https://motionminute.app/app/v1/log?logLevel={error}&platform={platform}&platformVersion={platform_version}&deviceId={deviceId}&version={version}&message={message}",
-                     error = "error",
-                     platform = urlencoding::encode(platform.as_str()),
-                     platform_version = urlencoding::encode(platform_version.as_str()),
-                     deviceId = urlencoding::encode(id.as_str()),
-                     version = urlencoding::encode(version.as_str()),
-                     message = urlencoding::encode(message.as_str())
-        )).send()?;
-
-    result.error_for_status()?;
-
-    Ok(())
 }
 
 fn display_alert<R>(app: &AppHandle<R>, title: &str, message: &str) -> Result<(), Error>
@@ -124,16 +97,7 @@ where
     app.app_handle()
         .set_activation_policy(ActivationPolicy::Regular)?;
 
-    let alert_window = app
-        .get_webview_window(WINDOW_LABEL)
-        .expect("alert window must exists");
-    alert_window.show()?;
-
-    AlertEvent {
-        title: title.to_string(),
-        message: message.to_string(),
-    }
-        .emit(alert_window.app_handle())?;
+    show_alert(app, title.to_string(), message.to_string())?;
 
     Ok(())
 }
