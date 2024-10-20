@@ -43,19 +43,23 @@ mod response {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct TrailDetails {
     pub expired_at: chrono::DateTime<Utc>,
 }
 
+#[derive(Debug, Clone)]
 pub struct PaidDetails {
     pub license_key: String,
 }
 
+#[derive(Debug, Clone)]
 pub enum ValidTypes {
     Trail(TrailDetails),
     Paid(PaidDetails),
 }
 
+#[derive(Debug, Clone)]
 pub enum LicenseStatus {
     Valid(ValidTypes),
     Expired(String),
@@ -121,5 +125,9 @@ impl LicenseManager {
         };
 
         Ok(license_status)
+    }
+
+    pub fn get_status(&self) -> LicenseStatus {
+        self.status.clone()
     }
 }

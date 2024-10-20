@@ -65,9 +65,12 @@ timerStatus: "timer-status"
 
 export type AppDetails = { version: string }
 export type CountdownEvent = { status: TimerStatus }
+export type Exercise = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
+export type LicenseInfo = { status: LicenseStatus; message: string | null }
+export type LicenseStatus = "Trail" | "Paid" | "Invalid"
 export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"
-export type SessionDetail = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
-export type SessionEndingReason = "EndOfTime" | "UserEscape"
+export type SessionDetail = { exercise: Exercise; license_info: LicenseInfo }
+export type SessionEndingReason = "EndOfTime" | "UserEscape" | "Error"
 export type SessionId = string
 export type SessionStartEvent = { details: SessionDetail }
 export type Settings = { app: AppDetails; user: SettingsUserDetails }

@@ -1,6 +1,12 @@
 <script lang="ts">
     import {error, info} from '@tauri-apps/plugin-log';
-    import {commands, type SessionEndingReason, type SessionDetail} from '../../bindings';
+    import {
+        commands,
+        type SessionEndingReason,
+        type SessionDetail,
+        type Exercise,
+        type LicenseInfo
+    } from '../../bindings';
     import {getCurrentWindow} from '@tauri-apps/api/window';
     import {onDestroy, onMount} from 'svelte';
     import {fade} from 'svelte/transition';
@@ -12,9 +18,13 @@
     import AudioPlayer from "./AudioPlayer.svelte";
     import BackgroundVideo from "../BackgroundVideo.svelte";
 
+    info("Initialized Session Window")
+
     const fadeOutDurationSeconds = 2
 
-    let session: SessionDetail | undefined = undefined;
+    let exercise: Exercise | undefined = undefined;
+    let license: LicenseInfo | undefined = undefined;
+
     let countdownSeconds: number | undefined;
     let countdownInterval: number | undefined;
 
@@ -25,11 +35,10 @@
 
     let show = true;
 
-    info("Initialized Session Window")
-
     function setup(details: SessionDetail) {
-        session = details
-        countdownSeconds = details.duration_s
+        license = details.license_info
+        exercise = details.exercise
+        countdownSeconds = details.exercise.duration_s
 
         countdownInterval = window.setInterval(() => {
             if (countdownSeconds) {
@@ -55,9 +64,11 @@
         finishSound.src = convertFileSrc(`${resource_dir}/audio/session-end.mp3`)
         music.play();
 
-        let res = await commands.loadSessionDetails();
-        if (res != null) {
-            setup(res);
+        let sessionDetail = await commands.loadSessionDetails();
+        if (sessionDetail == null || sessionDetail.license_info == null) {
+            closeApp("Error")
+        } else {
+            setup(sessionDetail);
             const window = getCurrentWindow()
             await window.setFocus()
         }
@@ -74,7 +85,7 @@
         if (countdownInterval) {
             clearInterval(countdownInterval);
         }
-        session = undefined;
+        exercise = undefined;
     }
 
 
@@ -122,25 +133,27 @@
         <BackgroundVideo bind:backgroundVideoLoaded={backgroundLoadingFinished}/>
 
         <div class="relative z-20 flex flex-col">
-            {#if session !== undefined && countdownSeconds !== undefined}
+            {#if exercise !== undefined && countdownSeconds !== undefined}
                 <div class="flex-none text-center mt-20 px-48">
-                    <h1 class="text-8xl text-mm-blue font-bold mb-4">{session.title}</h1>
-                    <h1 class="text-4xl text-mm-purple font-normal mb-16">{session.description}</h1>
+                    <h1 class="text-8xl text-mm-blue font-bold mb-4">{exercise.title}</h1>
+                    <h1 class="text-4xl text-mm-purple font-normal mb-16">{exercise.description}</h1>
                 </div>
                 <div class="flex flex-grow items-center px-80 {(backgroundLoadingFinished) ? '' : 'hidden'}">
-                    <AdviceMessage advices={session.advices}/>
+                    <AdviceMessage advices={exercise.advices}/>
                 </div>
             {/if}
         </div>
-        {#if session}
+        {#if exercise}
             <div class="absolute bottom-0 z-10 w-full flex items-center justify-center">
                 <div out:fade={{ duration: 1000 }}>
-                    <VideoPlayer filename="{session.id}" class="max-h-[500px] h-auto"/>
+                    <VideoPlayer filename="{exercise.id}" class="max-h-[500px] h-auto"/>
                 </div>
             </div>
         {/if}
         <div class="absolute top-14 right-14 z-20 text-gray-600 flex flex-col items-center">
-            <span class="text-black">Trail Information</span>
+            {#if license && license.message}
+            <span class="text-black">{license.message}</span>
+            {/if}
         </div>
         <div class="absolute bottom-14 right-14 z-20 text-gray-600 flex flex-col items-center">
             <div class="text-3xl mb-6">

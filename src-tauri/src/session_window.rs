@@ -5,10 +5,13 @@ use std::thread::spawn;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use crate::{alert, countdown_timer, fullscreen, model, start_first_session_, tracking, updater_window, CountdownTimerState, SessionRepositoryState, TrackingState};
+use crate::{alert, countdown_timer, fullscreen, model, start_first_session_, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, TrackingState};
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window};
+use tauri::webview::PageLoadEvent;
 use tauri_specta::Event;
 use crate::alert::Alert;
+use crate::license_manager::{LicenseStatus, ValidTypes};
+use crate::model::session::{Exercise, SessionDetail};
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -115,23 +118,69 @@ pub fn start_first_session(
 pub fn load_session_details(
     app: AppHandle,
     session_repository: State<SessionRepositoryState>,
+    license_manager: State<LicenseManagerState>,
 ) -> Option<model::session::SessionDetail> {
-    {
-        let mut repo = session_repository.lock().unwrap();
-        match repo.pick_random_session() {
-            None => {
-                app.alert(
-                    "Session is missing",
-                    "There is no session available",
-                    None,
-                    false,
-                );
-                None
-            }
-            Some(session) => Some(session.clone()),
+    info!("load session details");
+
+    let mut repo = session_repository.lock().unwrap();
+    match repo.pick_random_session() {
+        None => {
+            app.alert(
+                "Session is missing",
+                "There is no session available",
+                None,
+                false,
+            );
+            None
+        }
+        Some(exercise) => {
+            let status = license_manager
+                .lock()
+                .expect("license manager is locked")
+                .get_status();
+
+            Some(to_license_info(exercise, status))
         }
     }
 }
+
+fn to_license_info(exercise: &Exercise, status: LicenseStatus) -> SessionDetail {
+    SessionDetail {
+        exercise: exercise.clone(),
+        license_info: match status {
+            LicenseStatus::Valid(trailType) => {
+                match trailType {
+                    ValidTypes::Trail(details) => {
+                        model::session::LicenseInfo {
+                            status: model::session::LicenseStatus::Trail,
+                            message: Some(format!("You have {:?} days remaining", days_between(chrono::Utc::now(), details.expired_at))),
+                        }
+                    }
+                    ValidTypes::Paid(_details) => {
+                        model::session::LicenseInfo {
+                            status: model::session::LicenseStatus::Paid,
+                            message: None,
+                        }
+                    }
+                }
+            }
+            LicenseStatus::Expired(_) => model::session::LicenseInfo {
+                status: model::session::LicenseStatus::Invalid,
+                message: Some("Your license has expired".to_string()),
+            },
+            LicenseStatus::Invalid(_) => model::session::LicenseInfo {
+                status: model::session::LicenseStatus::Invalid,
+                message: Some("There is an issue with your license.".to_string()),
+            },
+        },
+    }
+}
+
+fn days_between(start: chrono::DateTime<chrono::Utc>, end: chrono::DateTime<chrono::Utc>) -> i64 {
+    let duration: chrono::Duration = end - start;
+    duration.num_days()
+}
+
 
 #[specta::specta]
 #[tauri::command]

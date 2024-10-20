@@ -33,6 +33,7 @@ impl Event {
             Event::EndSession(end) => match end {
                 SessionEndingReason::EndOfTime => String::from("session_end_time"),
                 SessionEndingReason::UserEscape => String::from("session_end_user_escape"),
+                SessionEndingReason::Error => String::from("session_error")
             },
         }
     }
