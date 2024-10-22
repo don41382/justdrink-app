@@ -1,12 +1,10 @@
-use std::sync::TryLockResult;
 use anyhow::Error;
 use log::{error};
 use serde_json::json;
-use tauri::{AppHandle, Manager, Runtime, WindowEvent};
+use tauri::{AppHandle, Manager, Runtime};
 
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
-use tauri::webview::{PageLoadEvent, PageLoadPayload};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_http::reqwest::blocking::ClientBuilder;
 use tauri_specta::Event;

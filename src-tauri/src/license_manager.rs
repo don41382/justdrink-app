@@ -130,12 +130,6 @@ impl LicenseManager {
         }
     }
 
-    pub fn refresh(&mut self) -> Result<(), ServerRequestError> {
-        let status = Self::validate(self.client.clone(), &self.device_id)?;
-        self.status = status;
-        Ok(())
-    }
-
     fn validate(client: Client, device_id: &model::device::DeviceId) -> Result<LicenseStatus, ServerRequestError> {
         let url = format!("https://motionminute.app/app/v1/license/validate?device-id={}", device_id.get_hash_hex_id());
         let response =
@@ -296,7 +290,7 @@ pub fn get_a_license(window: Window, app_handle: AppHandle) -> () {
     window.close().expect("settings window to close");
 }
 
-pub fn license_run<F>(app_handle: AppHandle, run: F) -> model::license::LicenseInfo
+fn license_run<F>(app_handle: AppHandle, run: F) -> model::license::LicenseInfo
 where
     F: Fn(State<LicenseManagerState>) -> Result<LicenseStatus, ServerRequestError>,
 {
