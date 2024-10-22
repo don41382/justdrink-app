@@ -1,4 +1,4 @@
-use crate::model::settings::SettingsUserDetails;
+use crate::model::settings::{SettingsTabs, SettingsUserDetails};
 use crate::{alert, model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState, TrackingState};
 use log::info;
 use std::path::PathBuf;
@@ -43,6 +43,7 @@ pub fn load_settings(
             license_info: license_status.to_license_info(),
         },
         user: settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION),
+        selected_tab: SettingsTabs::Session,
     }
 }
 
@@ -140,14 +141,14 @@ pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsUserDetails, anyho
     Ok(settings.details)
 }
 
-fn new<R>(app: &AppHandle<R>, start_with_about: bool) -> Result<WebviewWindow<R>, anyhow::Error>
+fn new<R>(app: &AppHandle<R>, selected_tab: model::settings::SettingsTabs) -> Result<WebviewWindow<R>, anyhow::Error>
 where
     R: Runtime,
 {
     let window = tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
-        tauri::WebviewUrl::App("/settings".into()),
+        tauri::WebviewUrl::App(format!("/settings?settings_tab={:?}",selected_tab).into()),
     )
         .title("Settings")
         .inner_size(800.0, 400.0)
@@ -161,42 +162,16 @@ where
         .resizable(false)
         .build()?;
 
-    let handle = app.app_handle().clone();
-    window.on_window_event(move |event| match event {
-        WindowEvent::Focused(_) => {
-            model::event::SettingsStartEvent { start_with_about }
-                .emit(&handle)
-                .unwrap();
-        }
-        _ => {}
-    });
     Ok(window)
 }
 
-pub fn show<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
+pub fn show<R>(app: &AppHandle<R>, settings_tabs: SettingsTabs) -> Result<(), anyhow::Error>
 where
     R: Runtime,
 {
     match app.get_webview_window(WINDOW_LABEL) {
         None => {
-            new(app, false)?;
-        }
-        Some(w) => {
-            if !w.is_visible()? {
-                w.show()?;
-            }
-        }
-    }
-    Ok(())
-}
-
-pub fn show_about<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
-where
-    R: Runtime,
-{
-    match app.get_webview_window(WINDOW_LABEL) {
-        None => {
-            new(app, true)?;
+            new(app, settings_tabs)?;
         }
         Some(w) => {
             if !w.is_visible()? {

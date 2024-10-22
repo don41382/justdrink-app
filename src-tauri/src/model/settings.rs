@@ -5,9 +5,18 @@ use tauri_specta::Event;
 use crate::model::license::{LicenseInfo};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
+pub enum SettingsTabs {
+    Session,
+    Tracking,
+    License,
+    About
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct Settings {
     pub(crate) app: AppDetails,
     pub(crate) user: SettingsUserDetails,
+    pub(crate) selected_tab: SettingsTabs,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]

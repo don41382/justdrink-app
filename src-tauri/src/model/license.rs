@@ -30,7 +30,7 @@ impl LicenseStatus {
                             status: model::license::LicenseInfoStatus::Trail,
                             license_key: None,
                             message: Some(format!(
-                                "You have {:?} days remaining",
+                                "Your trail has {:?} days remaining",
                                 crate::session_window::days_between(chrono::Utc::now(), details.expired_at)
                             )),
                         }

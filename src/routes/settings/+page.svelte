@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {commands, events, type Settings, type SettingsUserDetails} from '../../bindings';
+    import {commands, events, type Settings, type SettingsUserDetails, type SettingsTabs} from '../../bindings';
     import {onMount} from 'svelte';
     import {getCurrentWindow} from "@tauri-apps/api/window";
     import {info} from "@tauri-apps/plugin-log";
@@ -11,32 +11,26 @@
 
     let settings: Settings | undefined = undefined;
 
-    type SettingsPage = 'session' | 'tracking' | 'about';
-    let currentPage: SettingsPage =  'session';
+    const params = new URLSearchParams(window.location.search);
+
+    let currentPage: SettingsTabs =  toSettingsTab(params.get("settings_tab"));
 
     type Page = {
-        name: SettingsPage;
+        name: SettingsTabs;
         label: string;
         icon: string;
     };
 
     const pages: Page[] = [
-        {name: 'session', label: 'Session', icon: 'mdi-light:settings'},
-        {name: 'tracking', label: 'User Tracking', icon: 'material-symbols-light:timeline'},
-        {name: 'license', label: 'License', icon: 'material-symbols-light:license-outline'},
-        {name: 'about', label: 'About', icon: 'material-symbols-light:info-outline'}
+        {name: 'Session', label: 'Session', icon: 'mdi-light:settings'},
+        {name: 'Tracking', label: 'User Tracking', icon: 'material-symbols-light:timeline'},
+        {name: 'License', label: 'License', icon: 'material-symbols-light:license-outline'},
+        {name: 'About', label: 'About', icon: 'material-symbols-light:info-outline'}
     ];
 
 
     onMount(async () => {
         await info("mount settings window")
-
-        await events.settingsStartEvent.once(async ({payload}) => {
-            if (payload.start_with_about) {
-                currentPage = 'about';
-            }
-        })
-
         settings = await commands.loadSettings();
         const window = getCurrentWindow();
         await window.show();
@@ -47,6 +41,16 @@
         if (settings) {
             settings.user = updatedSettings;
             await commands.updateSettings(updatedSettings);
+        }
+    }
+
+    function toSettingsTab(tab: string | null): SettingsTabs {
+        if (tab == null) {
+            return 'Session'
+        } else if (tab === 'Session' || tab === 'Tracking' || tab === 'License' || tab === 'About') {
+            return tab;
+        } else {
+            throw new Error(`Invalid SettingsTab: ${tab}`);
         }
     }
 
@@ -83,13 +87,13 @@
         </div>
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto p-8">
-            {#if currentPage === 'session'}
+            {#if currentPage === 'Session'}
                 <Session user={settings.user} {updateSettings}/>
-            {:else if currentPage === 'tracking'}
+            {:else if currentPage === 'Tracking'}
                 <Tracking user={settings.user} {updateSettings}/>
-            {:else if currentPage === 'license'}
+            {:else if currentPage === 'License'}
                 <License app={settings.app}/>
-            {:else if currentPage === 'about'}
+            {:else if currentPage === 'About'}
                 <About app={settings.app}/>
             {/if}
         </div>

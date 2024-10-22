@@ -44,10 +44,24 @@
         }
     }
 
-    async function submit() {
+    async function registerLicense() {
         await info("submit license with key: " + licenseCode)
         if (licenseCode) {
-            app.license_info = await commands.settingsRegisterLicense(licenseCode);
+            let result = await commands.settingsRegisterLicense(licenseCode);
+            switch (result.status) {
+                case "Trail":
+                    app.license_info = result;
+                    error = null;
+                    break;
+                case "Paid":
+                    app.license_info = result;
+                    error = null;
+                    break;
+                case "Invalid":
+                    error = result.message;
+                    break;
+
+            }
         } else {
             error = "Please enter a valid license key"
         }
@@ -56,7 +70,11 @@
     async function reset() {
         await info("reset license")
         app.license_info = await commands.settingsResetLicense();
+    }
 
+    async function getALicense() {
+        await info("get a license")
+        await commands.getALicense()
     }
 
 </script>
@@ -73,9 +91,8 @@
     <div class="flex-col">
         {#if app.license_info.status === 'Paid'}
             <div class="flex-col">
-                <p class="text-mm-green mb-4 accent-mm-green">
-                    Your license is active.
-                </p>
+                <p class="text-mm-green font-normal accent-mm-green">Your license is active.</p>
+                <p class="text-gray-700 font-thin mb-4">Thank you for supporting Motion Minute.</p>
             </div>
         {:else}
             <p class="text-gray-700 mb-4">
@@ -94,17 +111,17 @@
             {/if}
         </div>
         <div class="flex justify-between">
-            {#if app.license_info.status === 'Paid'}
+            {#if app.license_info.status === 'Paid' || app.license_info.status === 'Invalid'}
                 <button class="text-white rounded-lg px-4 py-2 bg-gray-500 hover:bg-gray-800 ml-auto"
                         on:click={async () => reset()}>
                     Reset license
                 </button>
             {:else}
-                <button class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2">
+                <button class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2" on:click={async () => getALicense()}>
                     Get a license
                 </button>
                 <button class="text-white rounded-lg px-4 py-2 bg-mm-orange hover:bg-mm-orange-200"
-                        on:click={async () => submit()}>
+                        on:click={async () => registerLicense()}>
                     Activate Motion Minute
                 </button>
             {/if}

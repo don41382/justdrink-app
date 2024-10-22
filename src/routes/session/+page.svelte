@@ -65,7 +65,7 @@
         music.play();
 
         let sessionDetail = await commands.loadSessionDetails();
-        if (sessionDetail == null || sessionDetail.license_info == null) {
+        if (sessionDetail == null || sessionDetail.license_info.status == 'Invalid') {
             closeApp("Error")
         } else {
             setup(sessionDetail);
@@ -151,8 +151,8 @@
             </div>
         {/if}
         <div class="absolute top-14 right-14 z-20 text-gray-600 flex flex-col items-center">
-            {#if license && license.message}
-            <span class="text-black">{license.message}</span>
+            {#if license && (license.status === 'Trail' || license.status === 'Invalid')}
+                <span class="text-black">{license.message}</span>
             {/if}
         </div>
         <div class="absolute bottom-14 right-14 z-20 text-gray-600 flex flex-col items-center">

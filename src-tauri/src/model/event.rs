@@ -10,11 +10,6 @@ pub enum EventType {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, tauri_specta::Event)]
-pub struct SettingsStartEvent {
-    pub(crate) start_with_about: bool,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Type, tauri_specta::Event)]
 pub struct SessionStartEvent {
     pub(crate) details: SessionDetail,
 }

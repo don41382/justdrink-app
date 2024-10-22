@@ -7,6 +7,7 @@ use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
 use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, AppHandle, Wry};
 use tauri_specta::Event;
 use crate::alert::Alert;
+use crate::model::settings::SettingsTabs;
 
 const TRAY_ID: &'static str = "tray";
 
@@ -87,7 +88,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                 });
             }
             "settings" => {
-                settings_window::show(app).unwrap_or_else(|e| {
+                settings_window::show(app, SettingsTabs::Session).unwrap_or_else(|e| {
                     app.alert(
                         "Error while opening settings",
                         "I am sorry, we are unable to open up the settings.",
@@ -115,7 +116,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                 });
             }
             "about" => {
-                settings_window::show_about(app).unwrap_or_else(|e| {
+                settings_window::show(app, SettingsTabs::About).unwrap_or_else(|e| {
                     app.alert(
                         "Error while opening settings",
                         "I am sorry, we are unable to open up the settings.",

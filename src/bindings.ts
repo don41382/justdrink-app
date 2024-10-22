@@ -39,6 +39,9 @@ async settingsRegisterLicense(licenseKey: string) : Promise<LicenseInfo> {
 },
 async settingsResetLicense() : Promise<LicenseInfo> {
     return await TAURI_INVOKE("settings_reset_license");
+},
+async getALicense() : Promise<null> {
+    return await TAURI_INVOKE("get_a_license");
 }
 }
 
@@ -51,7 +54,6 @@ licenseResult: LicenseResult,
 sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
 settings: Settings,
-settingsStartEvent: SettingsStartEvent,
 settingsUserDetails: SettingsUserDetails,
 timerStatus: TimerStatus
 }>({
@@ -60,7 +62,6 @@ licenseResult: "license-result",
 sessionEndingReason: "session-ending-reason",
 sessionStartEvent: "session-start-event",
 settings: "settings",
-settingsStartEvent: "settings-start-event",
 settingsUserDetails: "settings-user-details",
 timerStatus: "timer-status"
 })
@@ -83,8 +84,8 @@ export type SessionDetail = { exercise: Exercise; license_info: LicenseInfo }
 export type SessionEndingReason = "EndOfTime" | "UserEscape" | "Error"
 export type SessionId = string
 export type SessionStartEvent = { details: SessionDetail }
-export type Settings = { app: AppDetails; user: SettingsUserDetails }
-export type SettingsStartEvent = { start_with_about: boolean }
+export type Settings = { app: AppDetails; user: SettingsUserDetails; selected_tab: SettingsTabs }
+export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
 export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
 export type TimerStatus = "NotStarted" | { Active: number } | { Paused: PauseOrigin } | "Finished"
 

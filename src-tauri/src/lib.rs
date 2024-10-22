@@ -96,9 +96,9 @@ pub fn run() {
             updater_window::updater_close,
             license_manager::settings_register_license,
             license_manager::settings_reset_license,
+            license_manager::get_a_license,
         ],
         collect_events![
-            model::event::SettingsStartEvent,
             model::event::SessionStartEvent,
             model::session::SessionEndingReason,
             model::settings::Settings,

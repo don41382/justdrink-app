@@ -3,7 +3,7 @@ use chrono::{Utc};
 use log::warn;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Manager, State, Window};
 use tauri::http::StatusCode;
 use tauri_plugin_http::reqwest::blocking::{Client, Response};
 use crate::{model, LicenseManagerState};
@@ -78,9 +78,25 @@ pub enum LicenseStatus {
     Invalid(String),
 }
 
+impl LicenseStatus {
+    pub fn is_active(&self) -> bool {
+        match self {
+            LicenseStatus::Valid(_) => {
+                true
+            }
+            LicenseStatus::Expired(_) => {
+                false
+            }
+            LicenseStatus::Invalid(_) => {
+                false
+            }
+        }
+    }
+}
+
 pub struct LicenseManager {
     client: Client,
-    device_id: DeviceId,
+    pub device_id: DeviceId,
     status: LicenseStatus,
 }
 
@@ -143,7 +159,12 @@ impl LicenseManager {
 
         Self::parse_response(&url, response)
             .and_then(|status| {
-                self.status = status.clone();
+                match self.status {
+                    LicenseStatus::Valid(_) => {
+                        self.status = status.clone();
+                    }
+                    _ => {}
+                }
                 Ok(status)
             })
     }
@@ -253,6 +274,27 @@ pub fn settings_reset_license(app_handle: AppHandle) -> LicenseInfo {
     )
 }
 
+#[specta::specta]
+#[tauri::command]
+pub fn get_a_license(window: Window, app_handle: AppHandle) -> () {
+    let url = "https://motionminute.app/pricing";
+    match webbrowser::open(&url) {
+        Ok(_) => {}
+        Err(err) => {
+            let error = format!(
+                "I am sorry, we are not able to open up the browser for '{}'",
+                url
+            );
+            app_handle.alert(
+                "Could not open Browser",
+                error.as_str(),
+                Some(anyhow::anyhow!(err)),
+                false,
+            );
+        }
+    }
+    window.close().expect("settings window to close");
+}
 
 pub fn license_run<F>(app_handle: AppHandle, run: F) -> model::license::LicenseInfo
 where

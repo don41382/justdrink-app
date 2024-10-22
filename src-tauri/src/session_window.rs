@@ -5,21 +5,19 @@ use std::thread::spawn;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use crate::{alert, countdown_timer, fullscreen, model, start_first_session_, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, TrackingState};
-use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window};
+use crate::{alert, countdown_timer, fullscreen, model, settings_window, start_first_session_, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, TrackingState};
+use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri::webview::PageLoadEvent;
 use tauri_specta::Event;
 use crate::alert::Alert;
 use crate::license_manager::{LicenseStatus, ValidTypes};
 use crate::model::license::LicenseInfoStatus;
 use crate::model::session::{Exercise, SessionDetail};
+use crate::model::settings::SettingsTabs;
 
 const WINDOW_LABEL: &'static str = "session";
 
-pub fn init<R>(app: &AppHandle<R>) -> EventId
-where
-    R: tauri::Runtime + 'static,
-{
+pub fn init(app: &AppHandle<Wry>) -> EventId {
     let app_handle = app.clone();
     countdown_timer::CountdownEvent::listen(app, move |status| {
         if status.payload.status == countdown_timer::TimerStatus::Finished {
@@ -35,53 +33,56 @@ where
     })
 }
 
-pub fn start<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
-where
-    R: tauri::Runtime,
-{
-    // stop current running timer
-    info!("start session window: stop timer");
-    app.state::<CountdownTimerState>().stop();
+pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error>  {
 
-    // send tracking event
-    info!("start session window: send tracking");
-    app.state::<TrackingState>()
-        .send_tracking(tracking::Event::StartSession);
+    let license_manager = app.state::<LicenseManagerState>();
+    if license_manager.try_lock().expect("Could not lock license manager").get_status().is_active() {
+        // stop current running timer
+        info!("start session window: stop timer");
+        app.state::<CountdownTimerState>().stop();
 
-    info!("start session window: check window exists");
-    if let Some(_window) = app.get_webview_window(WINDOW_LABEL) {
-        info!("start session window: window already exists");
-        return Ok(());
+        // send tracking event
+        info!("start session window: send tracking");
+        app.state::<TrackingState>()
+            .send_tracking(tracking::Event::StartSession);
+
+        info!("start session window: check window exists");
+        if let Some(_window) = app.get_webview_window(WINDOW_LABEL) {
+            info!("start session window: window already exists");
+            return Ok(());
+        }
+
+        #[cfg(target_os = "macos")]
+        app.app_handle()
+            .set_activation_policy(ActivationPolicy::Regular)?;
+
+        fullscreen::enforce_full_screen(true);
+
+        info!("start session window: create new window");
+        let window =
+            WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App("/session".into()))
+                .title("Motion Minute Session")
+                .transparent(true)
+                .visible(false)
+                .always_on_top(true)
+                .decorations(false)
+                .maximized(true)
+                .skip_taskbar(true)
+                .resizable(false);
+
+        #[cfg(target_os = "windows")]
+        info!("start session window: fullscreen");
+        #[cfg(target_os = "windows")]
+        let window = window.fullscreen(true);
+
+        info!("start session window: build");
+        let window = window.build()?;
+
+        info!("start session window: show window");
+        window.show()?;
+    } else {
+        settings_window::show(app, SettingsTabs::License)?
     }
-
-    #[cfg(target_os = "macos")]
-    app.app_handle()
-        .set_activation_policy(ActivationPolicy::Regular)?;
-
-    fullscreen::enforce_full_screen(true);
-
-    info!("start session window: create new window");
-    let window =
-        WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App("/session".into()))
-            .title("Motion Minute Session")
-            .transparent(true)
-            .visible(false)
-            .always_on_top(true)
-            .decorations(false)
-            .maximized(true)
-            .skip_taskbar(true)
-            .resizable(false);
-
-    #[cfg(target_os = "windows")]
-    info!("start session window: fullscreen");
-    #[cfg(target_os = "windows")]
-    let window = window.fullscreen(true);
-
-    info!("start session window: build");
-    let window = window.build()?;
-
-    info!("start session window: show window");
-    window.show()?;
 
     Ok(())
 }
