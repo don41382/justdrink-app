@@ -11,6 +11,7 @@ use tauri::webview::PageLoadEvent;
 use tauri_specta::Event;
 use crate::alert::Alert;
 use crate::license_manager::{LicenseStatus, ValidTypes};
+use crate::model::license::LicenseInfoStatus;
 use crate::model::session::{Exercise, SessionDetail};
 
 const WINDOW_LABEL: &'static str = "session";
@@ -139,44 +140,15 @@ pub fn load_session_details(
                 .expect("license manager is locked")
                 .get_status();
 
-            Some(to_license_info(exercise, status))
+            Some(SessionDetail {
+                exercise: exercise.clone(),
+                license_info: status.to_license_info(),
+            })
         }
     }
 }
 
-fn to_license_info(exercise: &Exercise, status: LicenseStatus) -> SessionDetail {
-    SessionDetail {
-        exercise: exercise.clone(),
-        license_info: match status {
-            LicenseStatus::Valid(trailType) => {
-                match trailType {
-                    ValidTypes::Trail(details) => {
-                        model::session::LicenseInfo {
-                            status: model::session::LicenseStatus::Trail,
-                            message: Some(format!("You have {:?} days remaining", days_between(chrono::Utc::now(), details.expired_at))),
-                        }
-                    }
-                    ValidTypes::Paid(_details) => {
-                        model::session::LicenseInfo {
-                            status: model::session::LicenseStatus::Paid,
-                            message: None,
-                        }
-                    }
-                }
-            }
-            LicenseStatus::Expired(_) => model::session::LicenseInfo {
-                status: model::session::LicenseStatus::Invalid,
-                message: Some("Your license has expired".to_string()),
-            },
-            LicenseStatus::Invalid(_) => model::session::LicenseInfo {
-                status: model::session::LicenseStatus::Invalid,
-                message: Some("There is an issue with your license.".to_string()),
-            },
-        },
-    }
-}
-
-fn days_between(start: chrono::DateTime<chrono::Utc>, end: chrono::DateTime<chrono::Utc>) -> i64 {
+pub(crate) fn days_between(start: chrono::DateTime<chrono::Utc>, end: chrono::DateTime<chrono::Utc>) -> i64 {
     let duration: chrono::Duration = end - start;
     duration.num_days()
 }

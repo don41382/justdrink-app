@@ -62,6 +62,12 @@ impl Alert for AppHandle {
 }
 
 fn show_alert<R: Runtime>(app: &AppHandle<R>, title: String, message: String) -> Result<(), anyhow::Error> {
+
+    if let Some(window) =  app.get_webview_window(WINDOW_LABEL) {
+        window.close()?;
+        return Ok(());
+    }
+
     let _window = tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
@@ -70,7 +76,7 @@ fn show_alert<R: Runtime>(app: &AppHandle<R>, title: String, message: String) ->
         .title("Oops, we didn't expect this")
         .visible(false)
         .transparent(true)
-        .always_on_top(false)
+        .always_on_top(true)
         .decorations(false)
         .skip_taskbar(true)
         .resizable(true)

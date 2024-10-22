@@ -1,5 +1,5 @@
 use crate::model::settings::SettingsUserDetails;
-use crate::{alert, model, tracking, CountdownTimerState, SettingsDetailsState, TrackingState};
+use crate::{alert, model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState, TrackingState};
 use log::info;
 use std::path::PathBuf;
 use std::string::ToString;
@@ -35,9 +35,12 @@ pub fn load_settings(
     settings: State<SettingsDetailsState>,
 ) -> model::settings::Settings {
     let version = app_handle.app_handle().config().version.clone();
+    let license_manager = app_handle.state::<LicenseManagerState>();
+    let license_status = license_manager.lock().unwrap().get_status();
     model::settings::Settings {
         app: model::settings::AppDetails {
             version: version.unwrap_or("unknown".to_string()),
+            license_info: license_status.to_license_info(),
         },
         user: settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION),
     }

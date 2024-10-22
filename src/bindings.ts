@@ -33,6 +33,12 @@ async closeErrorWindow() : Promise<void> {
 },
 async updaterClose(restart: boolean) : Promise<void> {
     await TAURI_INVOKE("updater_close", { restart });
+},
+async settingsRegisterLicense(licenseKey: string) : Promise<LicenseInfo> {
+    return await TAURI_INVOKE("settings_register_license", { licenseKey });
+},
+async settingsResetLicense() : Promise<LicenseInfo> {
+    return await TAURI_INVOKE("settings_reset_license");
 }
 }
 
@@ -41,6 +47,7 @@ async updaterClose(restart: boolean) : Promise<void> {
 
 export const events = __makeEvents__<{
 countdownEvent: CountdownEvent,
+licenseResult: LicenseResult,
 sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
 settings: Settings,
@@ -49,6 +56,7 @@ settingsUserDetails: SettingsUserDetails,
 timerStatus: TimerStatus
 }>({
 countdownEvent: "countdown-event",
+licenseResult: "license-result",
 sessionEndingReason: "session-ending-reason",
 sessionStartEvent: "session-start-event",
 settings: "settings",
@@ -63,11 +71,13 @@ timerStatus: "timer-status"
 
 /** user-defined types **/
 
-export type AppDetails = { version: string }
+export type AppDetails = { version: string; license_info: LicenseInfo }
 export type CountdownEvent = { status: TimerStatus }
 export type Exercise = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
-export type LicenseInfo = { status: LicenseStatus; message: string | null }
-export type LicenseStatus = "Trail" | "Paid" | "Invalid"
+export type LicenseInfo = { status: LicenseInfoStatus; license_key: string | null; message: string | null }
+export type LicenseInfoStatus = "Trail" | "Paid" | "Invalid"
+export type LicenseResult = { status: LicenseResultStatus; error: string | null }
+export type LicenseResultStatus = "Success" | "Error"
 export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"
 export type SessionDetail = { exercise: Exercise; license_info: LicenseInfo }
 export type SessionEndingReason = "EndOfTime" | "UserEscape" | "Error"

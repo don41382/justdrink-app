@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri_specta::Event;
+use crate::model::license::{LicenseInfo};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct Settings {
@@ -12,6 +13,7 @@ pub struct Settings {
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct AppDetails {
     pub(crate) version: String,
+    pub(crate) license_info: LicenseInfo
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]

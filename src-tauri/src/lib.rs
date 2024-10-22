@@ -94,6 +94,8 @@ pub fn run() {
             settings_window::open_browser,
             alert::close_error_window,
             updater_window::updater_close,
+            license_manager::settings_register_license,
+            license_manager::settings_reset_license,
         ],
         collect_events![
             model::event::SettingsStartEvent,
@@ -101,6 +103,7 @@ pub fn run() {
             model::session::SessionEndingReason,
             model::settings::Settings,
             model::settings::SettingsUserDetails,
+            license_manager::LicenseResult,
             countdown_timer::CountdownEvent,
             countdown_timer::TimerStatus,
         ],

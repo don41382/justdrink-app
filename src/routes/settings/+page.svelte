@@ -9,6 +9,7 @@
     import Tracking from "./Tracking.svelte";
     import About from "./About.svelte";
     import {getCurrentWebviewWindow} from "@tauri-apps/api/webviewWindow";
+    import License from "./License.svelte";
 
     let settings: Settings | undefined = undefined;
 
@@ -24,6 +25,7 @@
     const pages: Page[] = [
         {name: 'session', label: 'Session', icon: 'mdi-light:settings'},
         {name: 'tracking', label: 'User Tracking', icon: 'material-symbols-light:timeline'},
+        {name: 'license', label: 'License', icon: 'material-symbols-light:license-outline'},
         {name: 'about', label: 'About', icon: 'material-symbols-light:info-outline'}
     ];
 
@@ -87,6 +89,8 @@
                 <Session user={settings.user} {updateSettings}/>
             {:else if currentPage === 'tracking'}
                 <Tracking user={settings.user} {updateSettings}/>
+            {:else if currentPage === 'license'}
+                <License app={settings.app}/>
             {:else if currentPage === 'about'}
                 <About app={settings.app}/>
             {/if}
