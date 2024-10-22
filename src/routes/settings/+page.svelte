@@ -1,20 +1,18 @@
 <script lang="ts">
     import {commands, events, type Settings, type SettingsUserDetails} from '../../bindings';
-    import {onDestroy, onMount} from 'svelte';
-    import type {UnlistenFn} from '@tauri-apps/api/event';
+    import {onMount} from 'svelte';
     import {getCurrentWindow} from "@tauri-apps/api/window";
-    import {debug, info} from "@tauri-apps/plugin-log";
+    import {info} from "@tauri-apps/plugin-log";
     import Icon from "@iconify/svelte";
     import Session from "./Settings.svelte";
     import Tracking from "./Tracking.svelte";
     import About from "./About.svelte";
-    import {getCurrentWebviewWindow} from "@tauri-apps/api/webviewWindow";
     import License from "./License.svelte";
 
     let settings: Settings | undefined = undefined;
 
     type SettingsPage = 'session' | 'tracking' | 'about';
-    let currentPage: SettingsPage = 'session';
+    let currentPage: SettingsPage =  'session';
 
     type Page = {
         name: SettingsPage;

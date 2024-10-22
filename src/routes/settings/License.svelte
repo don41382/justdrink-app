@@ -2,13 +2,8 @@
     import {
         type AppDetails,
         commands,
-        type LicenseInfo,
-        type LicenseResult,
-        type Result,
-        type SettingsUserDetails
     } from '../../bindings';
-    import {debug, info, warn} from "@tauri-apps/plugin-log";
-    import {getCurrentWindow} from "@tauri-apps/api/window";
+    import {info} from "@tauri-apps/plugin-log";
 
     export let app: AppDetails;
 

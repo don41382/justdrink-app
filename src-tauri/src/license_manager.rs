@@ -272,34 +272,3 @@ where
             LicenseStatus::Invalid("Unable to access license server. Please try later.".to_string())
         }).to_license_info()
 }
-
-
-pub fn to_license_result(license_status: LicenseStatus) -> LicenseResult {
-    match license_status {
-        LicenseStatus::Valid(ValidTypes::Paid(_details)) => {
-            LicenseResult {
-                status: LicenseResultStatus::Success,
-                error: None,
-            }
-        }
-        LicenseStatus::Expired(msg) => {
-            LicenseResult {
-                status: LicenseResultStatus::Error,
-                error: Some(msg),
-            }
-        }
-        LicenseStatus::Invalid(msg) => {
-            LicenseResult {
-                status: LicenseResultStatus::Error,
-                error: Some(msg),
-            }
-        }
-
-        LicenseStatus::Valid(ValidTypes::Trail(_)) => {
-            LicenseResult {
-                status: LicenseResultStatus::Success,
-                error: None,
-            }
-        }
-    }
-}
