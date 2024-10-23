@@ -1,6 +1,6 @@
 use anyhow::Error;
 use chrono::{Utc};
-use log::warn;
+use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{AppHandle, Manager, State, Window};
@@ -131,6 +131,7 @@ impl LicenseManager {
     }
 
     fn validate(client: Client, device_id: &model::device::DeviceId) -> Result<LicenseStatus, ServerRequestError> {
+        info!("validating license");
         let url = format!("https://motionminute.app/app/v1/license/validate?device-id={}", device_id.get_hash_hex_id());
         let response =
             client
@@ -143,6 +144,7 @@ impl LicenseManager {
     }
 
     fn register_license(&mut self, license_key: String) -> Result<LicenseStatus, ServerRequestError> {
+        info!("register license");
         let url = format!("https://motionminute.app/app/v1/license/register?device-id={}&license-key={}", self.device_id.get_hash_hex_id(), license_key);
         let response =
             self.client
@@ -164,6 +166,7 @@ impl LicenseManager {
     }
 
     fn reset_license(&mut self) -> Result<LicenseStatus, ServerRequestError> {
+        info!("reset license");
         let url = format!("https://motionminute.app/app/v1/license/reset?device-id={}", self.device_id.get_hash_hex_id());
         let response =
             self.client
