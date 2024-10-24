@@ -10,10 +10,10 @@ pub fn enforce_full_screen(hide: bool) {
         unsafe {
             let ns_app: id = msg_send![class!(NSApplication), sharedApplication];
             let option = if hide {
-                NSApplicationPresentationOptions::NSApplicationPresentationHideDock
-                    | NSApplicationPresentationOptions::NSApplicationPresentationHideMenuBar
-                    | NSApplicationPresentationOptions::NSApplicationPresentationDisableProcessSwitching
-                    | NSApplicationPresentationOptions::NSApplicationPresentationDisableHideApplication
+                NSApplicationPresentationOptions::NSApplicationPresentationHideMenuBar
+                    | NSApplicationPresentationOptions::NSApplicationPresentationHideDock
+                    // | NSApplicationPresentationOptions::NSApplicationPresentationDisableProcessSwitching
+                    // | NSApplicationPresentationOptions::NSApplicationPresentationDisableHideApplication
             } else {
                 NSApplicationPresentationOptions::NSApplicationPresentationDefault
             };
