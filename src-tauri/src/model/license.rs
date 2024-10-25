@@ -49,10 +49,10 @@ impl LicenseStatus {
                 license_key: None,
                 message: Some("Your license has expired".to_string()),
             },
-            LicenseStatus::Invalid(_) => LicenseInfo {
+            LicenseStatus::Invalid(error) => LicenseInfo {
                 status: LicenseInfoStatus::Invalid,
                 license_key: None,
-                message: Some("There is an issue with your license.".to_string()),
+                message: Some(error.clone()),
             },
         }
     }

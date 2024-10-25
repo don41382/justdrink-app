@@ -111,7 +111,7 @@
             {/if}
         </div>
         <div class="flex justify-between">
-            {#if app.license_info.status === 'Paid' || app.license_info.status === 'Invalid'}
+            {#if app.license_info.status === 'Paid'}
                 <button class="text-white rounded-lg px-4 py-2 bg-gray-500 hover:bg-gray-800 ml-auto"
                         on:click={async () => reset()}>
                     Reset license
