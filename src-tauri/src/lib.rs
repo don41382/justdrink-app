@@ -9,36 +9,36 @@ mod session_repository;
 mod tracking;
 mod tray;
 
+mod fullscreen;
+mod license_manager;
 mod session_window;
+mod settings_system;
 mod settings_window;
 mod start_soon_window;
-mod welcome_window;
 mod updater_window;
-mod fullscreen;
-mod settings_system;
-mod license_manager;
+mod welcome_window;
 
 use log::{info, warn};
+use serde_json::json;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
 use std::time::Duration;
-use serde_json::json;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
 use crate::countdown_timer::CountdownTimer;
 use crate::session_repository::SessionRepository;
 
+use crate::alert::Alert;
+use crate::license_manager::LicenseManager;
+use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
 use tauri::{App, AppHandle, Manager, Window, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
-use crate::alert::Alert;
-use crate::license_manager::LicenseManager;
-use crate::settings_system::SettingsSystem;
 
 #[specta::specta]
 #[tauri::command]
@@ -111,6 +111,9 @@ pub fn run() {
         .unwrap();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {
+            info!("instance of motion minute already open");
+        }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_store::Builder::default().build())
@@ -123,12 +126,18 @@ pub fn run() {
         .plugin(
             tauri_plugin_aptabase::Builder::new("A-EU-5037339452")
                 .with_panic_hook(Box::new(|client, info, msg| {
-                    let location = info.location().map(|loc| format!("{}:{}:{}", loc.file(), loc.line(), loc.column())).unwrap_or_else(|| "".to_string());
-                    client.track_event("panic", Some(json!({
-                        "info": format!("{} ({})", msg, location),
-                    })));
+                    let location = info
+                        .location()
+                        .map(|loc| format!("{}:{}:{}", loc.file(), loc.line(), loc.column()))
+                        .unwrap_or_else(|| "".to_string());
+                    client.track_event(
+                        "panic",
+                        Some(json!({
+                            "info": format!("{} ({})", msg, location),
+                        })),
+                    );
                 }))
-                .build()
+                .build(),
         )
         .plugin(
             tauri_plugin_log::Builder::default()
@@ -156,7 +165,9 @@ pub fn run() {
 
             app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
             app.manage::<TrackingState>(Tracking::new(app.app_handle()).unwrap());
-            app.manage::<SettingsSystemState>(Mutex::new(settings_system::SettingsSystem::load(app.app_handle())));
+            app.manage::<SettingsSystemState>(Mutex::new(settings_system::SettingsSystem::load(
+                app.app_handle(),
+            )));
 
             match settings_window::get_settings(app.app_handle()) {
                 Ok(settings) => {
@@ -174,7 +185,10 @@ pub fn run() {
             }
 
             let device_id = model::device::DeviceId::lookup()?;
-            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(app.app_handle(), &device_id)));
+            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(
+                app.app_handle(),
+                &device_id,
+            )));
 
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;

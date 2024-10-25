@@ -1,15 +1,18 @@
+use crate::alert::Alert;
 use crate::model::settings::{SettingsTabs, SettingsUserDetails};
-use crate::{alert, model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState, TrackingState};
+use crate::{
+    alert, model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState,
+    TrackingState,
+};
 use log::info;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::string::ToString;
 use std::time::Duration;
-use serde::{Deserialize, Serialize};
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window, WindowEvent};
-use tauri_plugin_store::{StoreBuilder};
+use tauri_plugin_store::StoreBuilder;
 use tauri_specta::Event;
-use crate::alert::Alert;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
@@ -78,7 +81,8 @@ fn write_settings(
     let json_data = serde_json::to_value(UserSettingsStore {
         version: version.unwrap_or("0.0.0".to_string()),
         details: settings_details.clone(),
-    }).map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
+    })
+    .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
 
     store.set("data".to_string(), json_data);
     store.save()?;
@@ -141,26 +145,29 @@ pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsUserDetails, anyho
     Ok(settings.details)
 }
 
-fn new<R>(app: &AppHandle<R>, selected_tab: model::settings::SettingsTabs) -> Result<WebviewWindow<R>, anyhow::Error>
+fn new<R>(
+    app: &AppHandle<R>,
+    selected_tab: model::settings::SettingsTabs,
+) -> Result<WebviewWindow<R>, anyhow::Error>
 where
     R: Runtime,
 {
     let window = tauri::WebviewWindowBuilder::new(
         app,
         WINDOW_LABEL,
-        tauri::WebviewUrl::App(format!("/settings?settings_tab={:?}",selected_tab).into()),
+        tauri::WebviewUrl::App(format!("/settings?settings_tab={:?}", selected_tab).into()),
     )
-        .title("Settings")
-        .inner_size(800.0, 400.0)
-        .center()
-        .visible(false)
-        .always_on_top(true)
-        .transparent(true)
-        .decorations(true)
-        .skip_taskbar(false)
-        .effects(WindowEffectsConfig::default())
-        .resizable(false)
-        .build()?;
+    .title("Settings")
+    .inner_size(800.0, 400.0)
+    .center()
+    .visible(false)
+    .always_on_top(true)
+    .transparent(true)
+    .decorations(true)
+    .skip_taskbar(false)
+    .effects(WindowEffectsConfig::default())
+    .resizable(false)
+    .build()?;
 
     Ok(window)
 }

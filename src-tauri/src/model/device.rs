@@ -8,7 +8,8 @@ pub struct DeviceId {
 impl DeviceId {
     pub fn lookup() -> Result<Self, anyhow::Error> {
         Ok(Self {
-            id: machine_uid::get().map_err(|err| anyhow::anyhow!("failed to get machine id: {}", err))?
+            id: machine_uid::get()
+                .map_err(|err| anyhow::anyhow!("failed to get machine id: {}", err))?,
         })
     }
 

@@ -1,9 +1,9 @@
+use crate::alert::Alert;
+use crate::{alert, SettingsSystemState};
 use anyhow::Error;
 use log::debug;
 use tauri::{AppHandle, Manager, Runtime, State, Window};
 use tauri_plugin_updater::UpdaterExt;
-use crate::{alert, SettingsSystemState};
-use crate::alert::Alert;
 
 const WINDOW_LABEL: &str = "updater";
 
@@ -16,13 +16,21 @@ pub fn show_if_update_available(app: &AppHandle, skip_duration_check: bool) -> (
                 debug!("Check update finished");
             }
             Err(err) => {
-                app_handle.alert("Can't show update dialog", "Error while show update dialog.", Some(err), false);
+                app_handle.alert(
+                    "Can't show update dialog",
+                    "Error while show update dialog.",
+                    Some(err),
+                    false,
+                );
             }
         }
     });
 }
 
-async fn show_if_update_available_run<R>(app_handle: &AppHandle<R>, skip_duration_check: bool) -> Result<(), anyhow::Error>
+async fn show_if_update_available_run<R>(
+    app_handle: &AppHandle<R>,
+    skip_duration_check: bool,
+) -> Result<(), anyhow::Error>
 where
     R: Runtime,
 {
@@ -36,9 +44,14 @@ where
     Ok(())
 }
 
-fn check_for_new_version_required<R : Runtime>(app_handle: &AppHandle<R>, skip_duration_check: bool) -> Result<bool, Error> {
+fn check_for_new_version_required<R: Runtime>(
+    app_handle: &AppHandle<R>,
+    skip_duration_check: bool,
+) -> Result<bool, Error> {
     let settings_system = app_handle.state::<SettingsSystemState>();
-    let mut settings_system = settings_system.lock().map_err(|e| anyhow::anyhow!(e.to_string()))?;
+    let mut settings_system = settings_system
+        .lock()
+        .map_err(|e| anyhow::anyhow!(e.to_string()))?;
 
     let check_for_updates = if skip_duration_check {
         debug!("checking for updates, ignore last check duration");
@@ -64,23 +77,26 @@ pub fn show<R>(app_handle: &AppHandle<R>) -> Result<(), anyhow::Error>
 where
     R: Runtime,
 {
-    let visible = app_handle.get_webview_window(WINDOW_LABEL).map(|w| w.is_visible().unwrap_or(false)).unwrap_or(false);
+    let visible = app_handle
+        .get_webview_window(WINDOW_LABEL)
+        .map(|w| w.is_visible().unwrap_or(false))
+        .unwrap_or(false);
     if !visible {
         let _w = tauri::WebviewWindowBuilder::new(
             app_handle,
             WINDOW_LABEL,
             tauri::WebviewUrl::App("/updater".into()),
         )
-            .title("New version is available")
-            .resizable(false)
-            .always_on_top(true)
-            .transparent(true)
-            .decorations(false)
-            .skip_taskbar(true)
-            .resizable(true)
-            .transparent(true)
-            .shadow(true)
-            .build()?;
+        .title("New version is available")
+        .resizable(false)
+        .always_on_top(true)
+        .transparent(true)
+        .decorations(false)
+        .skip_taskbar(true)
+        .resizable(true)
+        .transparent(true)
+        .shadow(true)
+        .build()?;
     }
 
     Ok(())
@@ -97,14 +113,9 @@ where
     }
 }
 
-
 #[specta::specta]
 #[tauri::command]
-pub fn updater_close(
-    app_handle: AppHandle,
-    window: Window,
-    restart: bool,
-) {
+pub fn updater_close(app_handle: AppHandle, window: Window, restart: bool) {
     window.close().unwrap();
     if restart {
         app_handle.restart();

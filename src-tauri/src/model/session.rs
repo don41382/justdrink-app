@@ -1,7 +1,7 @@
+use crate::model::license::LicenseInfo;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri_specta::Event;
-use crate::model::license::LicenseInfo;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub enum SessionEndingReason {
@@ -12,7 +12,6 @@ pub enum SessionEndingReason {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct SessionId(pub String);
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct Exercise {

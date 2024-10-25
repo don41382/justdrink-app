@@ -1,7 +1,7 @@
+use crate::tracking::Tracking;
+use crate::{tracking, TrackingState};
 use log::warn;
 use tauri::{AppHandle, Manager};
-use crate::{tracking, TrackingState};
-use crate::tracking::Tracking;
 
 const WINDOW_LABEL: &str = "welcome";
 
@@ -11,26 +11,30 @@ pub fn show(app: &AppHandle) -> Result<(), anyhow::Error> {
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/welcome".into()),
     )
-        .title("Welcome to Motion Minute")
-        .center()
-        .transparent(true)
-        .always_on_top(true)
-        .focused(true)
-        .decorations(false)
-        .skip_taskbar(true)
-        .resizable(true)
-        .shadow(true)
-        .visible(false)
-        .build()?;
+    .title("Welcome to Motion Minute")
+    .center()
+    .transparent(true)
+    .always_on_top(true)
+    .focused(true)
+    .decorations(false)
+    .skip_taskbar(true)
+    .resizable(true)
+    .shadow(true)
+    .visible(false)
+    .build()?;
 
-    app.state::<TrackingState>().send_tracking(tracking::Event::Install);
+    app.state::<TrackingState>()
+        .send_tracking(tracking::Event::Install);
     open_thank_you();
 
     Ok(())
 }
 
 pub fn open_thank_you() {
-    let url = format!("https://www.motionminute.app/thank-you/{}", Tracking::get_machine_id());
+    let url = format!(
+        "https://www.motionminute.app/thank-you/{}",
+        Tracking::get_machine_id()
+    );
     match webbrowser::open(url.as_str()) {
         Ok(_) => {}
         Err(err) => {

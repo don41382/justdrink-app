@@ -1,13 +1,13 @@
-use std::path::PathBuf;
-use std::string::ToString;
-use anyhow::Error;
-use chrono::{Duration, Utc};
-use log::{debug, warn};
-use tauri::{AppHandle, Manager, Runtime};
-use tauri_plugin_store::{StoreBuilder};
 use crate::license_manager;
 use crate::model::device::DeviceId;
 use crate::model::settings::SettingsSystemDetails;
+use anyhow::Error;
+use chrono::{Duration, Utc};
+use log::{debug, warn};
+use std::path::PathBuf;
+use std::string::ToString;
+use tauri::{AppHandle, Manager, Runtime};
+use tauri_plugin_store::StoreBuilder;
 
 const STORE_NAME: &str = "mm-system-config.json";
 const ROOT_PATH: &str = "system";
@@ -18,17 +18,13 @@ pub(crate) struct SettingsSystem {
 
 impl SettingsSystem {
     pub fn load(app: &AppHandle) -> SettingsSystem {
-        let settings =
-            Self::load_settings_store(app)
-                .unwrap_or_else(|err| {
-                    warn!("system store settings not found: {:?}", err);
-                    SettingsSystemDetails {
-                        last_update_check_date: Utc::now(),
-                    }
-                });
-        SettingsSystem {
-            settings
-        }
+        let settings = Self::load_settings_store(app).unwrap_or_else(|err| {
+            warn!("system store settings not found: {:?}", err);
+            SettingsSystemDetails {
+                last_update_check_date: Utc::now(),
+            }
+        });
+        SettingsSystem { settings }
     }
 
     pub fn set_last_check_date<R>(&mut self, app: &AppHandle<R>) -> Result<(), Error>
@@ -44,18 +40,15 @@ impl SettingsSystem {
         (self.settings.last_update_check_date + Duration::days(2)) < Utc::now()
     }
 
-    fn write_settings<R>(
-        &self,
-        app: &AppHandle<R>,
-    ) -> Result<(), anyhow::Error> where
+    fn write_settings<R>(&self, app: &AppHandle<R>) -> Result<(), anyhow::Error>
+    where
         R: Runtime,
     {
         debug!("save system settings");
         let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
 
-        let json_data =
-            serde_json::to_value(self.settings.clone())
-                .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
+        let json_data = serde_json::to_value(self.settings.clone())
+            .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
 
         store.set(ROOT_PATH.to_string(), json_data);
         store.save()?;

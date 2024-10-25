@@ -1,13 +1,17 @@
+use crate::alert::Alert;
 use crate::countdown_timer::{CountdownEvent, CountdownTimer, PauseOrigin, TimerStatus};
+use crate::model::settings::SettingsTabs;
 use crate::pretty_time::PrettyTime;
 use crate::{alert, session_window, settings_window, updater_window};
 use anyhow::anyhow;
 use std::time::Duration;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
-use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, AppHandle, Wry};
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::TrayIconBuilder,
+    AppHandle, Manager, Wry,
+};
 use tauri_specta::Event;
-use crate::alert::Alert;
-use crate::model::settings::SettingsTabs;
 
 const TRAY_ID: &'static str = "tray";
 
@@ -53,7 +57,14 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
             )?,
             &PredefinedMenuItem::separator(main_app)?,
             &IconMenuItem::with_id(main_app, "about", "About ...", true, None, None::<&str>)?,
-            &IconMenuItem::with_id(main_app, "updater", "Check for updates ...", true, None, None::<&str>)?,
+            &IconMenuItem::with_id(
+                main_app,
+                "updater",
+                "Check for updates ...",
+                true,
+                None,
+                None::<&str>,
+            )?,
             &PredefinedMenuItem::separator(main_app)?,
             &MenuItem::with_id(main_app, "quit", "Quit", true, None::<&str>)?,
         ],

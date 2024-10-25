@@ -5,15 +5,19 @@ use std::thread::spawn;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
-use crate::{alert, countdown_timer, fullscreen, model, settings_window, start_first_session_, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, TrackingState};
-use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
-use tauri::webview::PageLoadEvent;
-use tauri_specta::Event;
 use crate::alert::Alert;
 use crate::license_manager::{LicenseStatus, ValidTypes};
 use crate::model::license::LicenseInfoStatus;
 use crate::model::session::{Exercise, SessionDetail};
 use crate::model::settings::SettingsTabs;
+use crate::{
+    alert, countdown_timer, fullscreen, model, settings_window, start_first_session_, tracking,
+    updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState,
+    TrackingState,
+};
+use tauri::webview::PageLoadEvent;
+use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
+use tauri_specta::Event;
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -33,10 +37,14 @@ pub fn init(app: &AppHandle<Wry>) -> EventId {
     })
 }
 
-pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error>  {
-
+pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
     let license_manager = app.state::<LicenseManagerState>();
-    if license_manager.try_lock().expect("Could not lock license manager").get_status().is_active() {
+    if license_manager
+        .try_lock()
+        .expect("Could not lock license manager")
+        .get_status()
+        .is_active()
+    {
         // stop current running timer
         info!("start session window: stop timer");
         app.state::<CountdownTimerState>().stop();
@@ -149,11 +157,13 @@ pub fn load_session_details(
     }
 }
 
-pub(crate) fn days_between(start: chrono::DateTime<chrono::Utc>, end: chrono::DateTime<chrono::Utc>) -> i64 {
+pub(crate) fn days_between(
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>,
+) -> i64 {
     let duration: chrono::Duration = end - start;
     duration.num_days()
 }
-
 
 #[specta::specta]
 #[tauri::command]

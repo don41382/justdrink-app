@@ -1,7 +1,4 @@
-
-
 pub fn enforce_full_screen(hide: bool) {
-
     #[cfg(target_os = "macos")]
     return mac::enforce_full_screen(hide);
 

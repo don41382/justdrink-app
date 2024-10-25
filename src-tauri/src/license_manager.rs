@@ -1,15 +1,15 @@
-use anyhow::Error;
-use chrono::{Utc};
-use log::{info, warn};
-use serde::{Deserialize, Serialize};
-use specta::Type;
-use tauri::{AppHandle, Manager, State, Window};
-use tauri::http::StatusCode;
-use tauri_plugin_http::reqwest::blocking::{Client, Response};
-use crate::{model, LicenseManagerState};
 use crate::alert::Alert;
 use crate::model::device::DeviceId;
 use crate::model::license::{LicenseInfo, LicenseInfoStatus};
+use crate::{model, LicenseManagerState};
+use anyhow::Error;
+use chrono::Utc;
+use log::{info, warn};
+use serde::{Deserialize, Serialize};
+use specta::Type;
+use tauri::http::StatusCode;
+use tauri::{AppHandle, Manager, State, Window};
+use tauri_plugin_http::reqwest::blocking::{Client, Response};
 
 mod response {
     use chrono::{DateTime, Utc};
@@ -81,15 +81,9 @@ pub enum LicenseStatus {
 impl LicenseStatus {
     pub fn is_active(&self) -> bool {
         match self {
-            LicenseStatus::Valid(_) => {
-                true
-            }
-            LicenseStatus::Expired(_) => {
-                false
-            }
-            LicenseStatus::Invalid(_) => {
-                false
-            }
+            LicenseStatus::Valid(_) => true,
+            LicenseStatus::Expired(_) => false,
+            LicenseStatus::Invalid(_) => false,
         }
     }
 }
@@ -102,8 +96,8 @@ pub struct LicenseManager {
 
 #[derive(Debug)]
 enum ServerRequestError {
-    BadRequest(String),  // For BAD_REQUEST errors (business error)
-    Other(Error),        // For other errors (e.g., non-200, non-400 responses)
+    BadRequest(String), // For BAD_REQUEST errors (business error)
+    Other(Error),       // For other errors (e.g., non-200, non-400 responses)
 }
 
 impl LicenseManager {
@@ -114,10 +108,20 @@ impl LicenseManager {
             Err(err) => {
                 match err {
                     ServerRequestError::BadRequest(err) => {
-                        app_handle.alert("License Error", format!("Unable to access the license server: {}", err).as_str(), None, false);
+                        app_handle.alert(
+                            "License Error",
+                            format!("Unable to access the license server: {}", err).as_str(),
+                            None,
+                            false,
+                        );
                     }
                     ServerRequestError::Other(err) => {
-                        app_handle.alert("License Error", "Unable to access the license server.: Please try again later", Some(err), false);
+                        app_handle.alert(
+                            "License Error",
+                            "Unable to access the license server.: Please try again later",
+                            Some(err),
+                            false,
+                        );
                     }
                 }
                 LicenseStatus::Invalid("Unable to access license server.".to_string())
@@ -130,96 +134,116 @@ impl LicenseManager {
         }
     }
 
-    fn validate(client: Client, device_id: &model::device::DeviceId) -> Result<LicenseStatus, ServerRequestError> {
+    fn validate(
+        client: Client,
+        device_id: &model::device::DeviceId,
+    ) -> Result<LicenseStatus, ServerRequestError> {
         info!("validating license");
-        let url = format!("https://motionminute.app/app/v1/license/validate?device-id={}", device_id.get_hash_hex_id());
-        let response =
-            client
-                .post(&url)
-                .body("")
-                .send()
-                .map_err(|err| ServerRequestError::Other(anyhow::anyhow!("failed to send license request: {:?}", err)))?;
+        let url = format!(
+            "https://motionminute.app/app/v1/license/validate?device-id={}",
+            device_id.get_hash_hex_id()
+        );
+        let response = client.post(&url).body("").send().map_err(|err| {
+            ServerRequestError::Other(anyhow::anyhow!("failed to send license request: {:?}", err))
+        })?;
 
         Self::parse_response(&url, response)
     }
 
-    fn register_license(&mut self, license_key: String) -> Result<LicenseStatus, ServerRequestError> {
+    fn register_license(
+        &mut self,
+        license_key: String,
+    ) -> Result<LicenseStatus, ServerRequestError> {
         info!("register license");
-        let url = format!("https://motionminute.app/app/v1/license/register?device-id={}&license-key={}", self.device_id.get_hash_hex_id(), license_key);
-        let response =
-            self.client
-                .post(&url)
-                .body("")
-                .send()
-                .map_err(|err| ServerRequestError::Other(anyhow::anyhow!("failed to send license request: {:?}", err)))?;
+        let url = format!(
+            "https://motionminute.app/app/v1/license/register?device-id={}&license-key={}",
+            self.device_id.get_hash_hex_id(),
+            license_key
+        );
+        let response = self.client.post(&url).body("").send().map_err(|err| {
+            ServerRequestError::Other(anyhow::anyhow!("failed to send license request: {:?}", err))
+        })?;
 
-        Self::parse_response(&url, response)
-            .and_then(|status| {
-                match self.status {
-                    LicenseStatus::Valid(_) => {
-                        self.status = status.clone();
-                    }
-                    _ => {}
+        Self::parse_response(&url, response).and_then(|status| {
+            match self.status {
+                LicenseStatus::Valid(_) => {
+                    self.status = status.clone();
                 }
-                Ok(status)
-            })
+                _ => {}
+            }
+            Ok(status)
+        })
     }
 
     fn reset_license(&mut self) -> Result<LicenseStatus, ServerRequestError> {
         info!("reset license");
-        let url = format!("https://motionminute.app/app/v1/license/reset?device-id={}", self.device_id.get_hash_hex_id());
-        let response =
-            self.client
-                .post(&url)
-                .body("")
-                .send()
-                .map_err(|err| ServerRequestError::Other(anyhow::anyhow!("failed to send license request: {:?}", err)))?;
+        let url = format!(
+            "https://motionminute.app/app/v1/license/reset?device-id={}",
+            self.device_id.get_hash_hex_id()
+        );
+        let response = self.client.post(&url).body("").send().map_err(|err| {
+            ServerRequestError::Other(anyhow::anyhow!("failed to send license request: {:?}", err))
+        })?;
 
-        Self::parse_response(&url, response)
-            .and_then(|status| {
-                self.status = status.clone();
-                Ok(status)
-            })
+        Self::parse_response(&url, response).and_then(|status| {
+            self.status = status.clone();
+            Ok(status)
+        })
     }
 
-    fn parse_response(url: &String, response: Response) -> Result<LicenseStatus, ServerRequestError> {
+    fn parse_response(
+        url: &String,
+        response: Response,
+    ) -> Result<LicenseStatus, ServerRequestError> {
         match response.status() {
-            StatusCode::OK => {
-                Self::parse_json(response)
-                    .map_err(|err|
-                        ServerRequestError::Other(anyhow::anyhow!("failed to parse response from url '{:?}': {:?}", url, err))
-                    )
-            }
+            StatusCode::OK => Self::parse_json(response).map_err(|err| {
+                ServerRequestError::Other(anyhow::anyhow!(
+                    "failed to parse response from url '{:?}': {:?}",
+                    url,
+                    err
+                ))
+            }),
             StatusCode::BAD_REQUEST => {
-                let error: response::ErrorResponse =
-                    response.json()
-                        .map_err(|err|
-                            ServerRequestError::Other(anyhow::anyhow!("failed to parse error response from url '{:?}': {:?}", url, err))
-                        )?;
+                let error: response::ErrorResponse = response.json().map_err(|err| {
+                    ServerRequestError::Other(anyhow::anyhow!(
+                        "failed to parse error response from url '{:?}': {:?}",
+                        url,
+                        err
+                    ))
+                })?;
                 warn!("failed to register license: {:?}", &error);
                 Ok(LicenseStatus::Invalid(error.message))
             }
-            _ => {
-                Err(ServerRequestError::Other(anyhow::anyhow!("failed license request, unknown error with: {:?}, url: {:?}", response.status(), response.url())))
-            }
+            _ => Err(ServerRequestError::Other(anyhow::anyhow!(
+                "failed license request, unknown error with: {:?}, url: {:?}",
+                response.status(),
+                response.url()
+            ))),
         }
     }
 
     fn parse_json(response: Response) -> Result<LicenseStatus, ServerRequestError> {
-        let response: response::Response =
-            response
-                .json()
-                .map_err(|err| ServerRequestError::Other(anyhow::anyhow!("failed to parse response: {:?}", err)))?;
+        let response: response::Response = response.json().map_err(|err| {
+            ServerRequestError::Other(anyhow::anyhow!("failed to parse response: {:?}", err))
+        })?;
 
         let license_status = match response.status {
             response::LicenseStatus::ActiveTrial => {
-                let trail = response.trail.ok_or_else(|| ServerRequestError::Other(anyhow::anyhow!("marked as active trail, but no details not found")))?;
+                let trail = response.trail.ok_or_else(|| {
+                    ServerRequestError::Other(anyhow::anyhow!(
+                        "marked as active trail, but no details not found"
+                    ))
+                })?;
                 LicenseStatus::Valid(ValidTypes::Trail(TrailDetails {
                     expired_at: trail.expires_at,
                 }))
             }
             response::LicenseStatus::ActivePaid => {
-                let paid = response.paid.ok_or_else(|| ServerRequestError::Other(anyhow::anyhow!("marked as active paid, but no details not found")))?;
+                let paid = response.paid.ok_or_else(|| {
+                    ServerRequestError::Other(anyhow::anyhow!(
+                        "marked as active paid, but no details not found"
+                    ))
+                })?;
                 LicenseStatus::Valid(ValidTypes::Paid(PaidDetails {
                     license_key: paid.license_key,
                 }))
@@ -236,7 +260,6 @@ impl LicenseManager {
     }
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone, Type, tauri_specta::Event)]
 pub enum LicenseResultStatus {
     Success,
@@ -251,24 +274,23 @@ pub struct LicenseResult {
 
 #[specta::specta]
 #[tauri::command]
-pub fn settings_register_license(app_handle: AppHandle, license_key: String) -> model::license::LicenseInfo {
-    license_run(app_handle, |lm|
-        lm
-            .lock()
+pub fn settings_register_license(
+    app_handle: AppHandle,
+    license_key: String,
+) -> model::license::LicenseInfo {
+    license_run(app_handle, |lm| {
+        lm.lock()
             .expect("license manager state")
-            .register_license(license_key.clone()),
-    )
+            .register_license(license_key.clone())
+    })
 }
 
 #[specta::specta]
 #[tauri::command]
 pub fn settings_reset_license(app_handle: AppHandle) -> LicenseInfo {
-    license_run(app_handle, |lm|
-        lm
-            .lock()
-            .expect("license manager state")
-            .reset_license(),
-    )
+    license_run(app_handle, |lm| {
+        lm.lock().expect("license manager state").reset_license()
+    })
 }
 
 #[specta::specta]
@@ -303,11 +325,15 @@ where
                 ServerRequestError::BadRequest(err) => {
                     anyhow::anyhow!(err.to_string())
                 }
-                ServerRequestError::Other(err) => {
-                    err
-                }
+                ServerRequestError::Other(err) => err,
             };
-            app_handle.alert("License Error", "Unable to request license.", Some(error), true);
+            app_handle.alert(
+                "License Error",
+                "Unable to request license.",
+                Some(error),
+                true,
+            );
             LicenseStatus::Invalid("Unable to access license server. Please try later.".to_string())
-        }).to_license_info()
+        })
+        .to_license_info()
 }
