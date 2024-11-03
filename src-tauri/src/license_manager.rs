@@ -165,11 +165,14 @@ impl LicenseManager {
         })?;
 
         Self::parse_response(&url, response).and_then(|status| {
-            match self.status {
+            match &status {
                 LicenseStatus::Valid(_) => {
+                    info!("register new license");
                     self.status = status.clone();
                 }
-                _ => {}
+                invalid => {
+                    info!("invalid response, not setting license: {:?}", invalid);
+                }
             }
             Ok(status)
         })
