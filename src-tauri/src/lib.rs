@@ -17,6 +17,8 @@ mod settings_window;
 mod start_soon_window;
 mod updater_window;
 mod welcome_window;
+mod actionbar_window;
+
 
 use log::{info, warn};
 use serde_json::json;
@@ -86,10 +88,13 @@ type LicenseManagerState = Mutex<license_manager::LicenseManager>;
 pub fn run() {
     let builder = build_typescript_interfaces(
         collect_commands![
+            actionbar_window::get_current_timer_status,
             update_settings,
+            session_window::start_session,
             session_window::start_first_session,
             session_window::load_session_details,
             session_window::end_session,
+            settings_window::open_settings,
             settings_window::load_settings,
             settings_window::open_browser,
             alert::close_error_window,
@@ -111,8 +116,11 @@ pub fn run() {
         .unwrap();
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             info!("instance of motion minute already open");
+            actionbar_window::show(app.app_handle()).unwrap_or_else(|err| {
+                app.alert("Can't open action menu", "Action Menu can't be opened during new instance. Please try again later.", Some(err), false);
+            });
         }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())

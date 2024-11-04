@@ -13,5 +13,6 @@ export async function fitAndShowWindow(contentDiv: HTMLElement) {
     }).then(async () => {
         await getCurrentWindow().center();
         await getCurrentWindow().show();
+        await getCurrentWindow().setFocus();
     })
 }

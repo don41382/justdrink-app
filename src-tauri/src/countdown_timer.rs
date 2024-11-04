@@ -16,9 +16,9 @@ pub struct CountdownEvent {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
 pub enum TimerStatus {
-    NotStarted,
+    NotStarted(u32),
     Active(u32),
-    Paused(PauseOrigin),
+    Paused(PauseOrigin, u32),
     Finished,
 }
 
@@ -39,7 +39,7 @@ impl TimerStatus {
 
     pub fn is_prevent_sleep(&self) -> bool {
         match self {
-            TimerStatus::Paused(reason) => {
+            TimerStatus::Paused(reason, _) => {
                 matches!(reason, PauseOrigin::PreventSleep(_))
             }
             _ => false,
@@ -50,16 +50,16 @@ impl TimerStatus {
         match self {
             TimerStatus::Active(duration) => {
                 format!(
-                    "Next session starts in {}",
+                    "Next motion starts in {}",
                     Duration::from_secs(*duration as u64).to_pretty_time()
                 )
             }
-            TimerStatus::Paused(origin) => match origin {
+            TimerStatus::Paused(origin, _) => match origin {
                 PauseOrigin::Idle => "Paused due to idle".to_string(),
                 PauseOrigin::PreventSleep(app_name) => format!("Paused by {}", app_name),
                 PauseOrigin::User => "Next session is paused".to_string(),
             },
-            TimerStatus::NotStarted => "Not running".to_string(),
+            TimerStatus::NotStarted(_) => "Not running".to_string(),
             TimerStatus::Finished => "Not running".to_string(),
         }
     }
@@ -82,7 +82,7 @@ impl CountdownTimer {
             duration: Arc::new(Mutex::new(None)),
             remaining_time: Arc::new(Mutex::new(Duration::ZERO)),
             guard: Arc::new(Mutex::new(None)),
-            status: Arc::new(Mutex::new(TimerStatus::NotStarted)),
+            status: Arc::new(Mutex::new(TimerStatus::NotStarted(0))),
         }
     }
 
@@ -115,7 +115,7 @@ impl CountdownTimer {
             {
                 let status = { status.lock().unwrap().clone() };
                 match status {
-                    TimerStatus::Paused(_) => {
+                    TimerStatus::Paused(_, _) => {
                         (*callback)(status.clone());
                         return;
                     }
@@ -156,7 +156,8 @@ impl CountdownTimer {
     #[allow(dead_code)]
     pub fn pause(&self, pause_origin: PauseOrigin) {
         let mut paused = self.status.lock().unwrap();
-        *paused = TimerStatus::Paused(pause_origin);
+        let remaining = self.remaining_time.lock().unwrap();
+        *paused = TimerStatus::Paused(pause_origin, remaining.as_secs() as u32);
     }
 
     /// Resumes the countdown timer if it was paused.
@@ -204,8 +205,8 @@ fn register_callback(app_handle: &AppHandle) -> Arc<dyn Fn(TimerStatus) + Send +
             CountdownEvent {
                 status: tick.clone(),
             }
-            .emit(&app_handle_ticker)
-            .unwrap();
+                .emit(&app_handle_ticker)
+                .unwrap();
         }
     })
 }

@@ -5,8 +5,14 @@
 
 
 export const commands = {
+async getCurrentTimerStatus() : Promise<TimerStatus> {
+    return await TAURI_INVOKE("get_current_timer_status");
+},
 async updateSettings(settings: SettingsUserDetails) : Promise<null> {
     return await TAURI_INVOKE("update_settings", { settings });
+},
+async startSession() : Promise<null> {
+    return await TAURI_INVOKE("start_session");
 },
 async startFirstSession(nextBreakDurationMinutes: number, enableOnStartup: boolean) : Promise<Result<null, string>> {
     try {
@@ -21,6 +27,9 @@ async loadSessionDetails() : Promise<SessionDetail | null> {
 },
 async endSession(reason: SessionEndingReason) : Promise<void> {
     await TAURI_INVOKE("end_session", { reason });
+},
+async openSettings() : Promise<null> {
+    return await TAURI_INVOKE("open_settings");
 },
 async loadSettings() : Promise<Settings> {
     return await TAURI_INVOKE("load_settings");
@@ -87,7 +96,7 @@ export type SessionStartEvent = { details: SessionDetail }
 export type Settings = { app: AppDetails; user: SettingsUserDetails; selected_tab: SettingsTabs }
 export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
 export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
-export type TimerStatus = "NotStarted" | { Active: number } | { Paused: PauseOrigin } | "Finished"
+export type TimerStatus = { NotStarted: number } | { Active: number } | { Paused: [PauseOrigin, number] } | "Finished"
 
 /** tauri-specta globals **/
 

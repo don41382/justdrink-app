@@ -37,7 +37,7 @@
         </label>
         <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
             <div class="flex justify-between items-center">
-                <span class="text-gray-700">Next session</span>
+                <span class="text-gray-700">Next Motion</span>
                 <select bind:value={next_break_duration_minutes}
                         class="p-2 border rounded-l shadow-sm text-right text-black w-24"
                         on:change={submit}>
@@ -46,7 +46,7 @@
                     {/each}
                 </select>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Time until the next session</p>
+            <p class="text-gray-500 text-sm mt-1">Time until the next motion</p>
         </label>
     </div>
 </div>

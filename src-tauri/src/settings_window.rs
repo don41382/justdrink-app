@@ -33,6 +33,17 @@ struct UserSettingsStore {
 
 #[specta::specta]
 #[tauri::command]
+pub fn open_settings(
+    app_handle: AppHandle
+) -> () {
+    show(app_handle.app_handle(), SettingsTabs::Session)
+        .unwrap_or_else(|err|
+            app_handle.alert("Can't open settings", "Error while opening settings. Please try again later.", Some(err), false)
+        );
+}
+
+#[specta::specta]
+#[tauri::command]
 pub fn load_settings(
     app_handle: AppHandle,
     settings: State<SettingsDetailsState>,

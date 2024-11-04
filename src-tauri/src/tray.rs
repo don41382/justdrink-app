@@ -156,11 +156,11 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
 pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> tauri::Result<()> {
     if let Some(tray) = app_handle.tray_by_id(TRAY_ID) {
         let tray_text = match status {
-            TimerStatus::NotStarted => None,
+            TimerStatus::NotStarted(_) => None,
             TimerStatus::Active(duration) => {
                 Some(Duration::from_secs(duration as u64).to_pretty_time())
             }
-            TimerStatus::Paused(origin) => match origin {
+            TimerStatus::Paused(origin, _) => match origin {
                 PauseOrigin::Idle => Some("Idle".to_string()),
                 PauseOrigin::PreventSleep(_) => Some("Busy".to_string()),
                 PauseOrigin::User => Some("Paused".to_string()),
