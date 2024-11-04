@@ -20,10 +20,12 @@ where
             tauri::WebviewUrl::App("/actionbar".into()),
         )
             .title("Motion Minute - Actionbar")
+            .center()
             .transparent(true)
             .decorations(false)
             .shadow(true)
             .resizable(false)
+            .visible(false)
             .build()?;
     }
 
