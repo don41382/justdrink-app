@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+    body {
+        font-family: 'Switzer', sans-serif;
+    }
 }
 
  .toggle-checkbox {

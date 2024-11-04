@@ -3,8 +3,10 @@ export default {
     content: ['./src/**/*.{html,js,svelte,ts}'], theme: {
         extend: {
             fontFamily: {
-                sans: ['Bitter', 'serif'],
-            }, colors: {
+                mono: ['Switzer', 'monospace'],
+                display: ['Switzer', 'sans-serif'],
+            },
+            colors: {
                 transparent: 'transparent',
                 current: 'currentColor',
                 'mm-blue': {
