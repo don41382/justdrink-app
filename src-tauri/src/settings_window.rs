@@ -162,12 +162,13 @@ pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsUserDetails, anyho
 fn new<R>(
     app: &AppHandle<R>,
     selected_tab: model::settings::SettingsTabs,
-) -> Result<WebviewWindow<R>, anyhow::Error>
+) -> Result<(), anyhow::Error>
 where
     R: Runtime,
 {
+    info!("start with new settings");
     let window = tauri::WebviewWindowBuilder::new(
-        app,
+        app.app_handle(),
         WINDOW_LABEL,
         tauri::WebviewUrl::App(format!("/settings?settings_tab={:?}", selected_tab).into()),
     )
@@ -180,11 +181,11 @@ where
         .decorations(true)
         .skip_taskbar(false)
         .shadow(true)
-        .effects(WindowEffectsConfig::default())
         .resizable(false)
         .build()?;
 
-    Ok(window)
+    info!("start with new settings - done");
+    Ok(())
 }
 
 pub fn show<R>(app: &AppHandle<R>, settings_tabs: SettingsTabs) -> Result<(), anyhow::Error>
