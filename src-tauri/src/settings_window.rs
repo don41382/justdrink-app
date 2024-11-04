@@ -36,6 +36,7 @@ struct UserSettingsStore {
 pub fn open_settings(
     app_handle: AppHandle
 ) -> () {
+    info!("open settings window");
     show(app_handle.app_handle(), SettingsTabs::Session)
         .unwrap_or_else(|err|
             app_handle.alert("Can't open settings", "Error while opening settings. Please try again later.", Some(err), false)
@@ -48,9 +49,11 @@ pub fn load_settings(
     app_handle: AppHandle,
     settings: State<SettingsDetailsState>,
 ) -> model::settings::Settings {
+    info!("load settings data");
     let version = app_handle.app_handle().config().version.clone();
     let license_manager = app_handle.state::<LicenseManagerState>();
     let license_status = license_manager.lock().unwrap().get_status();
+    info!("load settings data - done");
     model::settings::Settings {
         app: model::settings::AppDetails {
             version: version.unwrap_or("unknown".to_string()),
@@ -188,14 +191,15 @@ pub fn show<R>(app: &AppHandle<R>, settings_tabs: SettingsTabs) -> Result<(), an
 where
     R: Runtime,
 {
+    info!("show settings: {:?}", settings_tabs);
     match app.get_webview_window(WINDOW_LABEL) {
         None => {
+            info!("create new");
             new(app, settings_tabs)?;
         }
         Some(w) => {
-            if !w.is_visible()? {
-                w.show()?;
-            }
+            info!("show existing");
+            w.show()?;
         }
     }
     Ok(())

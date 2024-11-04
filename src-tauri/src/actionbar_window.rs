@@ -13,6 +13,7 @@ where
 {
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
         window.show()?;
+        window.set_focus()?;
     } else {
         let _window = tauri::WebviewWindowBuilder::new(
             app,
