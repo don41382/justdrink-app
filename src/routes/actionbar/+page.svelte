@@ -6,22 +6,19 @@
     import * as tauri_path from "@tauri-apps/api/path";
     import {convertFileSrc} from "@tauri-apps/api/core";
     import {commands, events, type TimerStatus} from "../../bindings";
-    import {info} from "@tauri-apps/plugin-log";
     import type {UnlistenFn} from "@tauri-apps/api/event";
     import {getCurrentWindow} from "@tauri-apps/api/window";
 
     let contentDiv: HTMLDivElement
-
     let countdownUnlistenFn: UnlistenFn;
 
     let icon_path = $state();
-
     let countdown = $state({
         time: '',
         pause: false
     });
 
-    $effect(() => {
+    $effect.pre(() => {
         tauri_path.resourceDir().then(async resource_dir => {
             icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
         });
@@ -31,13 +28,14 @@
         });
     });
 
+
     onMount(async () => {
         countdownUnlistenFn = await events.countdownEvent.listen(async (data) => {
             countdown.time = formatTime(getSeconds(data.payload.status));
             countdown.pause = isPause(data.payload.status);
         });
 
-        await fitAndShowWindow(contentDiv)
+        await fitAndShowWindow(contentDiv);
     })
 
 
