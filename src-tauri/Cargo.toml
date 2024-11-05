@@ -39,6 +39,7 @@ user-idle = "0.6.0"
 webbrowser = "1.0.2"
 sha2 = "0.10"
 tauri-plugin-aptabase = { git = "https://github.com/aptabase/tauri-plugin-aptabase", branch = "v2" }
+tauri-plugin-process = "2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.26.0"

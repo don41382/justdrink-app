@@ -1,13 +1,11 @@
-use tauri::{AppHandle, Manager, Runtime};
-use tauri::menu::Menu;
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
 use crate::{countdown_timer, CountdownTimerState};
+use tauri::menu::Menu;
+use tauri::{AppHandle, Manager, Runtime};
 
 pub(crate) const WINDOW_LABEL: &'static str = "actionbar";
 
-pub fn show<R>(
-    app: &AppHandle<R>,
-) -> Result<(), anyhow::Error>
+pub fn show<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
 where
     R: Runtime,
 {
@@ -20,19 +18,18 @@ where
             WINDOW_LABEL,
             tauri::WebviewUrl::App("/actionbar".into()),
         )
-            .title("Motion Minute - Actionbar")
-            .center()
-            .transparent(true)
-            .decorations(false)
-            .shadow(true)
-            .resizable(false)
-            .visible(false)
-            .build()?;
+        .title("Motion Minute - Actionbar")
+        .center()
+        .transparent(true)
+        .decorations(false)
+        .shadow(true)
+        .resizable(false)
+        .visible(false)
+        .build()?;
     }
 
     Ok(())
 }
-
 
 #[specta::specta]
 #[tauri::command]
@@ -40,14 +37,11 @@ pub async fn toggle_timer(app: AppHandle) {
     app.state::<CountdownTimerState>().toggle(PauseOrigin::User);
 }
 
-
 #[specta::specta]
 #[tauri::command]
 pub async fn timer_change(app: AppHandle, change_time: countdown_timer::ChangeTime) {
     app.state::<CountdownTimerState>().change(change_time);
 }
-
-
 
 #[specta::specta]
 #[tauri::command]

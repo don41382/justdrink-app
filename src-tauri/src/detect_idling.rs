@@ -43,8 +43,10 @@ where
                         Mode::Pause => {
                             if sleep_prevented_by.is_none() && idle.as_seconds() < 60 {
                                 debug!("switch to working");
-                                if matches!(timer.timer_status(), TimerStatus::Paused(PauseOrigin::Idle, _))
-                                    || timer.timer_status().is_prevent_sleep()
+                                if matches!(
+                                    timer.timer_status(),
+                                    TimerStatus::Paused(PauseOrigin::Idle, _)
+                                ) || timer.timer_status().is_prevent_sleep()
                                 {
                                     timer.resume();
                                 }

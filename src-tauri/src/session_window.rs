@@ -40,11 +40,15 @@ pub fn init(app: &AppHandle<Wry>) -> EventId {
 #[specta::specta]
 #[tauri::command]
 pub async fn start_session(app: AppHandle) -> () {
-    start(&app)
-        .unwrap_or_else(|err| {
-            app.alert("Can't start session", "There was an error while trying to start the session.", Some(err), false);
-            ()
-        });
+    start(&app).unwrap_or_else(|err| {
+        app.alert(
+            "Can't start session",
+            "There was an error while trying to start the session.",
+            Some(err),
+            false,
+        );
+        ()
+    });
 }
 
 pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {

@@ -9,6 +9,7 @@ mod session_repository;
 mod tracking;
 mod tray;
 
+mod actionbar_window;
 mod fullscreen;
 mod license_manager;
 mod session_window;
@@ -17,8 +18,6 @@ mod settings_window;
 mod start_soon_window;
 mod updater_window;
 mod welcome_window;
-mod actionbar_window;
-
 
 use log::{info, warn};
 use serde_json::json;
@@ -115,14 +114,20 @@ pub fn run() {
             countdown_timer::TimerStatus,
         ],
     )
-        .unwrap();
+    .unwrap();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             info!("instance of motion minute already open");
             actionbar_window::show(app.app_handle()).unwrap_or_else(|err| {
                 info!("ther is an error");
-                app.alert("Can't open action menu", "Action Menu can't be opened during new instance. Please try again later.", Some(err), false);
+                app.alert(
+                    "Can't open action menu",
+                    "Action Menu can't be opened during new instance. Please try again later.",
+                    Some(err),
+                    false,
+                );
             });
         }))
         .plugin(tauri_plugin_updater::Builder::new().build())

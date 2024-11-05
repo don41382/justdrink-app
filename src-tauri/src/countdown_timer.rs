@@ -1,8 +1,8 @@
-use std::cmp::{max, min};
-use std::ops::Add;
 use crate::pretty_time::PrettyTime;
 use serde::{Deserialize, Serialize};
 use specta::Type;
+use std::cmp::{max, min};
+use std::ops::Add;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::AppHandle;
@@ -37,7 +37,6 @@ pub enum ChangeTime {
     Remove(u32),
 }
 
-
 impl TimerStatus {
     pub fn is_running(&self) -> bool {
         match self {
@@ -57,9 +56,7 @@ impl TimerStatus {
 
     pub fn to_text(&self) -> String {
         match self {
-            TimerStatus::Active(duration) => {
-                Duration::from_secs(*duration as u64).to_pretty_time()
-            }
+            TimerStatus::Active(duration) => Duration::from_secs(*duration as u64).to_pretty_time(),
             TimerStatus::Paused(origin, _) => match origin {
                 PauseOrigin::Idle => "Paused due to idle".to_string(),
                 PauseOrigin::PreventSleep(app_name) => format!("Paused by {}", app_name),
@@ -131,7 +128,9 @@ impl CountdownTimer {
 
             let rem_time: Duration = {
                 let mut rem_time = rem_time.lock().unwrap();
-                *rem_time = rem_time.saturating_sub(Duration::from_millis(TICKER_SPEED_MS.num_milliseconds() as u64));
+                *rem_time = rem_time.saturating_sub(Duration::from_millis(
+                    TICKER_SPEED_MS.num_milliseconds() as u64,
+                ));
                 rem_time.clone()
             };
 
@@ -231,8 +230,8 @@ fn register_callback(app_handle: &AppHandle) -> Arc<dyn Fn(TimerStatus) + Send +
             CountdownEvent {
                 status: tick.clone(),
             }
-                .emit(&app_handle_ticker)
-                .unwrap();
+            .emit(&app_handle_ticker)
+            .unwrap();
         }
     })
 }

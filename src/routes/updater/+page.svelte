@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {fade} from 'svelte/transition';
     import {check, Update} from '@tauri-apps/plugin-updater';
     import {afterUpdate, onMount} from "svelte";
     import {info} from "@tauri-apps/plugin-log";

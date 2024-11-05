@@ -18,13 +18,7 @@ const TRAY_ID: &'static str = "tray";
 pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
     let timer = main_app.state::<CountdownTimer>();
 
-    let menu_status = MenuItem::with_id(
-        main_app,
-        "dashboard",
-        "Dashboard",
-        true,
-        None::<&str>,
-    )?;
+    let menu_status = MenuItem::with_id(main_app, "dashboard", "Dashboard", true, None::<&str>)?;
     let menu_timer_control = MenuItem::with_id(
         main_app,
         "timer_control",
