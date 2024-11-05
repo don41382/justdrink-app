@@ -121,7 +121,7 @@ pub fn run() {
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             info!("instance of motion minute already open");
             actionbar_window::show(app.app_handle()).unwrap_or_else(|err| {
-                info!("ther is an error");
+                info!("there is an error");
                 app.alert(
                     "Can't open action menu",
                     "Action Menu can't be opened during new instance. Please try again later.",
