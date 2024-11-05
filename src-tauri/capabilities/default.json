@@ -37,7 +37,6 @@
     "os:allow-hostname",
     "os:allow-os-type",
     "http:default",
-    "updater:allow-check",
-    "updater:allow-download-and-install"
+    "updater:default"
   ]
 }
