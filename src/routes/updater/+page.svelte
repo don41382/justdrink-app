@@ -7,6 +7,7 @@
     import * as tauri_path from "@tauri-apps/api/path";
     import {convertFileSrc} from "@tauri-apps/api/core";
     import {fitAndShowWindow} from "../../helper";
+    import {relaunch} from "@tauri-apps/plugin-process";
 
     let contentDiv: HTMLDivElement;
 
@@ -23,8 +24,8 @@
 
     let update: Update | null = null;
 
-    async function closeWindow(restart: boolean = false) {
-        await commands.updaterClose(restart);
+    async function closeWindow() {
+        await commands.updaterClose();
     }
 
     onMount(async () => {
@@ -69,6 +70,7 @@
                         break;
                 }
             });
+            await relaunch()
         }
     }
 
@@ -101,18 +103,12 @@
         <div class="flex justify-end space-x-3">
             {#if state === "init"}
                 <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                        on:click={async () => closeWindow(false)}>
+                        on:click={async () => closeWindow()}>
                     Later
                 </button>
                 <button class="bg-mm-green text-white px-4 py-2 rounded-lg hover:bg-mm-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         on:click={async () => installUpdate()}>
                     Update Now
-                </button>
-            {/if}
-            {#if state === "finished"}
-                <button class="bg-mm-green text-white px-4 py-2 rounded-lg hover:bg-mm-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        on:click={async () => await closeWindow(true)}>
-                    Restart
                 </button>
             {/if}
         </div>

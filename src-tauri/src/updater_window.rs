@@ -115,9 +115,6 @@ where
 
 #[specta::specta]
 #[tauri::command]
-pub fn updater_close(app_handle: AppHandle, window: Window, restart: bool) {
+pub fn updater_close(app_handle: AppHandle, window: Window) {
     window.close().unwrap();
-    if restart {
-        app_handle.restart();
-    }
 }

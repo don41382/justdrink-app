@@ -46,8 +46,8 @@ async openBrowser(url: string) : Promise<null> {
 async closeErrorWindow() : Promise<void> {
     await TAURI_INVOKE("close_error_window");
 },
-async updaterClose(restart: boolean) : Promise<void> {
-    await TAURI_INVOKE("updater_close", { restart });
+async updaterClose() : Promise<void> {
+    await TAURI_INVOKE("updater_close");
 },
 async settingsRegisterLicense(licenseKey: string) : Promise<LicenseInfo> {
     return await TAURI_INVOKE("settings_register_license", { licenseKey });
