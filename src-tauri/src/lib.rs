@@ -89,6 +89,8 @@ pub fn run() {
     let builder = build_typescript_interfaces(
         collect_commands![
             actionbar_window::get_current_timer_status,
+            actionbar_window::toggle_timer,
+            actionbar_window::timer_change,
             update_settings,
             session_window::start_session,
             session_window::start_first_session,

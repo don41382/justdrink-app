@@ -1,7 +1,7 @@
 use tauri::{AppHandle, Manager, Runtime};
 use tauri::menu::Menu;
-use crate::countdown_timer::TimerStatus;
-use crate::CountdownTimerState;
+use crate::countdown_timer::{PauseOrigin, TimerStatus};
+use crate::{countdown_timer, CountdownTimerState};
 
 pub(crate) const WINDOW_LABEL: &'static str = "actionbar";
 
@@ -32,6 +32,21 @@ where
 
     Ok(())
 }
+
+
+#[specta::specta]
+#[tauri::command]
+pub async fn toggle_timer(app: AppHandle) {
+    app.state::<CountdownTimerState>().toggle(PauseOrigin::User);
+}
+
+
+#[specta::specta]
+#[tauri::command]
+pub async fn timer_change(app: AppHandle, change_time: countdown_timer::ChangeTime) {
+    app.state::<CountdownTimerState>().change(change_time);
+}
+
 
 
 #[specta::specta]

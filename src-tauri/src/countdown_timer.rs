@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+use std::ops::Add;
 use crate::pretty_time::PrettyTime;
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -7,7 +9,7 @@ use tauri::AppHandle;
 use tauri_specta::Event;
 use timer::{Guard, Timer};
 
-const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(500);
+const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(250);
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
 pub struct CountdownEvent {
@@ -29,6 +31,13 @@ pub enum PauseOrigin {
     User,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
+pub enum ChangeTime {
+    Add(u32),
+    Remove(u32),
+}
+
+
 impl TimerStatus {
     pub fn is_running(&self) -> bool {
         match self {
@@ -49,10 +58,7 @@ impl TimerStatus {
     pub fn to_text(&self) -> String {
         match self {
             TimerStatus::Active(duration) => {
-                format!(
-                    "Next motion starts in {}",
-                    Duration::from_secs(*duration as u64).to_pretty_time()
-                )
+                Duration::from_secs(*duration as u64).to_pretty_time()
             }
             TimerStatus::Paused(origin, _) => match origin {
                 PauseOrigin::Idle => "Paused due to idle".to_string(),
@@ -125,8 +131,7 @@ impl CountdownTimer {
 
             let rem_time: Duration = {
                 let mut rem_time = rem_time.lock().unwrap();
-                *rem_time =
-                    *rem_time - Duration::from_millis(TICKER_SPEED_MS.num_milliseconds() as u64);
+                *rem_time = rem_time.saturating_sub(Duration::from_millis(TICKER_SPEED_MS.num_milliseconds() as u64));
                 rem_time.clone()
             };
 
@@ -153,7 +158,6 @@ impl CountdownTimer {
     }
 
     /// Pauses the countdown timer.
-    #[allow(dead_code)]
     pub fn pause(&self, pause_origin: PauseOrigin) {
         let mut paused = self.status.lock().unwrap();
         let remaining = self.remaining_time.lock().unwrap();
@@ -161,11 +165,33 @@ impl CountdownTimer {
     }
 
     /// Resumes the countdown timer if it was paused.
-    #[allow(dead_code)]
     pub fn resume(&self) {
         let mut paused = self.status.lock().unwrap();
         let remaining_time = self.remaining_time.lock().unwrap();
         *paused = TimerStatus::Active(remaining_time.as_secs() as u32);
+    }
+
+    pub fn toggle(&self, pause_origin: PauseOrigin) {
+        if matches!(self.timer_status(), TimerStatus::Paused(_, _)) {
+            self.resume();
+        } else {
+            self.pause(pause_origin);
+        }
+    }
+
+    pub fn change(&self, change_time: ChangeTime) {
+        {
+            let mut rem_time = self.remaining_time.lock().unwrap();
+            match change_time {
+                ChangeTime::Add(minutes) => {
+                    *rem_time = rem_time.add(Duration::from_secs(minutes as u64 * 60))
+                }
+                ChangeTime::Remove(minutes) => {
+                    let new_secs = rem_time.as_secs() as i32 - minutes as i32 * 60;
+                    *rem_time = Duration::from_secs(max(new_secs, (minutes as i32) * 60) as u64);
+                }
+            }
+        }
     }
 
     /// Stops the countdown timer.

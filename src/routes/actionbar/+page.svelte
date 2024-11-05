@@ -12,7 +12,7 @@
     let contentDiv: HTMLDivElement
     let countdownUnlistenFn: UnlistenFn;
 
-    let icon_path = $state();
+    let icon_path = $state("");
     let countdown = $state({
         time: '',
         pause: false
@@ -22,10 +22,7 @@
         tauri_path.resourceDir().then(async resource_dir => {
             icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
         });
-        commands.getCurrentTimerStatus().then(status => {
-            countdown.time = formatTime(getSeconds(status));
-            countdown.pause = isPause(status);
-        });
+        updateTimer();
     });
 
 
@@ -42,6 +39,13 @@
     onDestroy(async () => {
         countdownUnlistenFn();
     });
+
+    async function updateTimer() {
+        await commands.getCurrentTimerStatus().then(status => {
+            countdown.time = formatTime(getSeconds(status));
+            countdown.pause = isPause(status);
+        });
+    }
 
     function getSeconds(timeStatus: TimerStatus): number {
         switch (typeof timeStatus) {
@@ -116,6 +120,25 @@
         await commands.startSession();
     }
 
+    async function toggleTimer() {
+        await commands.toggleTimer();
+        await updateTimer();
+    }
+
+    async function addTime() {
+        await commands.timerChange({
+            Add: 5
+        })
+        await updateTimer();
+    }
+
+    async function removeTime() {
+        await commands.timerChange({
+            Remove: 5
+        })
+        await updateTimer();
+    }
+
 </script>
 
 <div bind:this={contentDiv}
@@ -131,32 +154,42 @@
         <div class="text-2xl font-light">Next Motion</div>
         <div class="text-6xl font-bold">{countdown.time}</div>
         <div class="flex justify-center items-center space-x-4">
-            <Icon class="w-6 h-6 text-gray-700 hover:bg-mm-green hover:text-white rounded-2xl size-20"
-                  icon="mdi-light:minus"/>
-            {#if countdown.pause}
-                <Icon class="w-8 h-8 text-gray-700" icon="iconoir:play"/>
-            {:else}
-                <Icon class="w-8 h-8 text-gray-700" icon="iconoir:pause"/>
+            {#if !countdown.pause}
+                <button onclick={async () => await removeTime()}>
+                    <Icon class="w-6 h-6 text-gray-700 hover:bg-mm-green hover:text-white rounded-2xl size-20"
+                          icon="mdi-light:minus"/>
+                </button>
             {/if}
-            <Icon class="w-6 h-6 text-gray-700 hover:bg-mm-green hover:text-white rounded-2xl size-20"
-                  icon="mdi-light:plus"/>
+            <button onclick={async () => await toggleTimer()}>
+                {#if countdown.pause}
+                    <Icon class="w-8 h-8 text-gray-700" icon="iconoir:play"/>
+                {:else}
+                    <Icon class="w-8 h-8 text-gray-700" icon="iconoir:pause"/>
+                {/if}
+            </button>
+            {#if !countdown.pause}
+                <button onclick={async () => await addTime()}>
+                    <Icon class="w-6 h-6 text-gray-700 hover:bg-mm-green hover:text-white rounded-2xl size-20"
+                          icon="mdi-light:plus"/>
+                </button>
+            {/if}
         </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="flex space-x-4 w-full justify-center">
         <button class="flex flex-col items-center justify-center cursor-pointer hover:bg-mm-green hover:text-white size-20 rounded-2xl p-2 transition-all duration-200"
-                on:click={async () => { await close() }}>
+                onclick={async () => { await close() }}>
             <Icon class="w-10 h-10" icon="iconoir:xmark"/>
             <span class="mt-1 text-sm font-light">Hide</span>
         </button>
         <button class="flex flex-col items-center justify-center cursor-pointer hover:bg-mm-green hover:text-white size-20 rounded-2xl p-2 transition-all duration-200"
-                on:click={async () => { await openSettings()}}>
+                onclick={async () => { await openSettings()}}>
             <Icon class="w-10 h-10" icon="mdi-light:settings"/>
             <span class="mt-1 text-sm font-light">Settings</span>
         </button>
         <button class="flex flex-col items-center justify-center cursor-pointer hover:bg-mm-green hover:text-white size-20 rounded-2xl p-2 transition-all duration-200"
-                on:click={async () => { await startSession() }}>
+                onclick={async () => { await startSession() }}>
             <Icon class="w-10 h-10" icon="iconoir:play-solid"/>
             <span class="mt-1 text-sm font-light">Start</span>
         </button>

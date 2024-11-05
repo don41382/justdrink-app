@@ -8,6 +8,12 @@ export const commands = {
 async getCurrentTimerStatus() : Promise<TimerStatus> {
     return await TAURI_INVOKE("get_current_timer_status");
 },
+async toggleTimer() : Promise<void> {
+    await TAURI_INVOKE("toggle_timer");
+},
+async timerChange(changeTime: ChangeTime) : Promise<void> {
+    await TAURI_INVOKE("timer_change", { changeTime });
+},
 async updateSettings(settings: SettingsUserDetails) : Promise<null> {
     return await TAURI_INVOKE("update_settings", { settings });
 },
@@ -82,6 +88,7 @@ timerStatus: "timer-status"
 /** user-defined types **/
 
 export type AppDetails = { version: string; license_info: LicenseInfo }
+export type ChangeTime = { Add: number } | { Remove: number }
 export type CountdownEvent = { status: TimerStatus }
 export type Exercise = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
 export type LicenseInfo = { status: LicenseInfoStatus; license_key: string | null; message: string | null }
