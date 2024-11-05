@@ -33,7 +33,7 @@ struct UserSettingsStore {
 
 #[specta::specta]
 #[tauri::command]
-pub fn open_settings(
+pub async fn open_settings(
     app_handle: AppHandle
 ) -> () {
     info!("open settings window");
