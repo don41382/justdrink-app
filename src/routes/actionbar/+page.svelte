@@ -21,8 +21,9 @@
     $effect.pre(() => {
         tauri_path.resourceDir().then(async resource_dir => {
             icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
+            await updateTimer();
+            await fitAndShowWindow(contentDiv);
         });
-        updateTimer();
     });
 
 
@@ -31,8 +32,6 @@
             countdown.time = formatTime(getSeconds(data.payload.status));
             countdown.pause = isPause(data.payload.status);
         });
-
-        await fitAndShowWindow(contentDiv);
     })
 
 
