@@ -118,11 +118,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             info!("instance of motion minute already open");
-            let app_handle = app.clone();
-            tauri::async_runtime::spawn(async move {
-                actionbar_window::show(&app_handle).unwrap_or_else(|err| {
-                    app_handle.alert("Can't open action menu", "Action Menu can't be opened during new instance. Please try again later.", Some(err), false);
-                });
+            actionbar_window::show(app.app_handle()).unwrap_or_else(|err| {
+                info!("ther is an error");
+                app.alert("Can't open action menu", "Action Menu can't be opened during new instance. Please try again later.", Some(err), false);
             });
         }))
         .plugin(tauri_plugin_updater::Builder::new().build())
