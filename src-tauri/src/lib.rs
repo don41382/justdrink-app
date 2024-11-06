@@ -35,7 +35,7 @@ use crate::alert::Alert;
 use crate::license_manager::LicenseManager;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
-use tauri::{App, AppHandle, Manager, Window, WindowEvent};
+use tauri::{App, AppHandle, Manager, RunEvent, Window, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
@@ -114,21 +114,16 @@ pub fn run() {
             countdown_timer::TimerStatus,
         ],
     )
-    .unwrap();
+        .unwrap();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            info!("instance of motion minute already open");
-            actionbar_window::show(app.app_handle()).unwrap_or_else(|err| {
-                info!("there is an error");
-                app.alert(
-                    "Can't open action menu",
-                    "Action Menu can't be opened during new instance. Please try again later.",
-                    Some(err),
-                    false,
-                );
-            });
+            #[cfg(target_os = "windows")]
+            {
+                info!("instance of motion minute already open");
+                show_dashboard(app);
+            }
         }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
@@ -235,8 +230,29 @@ pub fn run() {
             WindowEvent::ThemeChanged(_) => {}
             _ => {}
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|app, event| match event {
+            #[cfg(target_os = "macos")]
+            RunEvent::Reopen { .. } => {
+                info!("Reopen Motion Minute - Show Dashboard");
+                // called only on macos
+                show_dashboard(app);
+            }
+            _ => {}
+        })
+}
+
+fn show_dashboard(app: &AppHandle) {
+    actionbar_window::show(app.app_handle()).unwrap_or_else(|err| {
+        info!("there is an error");
+        app.alert(
+            "Can't open action menu",
+            "Action Menu can't be opened during new instance. Please try again later.",
+            Some(err),
+            false,
+        );
+    });
 }
 
 fn build_typescript_interfaces(
