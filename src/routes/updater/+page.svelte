@@ -69,14 +69,18 @@
                 }
             }).catch(async (err) => {
                 state = "error"
-                error = `Error while downloading new version: ${err}`
+                error = err
+            }).then(async (_) => {
+                if (state != "error") {
+                    await info("download finished, relaunch")
+                    setTimeout(() => {
+                        relaunch().catch(async (err) => {
+                            state = "error"
+                            error = `Unable to relaunch: ${err}`
+                        })
+                    }, 1000);
+                }
             });
-
-            await info("download finished, relaunch")
-            await relaunch().catch(async (err) => {
-                state = "error"
-                error = `Unable to relaunch: ${err}`
-            })
         }
     }
 
@@ -109,15 +113,21 @@
         <div class="flex justify-end space-x-3">
             {#if state === "init"}
                 <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                        on:click={async () => closeWindow()}>
+                        onclick={async () => closeWindow()}>
                     Later
                 </button>
                 <button class="bg-mm-green text-white px-4 py-2 rounded-lg hover:bg-mm-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        on:click={async () => installUpdate()}>
+                        onclick={async () => installUpdate()}>
                     Update Now
                 </button>
             {:else if state === "finished"}
                 <p>Please wait, restarting ....</p>
+            {:else if state === "error"}
+                <p>Error while updating: {error}</p>
+                <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
+                        onclick={async () => closeWindow()}>
+                    Close
+                </button>
             {/if}
         </div>
     {:else}
@@ -135,7 +145,7 @@
 
             <div class="flex justify-end space-x-3">
                 <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                        on:click={async () => closeWindow(false)}>
+                        onclick={async () => closeWindow()}>
                     Close
                 </button>
             </div>
@@ -144,7 +154,7 @@
             <p class="text-gray-600 mb-6">{error}</p>
             <div class="flex justify-end space-x-3">
                 <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                        on:click={async () => closeWindow(false)}>
+                        onclick={async () => closeWindow()}>
                     Close
                 </button>
             </div>
