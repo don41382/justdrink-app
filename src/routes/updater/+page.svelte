@@ -1,53 +1,49 @@
 <script lang="ts">
     import {check, Update} from '@tauri-apps/plugin-updater';
-    import {afterUpdate, onMount} from "svelte";
-    import {info} from "@tauri-apps/plugin-log";
+    import {onMount} from "svelte";
+    import {debug, info} from "@tauri-apps/plugin-log";
     import {commands} from "../../bindings";
     import * as tauri_path from "@tauri-apps/api/path";
     import {convertFileSrc} from "@tauri-apps/api/core";
     import {fitAndShowWindow} from "../../helper";
     import {relaunch} from "@tauri-apps/plugin-process";
 
+    let downloaded = $state(0);
+    let total = $state(0);
+
     let contentDiv: HTMLDivElement;
 
-    type State = "init" | "started" | "progress" | "finished" | "newest" | "error"
+    type StateType = "init" | "started" | "progress" | "finished" | "newest" | "error"
 
-    let downloaded: number = 0
-    let total: number = 0
-    $: percentage = parseFloat((total > 0 ? (downloaded / total) * 100 : 0).toFixed(0));
+    let percentage = $derived(parseFloat((total > 0 ? (downloaded / total) * 100 : 0).toFixed(0)));
 
-    let error: string | undefined;
+    let error: string = $state(undefined);
 
-    let state: State = "init"
-    let icon_path: string;
+    let state: StateType = $state("init")
+    let icon_path = $state("")
 
-    let update: Update | null = null;
+    let update: Update | null = $state(null);
 
     async function closeWindow() {
         await commands.updaterClose();
     }
 
-    onMount(async () => {
-        await info("mount update window")
-        let resource_dir = await tauri_path.resourceDir();
-        icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
-
-        update = await check().then(async (res) => {
-            if (res == null) {
-                state = "newest"
-            }
-            return res;
-        }).catch(async (e) => {
-            await info(`error while checking for update: ${e}`)
-            await fitAndShowWindow(contentDiv);
-            error = `Error while checking for update: ${e}`
-            state = "error"
-            return null;
+    $effect.pre(() => {
+        tauri_path.resourceDir().then(resource_dir => {
+            icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
+            check().then(async (res) => {
+                if (res == null) {
+                    state = "newest"
+                }
+                update = res;
+                await fitAndShowWindow(contentDiv);
+            }).catch(async (e) => {
+                await info(`error while checking for update: ${e}`)
+                error = `Error while checking for update: ${e}`
+                state = "error"
+                await fitAndShowWindow(contentDiv);
+            });
         });
-    });
-
-    afterUpdate(async () => {
-        await fitAndShowWindow(contentDiv);
     });
 
     async function installUpdate() {
@@ -60,16 +56,27 @@
                         total = event.data.contentLength ?? 0;
                         break;
                     case 'Progress':
-                        state = "progress"
+                        if (state != "progress") {
+                            state = "progress"
+                        }
                         downloaded += event.data.chunkLength;
                         break;
                     case 'Finished':
+                        await info("finished download")
                         state = "finished"
                         downloaded = total
                         break;
                 }
+            }).catch(async (err) => {
+                state = "error"
+                error = `Error while downloading new version: ${err}`
             });
-            await relaunch()
+
+            await info("download finished, relaunch")
+            await relaunch().catch(async (err) => {
+                state = "error"
+                error = `Unable to relaunch: ${err}`
+            })
         }
     }
 
@@ -109,6 +116,8 @@
                         on:click={async () => installUpdate()}>
                     Update Now
                 </button>
+            {:else if state === "finished"}
+                <p>Please wait, restarting ....</p>
             {/if}
         </div>
     {:else}
@@ -139,8 +148,10 @@
                     Close
                 </button>
             </div>
-        {:else}
+        {:else if state === "finished"}
             <h1 class="font-normal text-gray-800">Please wait, checking version ...</h1>
+        {:else}
+            <h1 class="font-normal text-gray-800">Please wait, checking update ...</h1>
         {/if}
     {/if}
 </div>

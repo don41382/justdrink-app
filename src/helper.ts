@@ -1,7 +1,8 @@
 import {getCurrentWindow, PhysicalSize} from "@tauri-apps/api/window";
-import {warn} from "@tauri-apps/plugin-log";
+import {debug, warn} from "@tauri-apps/plugin-log";
 
 export async function fitAndShowWindow(contentDiv: HTMLElement) {
+    await debug("fitAndShowWindow")
     let rect = contentDiv.getBoundingClientRect()
     const factor = window.devicePixelRatio;
     const width: number = Math.ceil(rect.width * factor);
