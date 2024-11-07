@@ -32,7 +32,6 @@ use crate::countdown_timer::CountdownTimer;
 use crate::session_repository::SessionRepository;
 
 use crate::alert::Alert;
-use crate::license_manager::LicenseManager;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
 use tauri::{App, AppHandle, Manager, RunEvent, Window, WindowEvent};
@@ -119,11 +118,11 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {
             #[cfg(target_os = "windows")]
             {
                 info!("instance of motion minute already open");
-                show_dashboard(app);
+                show_dashboard(_app);
             }
         }))
         .plugin(tauri_plugin_updater::Builder::new().build())

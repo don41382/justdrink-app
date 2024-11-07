@@ -1,7 +1,7 @@
 use crate::alert::Alert;
 use crate::model::settings::{SettingsTabs, SettingsUserDetails};
 use crate::{
-    alert, model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState,
+    model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState,
     TrackingState,
 };
 use log::info;
@@ -9,10 +9,8 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::string::ToString;
 use std::time::Duration;
-use tauri::utils::config::WindowEffectsConfig;
-use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window, WindowEvent};
+use tauri::{AppHandle, Manager, Runtime, State, Window};
 use tauri_plugin_store::StoreBuilder;
-use tauri_specta::Event;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
@@ -169,7 +167,7 @@ where
     R: Runtime,
 {
     info!("start with new settings");
-    let window = tauri::WebviewWindowBuilder::new(
+    let _window = tauri::WebviewWindowBuilder::new(
         app.app_handle(),
         WINDOW_LABEL,
         tauri::WebviewUrl::App(format!("/settings?settings_tab={:?}", selected_tab).into()),

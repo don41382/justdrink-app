@@ -1,8 +1,8 @@
 use crate::alert::Alert;
-use crate::{alert, SettingsSystemState};
+use crate::SettingsSystemState;
 use anyhow::Error;
 use log::debug;
-use tauri::{AppHandle, Manager, Runtime, State, Window};
+use tauri::{AppHandle, Manager, Runtime, Window};
 use tauri_plugin_updater::UpdaterExt;
 
 const WINDOW_LABEL: &str = "updater";
@@ -116,6 +116,6 @@ where
 
 #[specta::specta]
 #[tauri::command]
-pub fn updater_close(app_handle: AppHandle, window: Window) {
+pub fn updater_close(window: Window) {
     window.close().unwrap();
 }

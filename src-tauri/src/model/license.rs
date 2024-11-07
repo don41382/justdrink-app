@@ -1,7 +1,5 @@
 use crate::license_manager::{LicenseStatus, ValidTypes};
 use crate::model;
-use crate::model::session::Exercise;
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri_specta::Event;

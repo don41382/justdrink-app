@@ -1,6 +1,6 @@
 use crate::alert::Alert;
 use crate::model::device::DeviceId;
-use crate::model::license::{LicenseInfo, LicenseInfoStatus};
+use crate::model::license::LicenseInfo;
 use crate::{model, LicenseManagerState};
 use anyhow::Error;
 use chrono::Utc;
@@ -15,6 +15,7 @@ mod response {
     use chrono::{DateTime, Utc};
     use serde::Deserialize;
 
+    #[allow(dead_code)]
     #[derive(Deserialize, Debug, Clone)]
     pub(crate) struct ErrorResponse {
         status: u16,
@@ -33,6 +34,7 @@ mod response {
         Expired,
     }
 
+    #[allow(dead_code)]
     #[derive(Deserialize, Debug, Clone)]
     pub(super) struct Trail {
         #[serde(rename(deserialize = "startsAt"))]
@@ -71,6 +73,7 @@ pub enum ValidTypes {
     Paid(PaidDetails),
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum LicenseStatus {
     Valid(ValidTypes),
@@ -94,6 +97,7 @@ pub struct LicenseManager {
     status: LicenseStatus,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 enum ServerRequestError {
     BadRequest(String), // For BAD_REQUEST errors (business error)

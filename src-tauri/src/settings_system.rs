@@ -1,5 +1,3 @@
-use crate::license_manager;
-use crate::model::device::DeviceId;
 use crate::model::settings::SettingsSystemDetails;
 use anyhow::Error;
 use chrono::{Duration, Utc};

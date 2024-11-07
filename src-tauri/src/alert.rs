@@ -3,13 +3,10 @@ use log::error;
 use serde_json::json;
 use tauri::{AppHandle, Manager, Runtime};
 
-use crate::tracking::Tracking;
 use crate::SettingsDetailsState;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 use tauri_plugin_aptabase::EventTracker;
-use tauri_plugin_http::reqwest::blocking::ClientBuilder;
-use tauri_specta::Event;
 use urlencoding::encode;
 
 const WINDOW_LABEL: &str = "alert";

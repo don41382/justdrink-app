@@ -6,16 +6,13 @@ use std::thread::spawn;
 use tauri::ActivationPolicy;
 
 use crate::alert::Alert;
-use crate::license_manager::{LicenseStatus, ValidTypes};
-use crate::model::license::LicenseInfoStatus;
-use crate::model::session::{Exercise, SessionDetail};
+use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsTabs;
 use crate::{
-    alert, countdown_timer, fullscreen, model, settings_window, start_first_session_, tracking,
+    countdown_timer, fullscreen, model, settings_window, start_first_session_, tracking,
     updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState,
     TrackingState,
 };
-use tauri::webview::PageLoadEvent;
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 

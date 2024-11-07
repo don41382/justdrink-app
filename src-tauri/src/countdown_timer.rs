@@ -1,7 +1,7 @@
 use crate::pretty_time::PrettyTime;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use std::cmp::{max, min};
+use std::cmp::max;
 use std::ops::Add;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;

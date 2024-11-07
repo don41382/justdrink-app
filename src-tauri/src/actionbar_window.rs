@@ -1,6 +1,5 @@
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
 use crate::{countdown_timer, CountdownTimerState};
-use tauri::menu::Menu;
 use tauri::{AppHandle, Manager, Runtime};
 
 pub(crate) const WINDOW_LABEL: &'static str = "actionbar";

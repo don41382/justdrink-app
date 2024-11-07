@@ -2,7 +2,7 @@ use crate::alert::Alert;
 use crate::countdown_timer::{CountdownEvent, CountdownTimer, PauseOrigin, TimerStatus};
 use crate::model::settings::SettingsTabs;
 use crate::pretty_time::PrettyTime;
-use crate::{actionbar_window, alert, session_window, settings_window, updater_window};
+use crate::{actionbar_window, session_window, settings_window, updater_window};
 use anyhow::anyhow;
 use std::time::Duration;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
@@ -16,8 +16,6 @@ use tauri_specta::Event;
 const TRAY_ID: &'static str = "tray";
 
 pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
-    let timer = main_app.state::<CountdownTimer>();
-
     let menu_status = MenuItem::with_id(main_app, "dashboard", "Dashboard", true, None::<&str>)?;
     let menu_timer_control = MenuItem::with_id(
         main_app,

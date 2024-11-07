@@ -1,4 +1,4 @@
-use crate::model::session::{Exercise, SessionDetail, SessionId};
+use crate::model::session::{Exercise, SessionId};
 use rand::seq::IteratorRandom;
 use std::collections::HashSet;
 
