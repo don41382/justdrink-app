@@ -38,7 +38,9 @@
     "os:allow-hostname",
     "os:allow-os-type",
     "process:allow-restart",
-    "updater:default",
-    "updater:allow-download-and-install"
+    "updater:allow-check",
+    "updater:allow-download-and-install",
+    "updater:allow-download",
+    "updater:allow-install"
   ]
 }

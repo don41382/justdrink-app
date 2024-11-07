@@ -1,11 +1,11 @@
 <script lang="ts">
-    import {info} from "@tauri-apps/plugin-log";
+    import {info, warn} from "@tauri-apps/plugin-log";
     import {commands} from "../../bindings";
     import {relaunch} from "@tauri-apps/plugin-process";
     import AutoSize from "../AutoSize.svelte";
     import type {StateType} from "./stateType";
 
-    let { data } = $props();
+    let {data} = $props();
     let error: string | null = $state(data.error);
     let currentState: StateType = $state(data.initialState);
 
@@ -42,17 +42,16 @@
             }).catch(async (err) => {
                 currentState = "error"
                 error = err
-            }).then(async (_) => {
-                if (currentState != "error") {
-                    await info("download finished, relaunch")
-                    setTimeout(() => {
-                        relaunch().catch(async (err) => {
-                            currentState = "error"
-                            error = `Unable to relaunch: ${err}`
-                        })
-                    }, 1000);
-                }
-            });
+            })
+
+            if (currentState == "finished") {
+                await relaunch().catch(async (err) => {
+                    currentState = "error"
+                    error = `Unable to relaunch: ${err}`
+                })
+            } else {
+                await warn(`unknown update status: ${currentState}`)
+            }
         }
     }
 
