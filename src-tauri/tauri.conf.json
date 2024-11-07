@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-schema-generator/schemas/config.schema.json",
   "productName": "Motion Minute",
-  "version": "0.1.20",
+  "version": "0.1.19",
   "identifier": "com.rocketsolutions.motionminute",
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdEMjUyRTFFNDE2RkRBNDEKUldSQjJtOUJIaTRsZlpJcFpEYTRrT0ZLTHRpZldqWkdLNHRqWHJvNDdCUnhsUVdPcUNtM0xud08K",
       "endpoints": [
-        "https://github.com/don41382/motion-minute-app-releases/releases/latest/download/latest.json"
+        "https://motionminute.app/app/v1/updater/latest.json"
       ],
       "dangerousInsecureTransportProtocol": true
     }
