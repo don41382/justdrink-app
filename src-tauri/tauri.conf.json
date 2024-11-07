@@ -7,7 +7,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdEMjUyRTFFNDE2RkRBNDEKUldSQjJtOUJIaTRsZlpJcFpEYTRrT0ZLTHRpZldqWkdLNHRqWHJvNDdCUnhsUVdPcUNtM0xud08K",
       "endpoints": [
-        "http://localhost:8000/update.json"
+        "https://github.com/don41382/motion-minute-app-releases/releases/latest/download/latest.json"
       ],
       "dangerousInsecureTransportProtocol": true
     }
