@@ -5,8 +5,8 @@
 
 
 export const commands = {
-async alertLogClientError(error: string) : Promise<void> {
-    await TAURI_INVOKE("alert_log_client_error", { error });
+async alertLogClientError(title: string, message: string, error: string) : Promise<void> {
+    await TAURI_INVOKE("alert_log_client_error", { title, message, error });
 },
 async getCurrentTimerStatus() : Promise<TimerStatus> {
     return await TAURI_INVOKE("get_current_timer_status");

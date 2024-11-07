@@ -3,11 +3,14 @@
     import {commands} from "../../bindings";
     import {relaunch} from "@tauri-apps/plugin-process";
     import AutoSize from "../AutoSize.svelte";
-    import type {StateType} from "./stateType";
+    import type {UpdateState} from "./updateState";
+    import {onMount} from "svelte";
+
+    type ProgressStatus = "inactive" | "running" | "finished";
 
     let {data} = $props();
-    let error: string | null = $state(data.error);
-    let currentState: StateType = $state(data.initialState);
+    let currentState: UpdateState = $state.raw(data.updateState);
+    let progressStatus: ProgressStatus = $state.raw("inactive")
 
     let downloaded = $state(0);
     let total = $state(0);
@@ -18,39 +21,36 @@
         await commands.updaterClose();
     }
 
+
     async function installUpdate() {
-        if (data.update) {
-            await data.update.downloadAndInstall(async (event) => {
+        if (currentState.state === "updateAvailable") {
+            await currentState.update.downloadAndInstall(async (event) => {
                 switch (event.event) {
                     case 'Started':
-                        currentState = "started"
+                        progressStatus = "running"
                         downloaded = 0;
                         total = event.data.contentLength ?? 0;
                         break;
                     case 'Progress':
-                        if (currentState != "progress") {
-                            currentState = "progress"
-                        }
                         downloaded += event.data.chunkLength;
                         break;
                     case 'Finished':
-                        await info("finished download")
-                        currentState = "finished"
-                        downloaded = total
+                        if (currentState.state === "updateAvailable") {
+                            await info("finished download")
+                            progressStatus = "finished"
+                            downloaded = total
+                        }
                         break;
                 }
-            }).catch(async (err) => {
-                currentState = "error"
-                error = err
+            }).catch((err) => {
+                commands.alertLogClientError("Update Error", `Could not update Motion Minute: ${err}`, `Error while updating: ${err}`);
             })
 
-            if (currentState == "finished") {
+            if (currentState.state == "updateAvailable" && progressStatus === "finished") {
+                await info("relaunch application")
                 await relaunch().catch(async (err) => {
-                    currentState = "error"
-                    error = `Unable to relaunch: ${err}`
+                    await commands.alertLogClientError("Update Error", "Application relaunch failed. Please try restarting manually.", `Unable to relaunch: ${err}`);
                 })
-            } else {
-                await warn(`unknown update status: ${currentState}`)
             }
         }
     }
@@ -58,13 +58,13 @@
 </script>
 
 <AutoSize class="bg-white w-[500px] rounded-lg border-mm-blue-50 border-2 outline-mm-blue p-6">
-    {#if data.update}
+    {#if currentState.state === "updateAvailable"}
         <!-- Logo and Update Info -->
         <div class="flex items-start mb-4">
             <img src="{data.iconPath}" alt="App Logo" class="w-14 h-14 mr-4">
             <div>
                 <h1 class="text-xl font-semibold text-gray-800">Update Available</h1>
-                <p class="text-gray-500">New version: <b>{data.update.version}</b></p>
+                <p class="text-gray-500">New version: <b>{currentState.update.version}</b></p>
             </div>
         </div>
 
@@ -72,7 +72,7 @@
             latest version?</p>
 
         <!-- Progress bar (visible when download starts) -->
-        {#if currentState === "started" || currentState === "progress"}
+        {#if progressStatus === "running"}
             <div class="mb-4">
                 <div class="w-full bg-gray-200 rounded-full h-2.5">
                     <div class="bg-blue-500 h-2.5 rounded-full" style="width: {percentage}%;"></div>
@@ -82,7 +82,7 @@
         {/if}
 
         <div class="flex justify-end space-x-3">
-            {#if currentState === "init"}
+            {#if progressStatus === "inactive"}
                 <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
                         onclick={async () => closeWindow()}>
                     Later
@@ -91,48 +91,31 @@
                         onclick={async () => installUpdate()}>
                     Update Now
                 </button>
-            {:else if currentState === "finished"}
-                <p>Please wait, restarting ....</p>
-            {:else if currentState === "error"}
-                <p>Error while updating: {error}</p>
-                <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                        onclick={async () => closeWindow()}>
-                    Close
-                </button>
+            {:else if progressStatus === "running"}
+                <p>Updating ...</p>
+            {:else if progressStatus === "finished"}
+                <p>Please wait while application restarts ....</p>
             {/if}
         </div>
+    {:else if currentState.state === "upToDate"}
+        <!-- Logo and Update Info -->
+        <div class="flex items-start mb-4">
+            <img src="{data.iconPath}" alt="App Logo" class="w-14 h-14 mr-4">
+            <div>
+                <h1 class="text-xl font-semibold text-gray-800">Up to date.</h1>
+                <p class="text-gray-500">Their is no newer version.</p>
+            </div>
+        </div>
+
+        <p class="text-gray-600 mb-6">You are currently on the newest version. Please check later.</p>
+
+        <div class="flex justify-end space-x-3">
+            <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
+                    onclick={async () => closeWindow()}>
+                Close
+            </button>
+        </div>
     {:else}
-        {#if currentState === "newest" }
-            <!-- Logo and Update Info -->
-            <div class="flex items-start mb-4">
-                <img src="{data.iconPath}" alt="App Logo" class="w-14 h-14 mr-4">
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-800">Up to date.</h1>
-                    <p class="text-gray-500">Their is no newer version.</p>
-                </div>
-            </div>
-
-            <p class="text-gray-600 mb-6">You are currently on the newest version. Please check later.</p>
-
-            <div class="flex justify-end space-x-3">
-                <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                        onclick={async () => closeWindow()}>
-                    Close
-                </button>
-            </div>
-        {:else if currentState === "error"}
-            <h1 class="text-xl font-normal text-amber-950 mb-4">Error on Update.</h1>
-            <p class="text-gray-600 mb-6">{error}</p>
-            <div class="flex justify-end space-x-3">
-                <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                        onclick={async () => closeWindow()}>
-                    Close
-                </button>
-            </div>
-        {:else if currentState === "finished"}
-            <h1 class="font-normal text-gray-800">Please wait, checking version ...</h1>
-        {:else}
-            <h1 class="font-normal text-gray-800">Please wait, checking update ...</h1>
-        {/if}
+        <h1 class="text-xl font-normal text-amber-950 mb-4">Unknown state.</h1>
     {/if}
 </AutoSize>

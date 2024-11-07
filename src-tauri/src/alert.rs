@@ -100,8 +100,13 @@ fn show_alert<R: Runtime>(
 
 #[specta::specta]
 #[tauri::command]
-pub fn alert_log_client_error(app: AppHandle, error: String) {
-    app.alert("Client Error", "There was an error while running UI. If the error persists, please contact me at info@rocket-solutions.de. Thanks.", Some(anyhow::anyhow!(error)), false)
+pub fn alert_log_client_error(app: AppHandle, title: String, message: String, error: String) {
+    app.app_handle().alert(
+        title.as_str(),
+        message.as_str(),
+        Some(anyhow::Error::msg(error)),
+        false
+    );
 }
 
 #[specta::specta]
