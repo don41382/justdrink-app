@@ -24,6 +24,7 @@
 
     async function installUpdate() {
         if (currentState.state === "updateAvailable") {
+            let error = false;
             await currentState.update.downloadAndInstall(async (event) => {
                 switch (event.event) {
                     case 'Started':
@@ -35,27 +36,23 @@
                         downloaded += event.data.chunkLength;
                         break;
                     case 'Finished':
-                        if (currentState.state === "updateAvailable") {
-                            await info("finished download")
-                            progressStatus = "finished"
-                            downloaded = total
-                        } else {
-                            progressStatus = "inactive"
-                        }
+                        await info("finished download")
+                        progressStatus = "finished"
+                        downloaded = total
                         break;
                 }
             }).catch((err) => {
+                error = true;
                 commands.alertLogClientError("Update Error", `Could not update Motion Minute: ${err}`, `Error while updating: ${err}`);
             })
-
-            if (currentState.state == "updateAvailable" && progressStatus === "finished") {
-                await info("relaunch application")
-                await relaunch().catch(async (err) => {
-                    await commands.alertLogClientError("Update Error", "Application relaunch failed. Please try restarting manually.", `Unable to relaunch: ${err}`);
-                })
-            } else {
-                await commands.alertLogClientError("Update Error", "Application relaunch failed. Please try restarting manually.", `Unable to relaunch: state ${currentState.state}, progress: ${progressStatus}`);
-            }
+            setTimeout(async () => {
+                if (!error) {
+                    await info("relaunch after update")
+                    await relaunch().catch(async (err) => {
+                        await commands.alertLogClientError("Update Error", "Application relaunch failed. Please try restarting manually.", `Unable to relaunch: ${err}`);
+                    })
+                }
+            }, 2000);
         }
     }
 
