@@ -66,6 +66,7 @@ fn start_first_session_(
             active: true,
             next_break_duration_minutes,
             allow_tracking: true,
+            enable_idle_detection: true,
             enable_on_startup,
         },
         true,

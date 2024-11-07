@@ -21,6 +21,7 @@ const DEFAULT_SESSION: SettingsUserDetails = SettingsUserDetails {
     active: true,
     allow_tracking: true,
     enable_on_startup: true,
+    enable_idle_detection: true,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

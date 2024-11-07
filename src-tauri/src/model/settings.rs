@@ -31,6 +31,13 @@ pub struct SettingsUserDetails {
     pub(crate) active: bool,
     pub(crate) allow_tracking: bool,
     pub(crate) enable_on_startup: bool,
+
+    #[serde(default = "default_enable_idle_detection")]
+    pub(crate) enable_idle_detection: bool,
+}
+
+fn default_enable_idle_detection() -> bool {
+    true
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

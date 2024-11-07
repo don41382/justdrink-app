@@ -105,7 +105,7 @@ export type SessionId = string
 export type SessionStartEvent = { details: SessionDetail }
 export type Settings = { app: AppDetails; user: SettingsUserDetails; selected_tab: SettingsTabs }
 export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
-export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean }
+export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean; enable_idle_detection?: boolean }
 export type TimerStatus = { NotStarted: number } | { Active: number } | { Paused: [PauseOrigin, number] } | "Finished"
 
 /** tauri-specta globals **/
