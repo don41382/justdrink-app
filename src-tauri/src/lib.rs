@@ -87,6 +87,7 @@ type LicenseManagerState = Mutex<license_manager::LicenseManager>;
 pub fn run() {
     let builder = build_typescript_interfaces(
         collect_commands![
+            alert::alert_log_client_error,
             actionbar_window::get_current_timer_status,
             actionbar_window::toggle_timer,
             actionbar_window::timer_change,

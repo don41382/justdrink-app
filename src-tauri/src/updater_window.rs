@@ -87,16 +87,17 @@ where
             WINDOW_LABEL,
             tauri::WebviewUrl::App("/updater".into()),
         )
-        .title("New version is available")
-        .resizable(false)
-        .always_on_top(true)
-        .transparent(true)
-        .decorations(false)
-        .skip_taskbar(true)
-        .resizable(true)
-        .transparent(true)
-        .shadow(true)
-        .build()?;
+            .title("New version is available")
+            .resizable(false)
+            .visible(false)
+            .always_on_top(true)
+            .transparent(true)
+            .decorations(false)
+            .skip_taskbar(true)
+            .resizable(true)
+            .transparent(true)
+            .shadow(true)
+            .build()?;
     }
 
     Ok(())

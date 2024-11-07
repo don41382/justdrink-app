@@ -19,7 +19,7 @@ pub trait Alert {
 }
 
 impl Alert for AppHandle {
-    fn alert(&self, title: &str, message: &str, error: Option<Error>, silence: bool) -> () {
+    fn alert(&self, title: &str, message: &str, error: Option<anyhow::Error>, silence: bool) -> () {
         let allow_sending_error = self
             .state::<SettingsDetailsState>()
             .try_lock()
@@ -99,6 +99,12 @@ fn show_alert<R: Runtime>(
     .build()?;
 
     Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn alert_log_client_error(app: AppHandle, error: String) {
+    app.alert("Client Error", "There was an error while running UI. If the error persists, please contact me at info@rocket-solutions.de. Thanks.", Some(anyhow::anyhow!(error)), false)
 }
 
 #[specta::specta]

@@ -1,0 +1,1 @@
+export type StateType = "init" | "started" | "progress" | "finished" | "newest" | "error"

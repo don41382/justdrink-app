@@ -1,36 +1,30 @@
 <script lang="ts">
 
     import {onDestroy, onMount} from "svelte";
-    import {fitAndShowWindow} from "../../helper";
     import Icon from "@iconify/svelte";
-    import * as tauri_path from "@tauri-apps/api/path";
-    import {convertFileSrc} from "@tauri-apps/api/core";
     import {commands, events, type TimerStatus} from "../../bindings";
     import type {UnlistenFn} from "@tauri-apps/api/event";
     import {getCurrentWindow} from "@tauri-apps/api/window";
+    import AutoSize from "../AutoSize.svelte";
 
-    let contentDiv: HTMLDivElement
     let countdownUnlistenFn: UnlistenFn;
 
-    let icon_path = $state("");
+
+    let {data} = $props();
+    let iconPath = $state(data.iconPath);
+
+    let ready = $state(false);
+
     let countdown = $state({
         time: '',
         pause: false
     });
 
-    $effect.pre(() => {
-        tauri_path.resourceDir().then(async resource_dir => {
-            icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
-            await updateTimer();
-            await fitAndShowWindow(contentDiv);
-        });
-    });
-
-
     onMount(async () => {
         countdownUnlistenFn = await events.countdownEvent.listen(async (data) => {
             countdown.time = formatTime(getSeconds(data.payload.status));
             countdown.pause = isPause(data.payload.status);
+            ready = true;
         });
     })
 
@@ -127,12 +121,12 @@
 
 </script>
 
-<div bind:this={contentDiv}
-     class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg">
+<AutoSize class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg"
+          ready={ready}>
     <!-- Header with Icon and Title -->
     <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-2 mr-16">
-            <img alt="mm" class="w-8 h-8" src="{icon_path}">
+            <img alt="mm" class="w-8 h-8" src="{iconPath}">
             <p class="text-xl font-semibold text-left whitespace-nowrap">Motion Minute</p>
         </div>
         <div class="flex space-x-2 justify-end">
@@ -155,7 +149,8 @@
         </div>
         <div class="w-full border-b-2 border-white/70"></div>
         <div class="flex items-stretch w-full rounded-b-2xl">
-            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-800 hover:text-white p-6 rounded-bl-2xl" onclick={async () => await toggleTimer()}>
+            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-800 hover:text-white p-6 rounded-bl-2xl"
+                    onclick={async () => await toggleTimer()}>
                 {#if countdown.pause}
                     <Icon class="w-8 h-8" icon="iconoir:play"/>
                     <span class="text-lg font-light tracking-wide">Run</span>
@@ -165,10 +160,11 @@
                 {/if}
             </button>
             <div class="border-l-2 border-white/70"></div>
-            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-mm-orange-400 hover:text-white p-6 rounded-br-2xl" onclick={async () => { await startSession() }}>
+            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-mm-orange-400 hover:text-white p-6 rounded-br-2xl"
+                    onclick={async () => { await startSession() }}>
                 <Icon class="w-8 h-8" icon="hugeicons:workout-warm-up"/>
                 <span class="text-lg font-light tracking-wide">Start Now</span>
             </button>
         </div>
     </div>
-</div>
+</AutoSize>

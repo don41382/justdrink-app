@@ -1,81 +1,53 @@
 <script lang="ts">
-    import {check, Update} from '@tauri-apps/plugin-updater';
-    import {onMount} from "svelte";
-    import {debug, info} from "@tauri-apps/plugin-log";
+    import {info} from "@tauri-apps/plugin-log";
     import {commands} from "../../bindings";
-    import * as tauri_path from "@tauri-apps/api/path";
-    import {convertFileSrc} from "@tauri-apps/api/core";
-    import {fitAndShowWindow} from "../../helper";
     import {relaunch} from "@tauri-apps/plugin-process";
+    import AutoSize from "../AutoSize.svelte";
+    import type {StateType} from "./stateType";
+
+    let { data } = $props();
+    let error: string | null = $state(data.error);
+    let currentState: StateType = $state(data.initialState);
 
     let downloaded = $state(0);
     let total = $state(0);
 
-    let contentDiv: HTMLDivElement;
-
-    type StateType = "init" | "started" | "progress" | "finished" | "newest" | "error"
-
     let percentage = $derived(parseFloat((total > 0 ? (downloaded / total) * 100 : 0).toFixed(0)));
-
-    let error: string = $state(undefined);
-
-    let state: StateType = $state("init")
-    let icon_path = $state("")
-
-    let update: Update | null = $state(null);
 
     async function closeWindow() {
         await commands.updaterClose();
     }
 
-    $effect.pre(() => {
-        tauri_path.resourceDir().then(resource_dir => {
-            icon_path = convertFileSrc(`${resource_dir}/icons/128x128.png`);
-            check().then(async (res) => {
-                if (res == null) {
-                    state = "newest"
-                }
-                update = res;
-                await fitAndShowWindow(contentDiv);
-            }).catch(async (e) => {
-                await info(`error while checking for update: ${e}`)
-                error = `Error while checking for update: ${e}`
-                state = "error"
-                await fitAndShowWindow(contentDiv);
-            });
-        });
-    });
-
     async function installUpdate() {
-        if (update) {
-            await update.downloadAndInstall(async (event) => {
+        if (data.update) {
+            await data.update.downloadAndInstall(async (event) => {
                 switch (event.event) {
                     case 'Started':
-                        state = "started"
+                        currentState = "started"
                         downloaded = 0;
                         total = event.data.contentLength ?? 0;
                         break;
                     case 'Progress':
-                        if (state != "progress") {
-                            state = "progress"
+                        if (currentState != "progress") {
+                            currentState = "progress"
                         }
                         downloaded += event.data.chunkLength;
                         break;
                     case 'Finished':
                         await info("finished download")
-                        state = "finished"
+                        currentState = "finished"
                         downloaded = total
                         break;
                 }
             }).catch(async (err) => {
-                state = "error"
+                currentState = "error"
                 error = err
             }).then(async (_) => {
-                if (state != "error") {
+                if (currentState != "error") {
                     await info("download finished, relaunch")
                     setTimeout(() => {
                         relaunch().catch(async (err) => {
-                            state = "error"
+                            currentState = "error"
                             error = `Unable to relaunch: ${err}`
                         })
                     }, 1000);
@@ -86,14 +58,14 @@
 
 </script>
 
-<div bind:this={contentDiv} class="bg-white rounded-lg border-mm-blue-50 border-2 outline-mm-blue w-full p-6">
-    {#if update}
+<AutoSize class="bg-white w-[500px] rounded-lg border-mm-blue-50 border-2 outline-mm-blue p-6">
+    {#if data.update}
         <!-- Logo and Update Info -->
         <div class="flex items-start mb-4">
-            <img src="{icon_path}" alt="App Logo" class="w-14 h-14 mr-4">
+            <img src="{data.iconPath}" alt="App Logo" class="w-14 h-14 mr-4">
             <div>
                 <h1 class="text-xl font-semibold text-gray-800">Update Available</h1>
-                <p class="text-gray-500">New version: <b>{update.version}</b></p>
+                <p class="text-gray-500">New version: <b>{data.update.version}</b></p>
             </div>
         </div>
 
@@ -101,7 +73,7 @@
             latest version?</p>
 
         <!-- Progress bar (visible when download starts) -->
-        {#if state === "started" || state === "progress"}
+        {#if currentState === "started" || currentState === "progress"}
             <div class="mb-4">
                 <div class="w-full bg-gray-200 rounded-full h-2.5">
                     <div class="bg-blue-500 h-2.5 rounded-full" style="width: {percentage}%;"></div>
@@ -111,7 +83,7 @@
         {/if}
 
         <div class="flex justify-end space-x-3">
-            {#if state === "init"}
+            {#if currentState === "init"}
                 <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
                         onclick={async () => closeWindow()}>
                     Later
@@ -120,9 +92,9 @@
                         onclick={async () => installUpdate()}>
                     Update Now
                 </button>
-            {:else if state === "finished"}
+            {:else if currentState === "finished"}
                 <p>Please wait, restarting ....</p>
-            {:else if state === "error"}
+            {:else if currentState === "error"}
                 <p>Error while updating: {error}</p>
                 <button class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
                         onclick={async () => closeWindow()}>
@@ -131,10 +103,10 @@
             {/if}
         </div>
     {:else}
-        {#if state === "newest" }
+        {#if currentState === "newest" }
             <!-- Logo and Update Info -->
             <div class="flex items-start mb-4">
-                <img src="{icon_path}" alt="App Logo" class="w-14 h-14 mr-4">
+                <img src="{data.iconPath}" alt="App Logo" class="w-14 h-14 mr-4">
                 <div>
                     <h1 class="text-xl font-semibold text-gray-800">Up to date.</h1>
                     <p class="text-gray-500">Their is no newer version.</p>
@@ -149,7 +121,7 @@
                     Close
                 </button>
             </div>
-        {:else if state === "error"}
+        {:else if currentState === "error"}
             <h1 class="text-xl font-normal text-amber-950 mb-4">Error on Update.</h1>
             <p class="text-gray-600 mb-6">{error}</p>
             <div class="flex justify-end space-x-3">
@@ -158,10 +130,10 @@
                     Close
                 </button>
             </div>
-        {:else if state === "finished"}
+        {:else if currentState === "finished"}
             <h1 class="font-normal text-gray-800">Please wait, checking version ...</h1>
         {:else}
             <h1 class="font-normal text-gray-800">Please wait, checking update ...</h1>
         {/if}
     {/if}
-</div>
+</AutoSize>

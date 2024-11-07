@@ -2,18 +2,20 @@
     import {commands, events, type Settings, type SettingsUserDetails, type SettingsTabs} from '../../bindings';
     import {onMount} from 'svelte';
     import {getCurrentWindow} from "@tauri-apps/api/window";
-    import {info} from "@tauri-apps/plugin-log";
+    import {debug, info} from "@tauri-apps/plugin-log";
     import Icon from "@iconify/svelte";
     import Session from "./Settings.svelte";
     import Tracking from "./Tracking.svelte";
     import About from "./About.svelte";
     import License from "./License.svelte";
+    import AutoSize from "../AutoSize.svelte";
 
-    let settings: Settings | undefined = undefined;
+    let { data } = $props()
+    let settings = $state(data.settings)
 
     const params = new URLSearchParams(window.location.search);
 
-    let currentPage: SettingsTabs =  toSettingsTab(params.get("settings_tab"));
+    let currentPage: SettingsTabs =  $state(toSettingsTab(params.get("settings_tab")));
 
     type Page = {
         name: SettingsTabs;
@@ -27,15 +29,6 @@
         {name: 'License', label: 'License', icon: 'material-symbols-light:license-outline'},
         {name: 'About', label: 'About', icon: 'material-symbols-light:info-outline'}
     ];
-
-
-    onMount(async () => {
-        await info("mount settings window")
-        settings = await commands.loadSettings();
-        const window = getCurrentWindow();
-        await window.show();
-        await window.setFocus();
-    });
 
     async function updateSettings(updatedSettings: SettingsUserDetails) {
         if (settings) {
@@ -58,7 +51,7 @@
     document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
-<div class="cursor-default bg-gray-100 font-sans rounded-b-2xl h-screen flex overflow-hidden">
+<AutoSize class="cursor-default w-[800px] h-[500px] bg-gray-100 rounded-b-2xl flex overflow-x-hidden" ready={true}>
     {#if settings}
         <!-- Sidebar -->
         <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
@@ -100,4 +93,4 @@
     {:else}
         <h2>Loading ...</h2>
     {/if}
-</div>
+</AutoSize>

@@ -175,7 +175,6 @@ where
         tauri::WebviewUrl::App(format!("/settings?settings_tab={:?}", selected_tab).into()),
     )
     .title("Settings")
-    .inner_size(800.0, 400.0)
     .center()
     .visible(false)
     .always_on_top(true)
