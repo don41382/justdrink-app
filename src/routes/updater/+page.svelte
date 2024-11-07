@@ -10,7 +10,7 @@
 
     let {data} = $props();
     let currentState: UpdateState = $state.raw(data.updateState);
-    let progressStatus: ProgressStatus = $state.raw("inactive")
+    let progressStatus: ProgressStatus = $state("inactive")
 
     let downloaded = $state(0);
     let total = $state(0);
@@ -39,6 +39,8 @@
                             await info("finished download")
                             progressStatus = "finished"
                             downloaded = total
+                        } else {
+                            progressStatus = "inactive"
                         }
                         break;
                 }
@@ -51,6 +53,8 @@
                 await relaunch().catch(async (err) => {
                     await commands.alertLogClientError("Update Error", "Application relaunch failed. Please try restarting manually.", `Unable to relaunch: ${err}`);
                 })
+            } else {
+                await commands.alertLogClientError("Update Error", "Application relaunch failed. Please try restarting manually.", `Unable to relaunch: state ${currentState.state}, progress: ${progressStatus}`);
             }
         }
     }
