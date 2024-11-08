@@ -1,16 +1,18 @@
 <script lang="ts">
-    import { fade } from 'svelte/transition';
-    import { onDestroy } from 'svelte';
-    import { createEventDispatcher } from 'svelte';
+    import {fade} from 'svelte/transition';
+    import {onDestroy, onMount} from 'svelte';
+    import {createEventDispatcher} from 'svelte';
+    import Icon from "@iconify/svelte";
 
-    export let classes: string = '';
     export let advices: string[];
 
     let currentMessageIndex = 0;
     let currentMessage = advices[currentMessageIndex];
-    let visible = true;
+    let visible = false;
 
-    const dispatch = createEventDispatcher();
+    onMount(() => {
+        visible = true;
+    })
 
     function nextMessage() {
         visible = false; // Start fade-out
@@ -20,8 +22,9 @@
         // Update the message after fade-out completes
         currentMessageIndex = (currentMessageIndex + 1) % advices.length;
         currentMessage = advices[currentMessageIndex];
-        visible = true; // Start fade-in
-        dispatch('messageChange', { message: currentMessage });
+        setTimeout(() => {
+            visible = true;
+        }, 500);
     }
 
     const interval = setInterval(nextMessage, 6000);
@@ -31,15 +34,16 @@
     });
 </script>
 
-<div class="text-2xl font-extralight italic leading-normal text-center w-full items-center {classes}">
-    {#if advices.length > 0}
-        {#if visible}
-            <div class="text-center"
-                    transition:fade={{ duration: 2000 }}
-                    on:outroend={handleOutroEnd}
-            >
-                {currentMessage}
+{#if advices.length > 0}
+    {#if visible}
+        <div class="flex"
+             in:fade={{ duration: 1000 }}
+             out:fade={{ duration: 1000 }}
+             on:outroend={handleOutroEnd}>
+            <div class="mr-4">
+                <Icon class="size-6" icon="iconoir:info-circle"/>
             </div>
-        {/if}
+            <div>{currentMessage}</div>
+        </div>
     {/if}
-</div>
+{/if}

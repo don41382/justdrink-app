@@ -132,30 +132,34 @@
 
         <BackgroundVideo bind:backgroundVideoLoaded={backgroundLoadingFinished}/>
 
-        <div class="relative z-20 flex flex-col">
+        <div class="relative z-20 flex flex-col px-10 pt-7">
             {#if exercise !== undefined && countdownSeconds !== undefined}
-                <div class="flex-none text-center mt-20 px-48">
-                    <h1 class="text-8xl text-mm-blue font-bold mb-4">{exercise.title}</h1>
-                    <h1 class="text-4xl text-mm-purple font-normal mb-16">{exercise.description}</h1>
-                </div>
-                <div class="flex flex-grow items-center px-80 {(backgroundLoadingFinished) ? '' : 'hidden'}">
-                    <AdviceMessage advices={exercise.advices}/>
+                <div class="flex-none text-left">
+                    <h1 class="text-6xl text-mm-blue font-bold mb-4">{exercise.title}</h1>
+                    <h1 class="text-4xl text-mm-purple font-light mb-16 w-1/2">{exercise.description}</h1>
                 </div>
             {/if}
         </div>
         {#if exercise}
             <div class="absolute bottom-0 z-10 w-full flex items-center justify-center">
                 <div out:fade={{ duration: 1000 }}>
-                    <VideoPlayer filename="{exercise.id}" class="max-h-[500px] h-auto"/>
+                    <VideoPlayer filename="{exercise.id}" class="max-h-[80vh] h-auto"/>
                 </div>
             </div>
         {/if}
-        <div class="absolute top-14 right-14 z-20 text-gray-600 flex flex-col items-center">
-            {#if license && (license.status === 'Trail' || license.status === 'Invalid')}
+        <div class="absolute bottom-7 right-10 z-20 text-gray-600 flex flex-col items-center">
+            {#if license && (license.status === 'Paid' || license.status === 'Invalid')}
                 <span class="text-black">{license.message}</span>
             {/if}
         </div>
-        <div class="absolute bottom-14 right-14 z-20 text-gray-600 flex flex-col items-center">
+        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-gray-600 flex flex-col">
+            {#if exercise !== undefined && countdownSeconds !== undefined}
+                <div class="text-lg font-light">
+                    <AdviceMessage advices={exercise.advices}/>
+                </div>
+            {/if}
+        </div>
+        <div class="absolute top-7 right-10 z-20 text-gray-600 flex flex-col items-center">
             <div class="text-3xl mb-6">
                 {#if countdownSeconds && countdownSeconds > 0}
                 <span in:fade={{ duration: 1000 }}
