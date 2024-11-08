@@ -20,26 +20,42 @@
 
     info("Initialized Session Window")
 
+    let {data} = $props()
+
     const fadeOutDurationSeconds = 2
 
-    let exercise: Exercise | undefined = undefined;
-    let license: LicenseInfo | undefined = undefined;
+    const exercise: Exercise = data.sessionDetail.exercise
+    let license: LicenseInfo = data.sessionDetail.license_info
 
-    let countdownSeconds: number | undefined;
-    let countdownInterval: number | undefined;
-
-    let backgroundLoadingFinished: boolean = false;
+    let countdownSeconds: number | undefined = $state(data.sessionDetail.exercise.duration_s)
+    let countdownInterval: number | undefined = $state(undefined);
+    let backgroundLoadingFinished: boolean = $state(false);
 
     let music: AudioPlayer;
     let finishSound: HTMLAudioElement;
 
-    let show = true;
+    let show = $state(true);
 
-    function setup(details: SessionDetail) {
-        license = details.license_info
-        exercise = details.exercise
-        countdownSeconds = details.exercise.duration_s
+    onMount(async () => {
+        await info(`mount session window: ${data.backgroundVideoSrc}`)
+        await init().catch((err) => {
+            commands.alertLogClientError(
+                "Session Error",
+                `Session could not be started. Reason: ${err}`,
+                `error during init: ${err}`);
+        })
+    });
 
+    async function init() {
+        finishSound.src = data.finishSound
+        music.play();
+        startTimer();
+
+        const window = getCurrentWindow()
+        await window.setFocus()
+    }
+
+    function startTimer() {
         countdownInterval = window.setInterval(() => {
             if (countdownSeconds) {
                 countdownSeconds -= 1;
@@ -52,42 +68,18 @@
                     finishSound.play();
                 }
 
-                if (countdownSeconds < 1) {
+                /*if (countdownSeconds < 1) {
                     show = false;
-                }
+                }*/
             }
         }, 1000);
     }
-
-    async function init() {
-        let resource_dir = await tauri_path.resourceDir();
-        finishSound.src = convertFileSrc(`${resource_dir}/audio/session-end.mp3`)
-        music.play();
-
-        let sessionDetail = await commands.loadSessionDetails();
-        if (sessionDetail == null || sessionDetail.license_info.status == 'Invalid') {
-            closeApp("Error")
-        } else {
-            setup(sessionDetail);
-            const window = getCurrentWindow()
-            await window.setFocus()
-        }
-    }
-
-    onMount(async () => {
-        await info("mount session window")
-        await init().catch((err) => {
-            error(`error during init: ${err}`);
-        })
-    });
 
     function cleanup() {
         if (countdownInterval) {
             clearInterval(countdownInterval);
         }
-        exercise = undefined;
     }
-
 
     onDestroy(() => {
         cleanup();
@@ -123,73 +115,66 @@
 
 {#if show}
     <div aria-pressed="true"
-         class="{backgroundLoadingFinished ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default"
-         out:fade={{duration: fadeOutDurationSeconds * 1000}} on:outrostart={beforeCloseApp}
-         on:outroend={() => closeApp("EndOfTime")}>
+         class="{backgroundLoadingFinished ? 'video-background-ready' : 'video-not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default backdrop-blur-lg"
+         out:fade={{duration: fadeOutDurationSeconds * 1000}} onoutrostart={beforeCloseApp}
+         onoutroend={() => closeApp("EndOfTime")}>
 
         <AudioPlayer bind:this={music} filename="session-01.mp3" initialVolume={0.4}/>
         <audio bind:this={finishSound} src="" preload="auto"></audio>
 
-        <BackgroundVideo bind:backgroundVideoLoaded={backgroundLoadingFinished}/>
+        <BackgroundVideo videoSrc={data.backgroundVideoSrc} bind:backgroundVideoLoaded={backgroundLoadingFinished}/>
 
-        <div class="relative z-20 flex flex-col px-10 pt-7">
+        <div class="absolute top-9 left-10">
             {#if exercise !== undefined && countdownSeconds !== undefined}
-                <div class="flex-none text-left">
-                    <h1 class="text-6xl text-mm-blue font-bold mb-4">{exercise.title}</h1>
-                    <h1 class="text-4xl text-mm-purple font-light mb-16 w-1/2">{exercise.description}</h1>
-                </div>
+                <h1 class="text-6xl text-white tracking-tight font-bold mb-4">{exercise.title}</h1>
+                <h1 class="text-4xl text-gray-400 font-light tracking-wide w-1/2 mb-4">{exercise.description}</h1>
+                {#if license && (license.status === 'Paid' || license.status === 'Invalid')}
+                    <span class="text-gray-500 font-light">{license.message}</span>
+                {/if}
             {/if}
         </div>
-        {#if exercise}
-            <div class="absolute bottom-0 z-10 w-full flex items-center justify-center">
+        <div class="absolute bottom-0 z-10 w-full flex items-center justify-center">
+            {#if exercise}
                 <div out:fade={{ duration: 1000 }}>
-                    <VideoPlayer filename="{exercise.id}" class="max-h-[80vh] h-auto"/>
-                </div>
-            </div>
-        {/if}
-        <div class="absolute bottom-7 right-10 z-20 text-gray-600 flex flex-col items-center">
-            {#if license && (license.status === 'Paid' || license.status === 'Invalid')}
-                <span class="text-black">{license.message}</span>
-            {/if}
-        </div>
-        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-gray-600 flex flex-col">
-            {#if exercise !== undefined && countdownSeconds !== undefined}
-                <div class="text-lg font-light">
-                    <AdviceMessage advices={exercise.advices}/>
+                    <VideoPlayer filename={data.sessionDetail.exercise.id} class="max-h-[80vh] h-auto"/>
                 </div>
             {/if}
         </div>
-        <div class="absolute top-7 right-10 z-20 text-gray-600 flex flex-col items-center">
-            <div class="text-3xl mb-6">
-                {#if countdownSeconds && countdownSeconds > 0}
-                <span in:fade={{ duration: 1000 }}
-                      out:fade={{ duration: 1000 }}>
+        <div class="absolute top-9 right-10 z-20 text-gray-300 flex flex-col items-center">
+            <div class="text-5xl font-light mb-6">
+                {#if countdownSeconds !== undefined}
+                <span in:fade={{ duration: 1000 }}>
                     {formatCountdown(countdownSeconds)}
                 </span>
                 {/if}
             </div>
 
-            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-2xl border border-gray-700 inline-flex items-center"
-                    on:click={() => closeApp("UserEscape")}>
-                {#if countdownSeconds && countdownSeconds > 0}
-                    <Icon icon="material-symbols-light:fast-forward-outline-rounded" class="mr-2" height="32"/>
-                    Skip
-                {:else}
-                    <Icon icon="material-symbols-light:check-circle-outline" class="mr-2" height="32"/>
-                    Finished
-                {/if}
+        </div>
+        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-gray-500 flex flex-col">
+            {#if exercise !== undefined && countdownSeconds !== undefined}
+                <div class="text-xl font-light">
+                    <AdviceMessage advices={exercise.advices}/>
+                </div>
+            {/if}
+        </div>
+        <div class="absolute bottom-7 right-10 z-20 flex flex-col items-center">
+            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-l border text-gray-300 border-gray-200 inline-flex items-center"
+                    onclick={() => closeApp("UserEscape")}>
+                Skip Motion
+                <Icon icon="mdi-light:arrow-right" class="ml-2 size-7"/>
             </button>
         </div>
+
     </div>
-
-    <style>
-        .video-background-ready {
-            opacity: 1.0;
-            transition: opacity 1s;
-        }
-
-        .video-not-ready {
-            opacity: 0;
-        }
-    </style>
 {/if}
+
+<style>
+    .video-background-ready {
+        opacity: 1.0;
+        transition: opacity 1s;
+    }
+
+    .video-not-ready {
+        opacity: 0;
+    }
+</style>

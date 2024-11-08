@@ -39,6 +39,7 @@ use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
+use window_vibrancy::apply_vibrancy;
 
 #[specta::specta]
 #[tauri::command]

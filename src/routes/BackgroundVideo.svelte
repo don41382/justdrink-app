@@ -1,18 +1,13 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import * as tauri_path from "@tauri-apps/api/path";
-    import { convertFileSrc } from "@tauri-apps/api/core";
+    import {onMount} from "svelte";
     import {info, warn} from "@tauri-apps/plugin-log";
 
+    export let videoSrc: string;
     export let backgroundVideoLoaded = false;
 
     let backgroundVideo: HTMLVideoElement;
 
     onMount(async () => {
-        await info("mounting background video");
-        let resource_dir = await tauri_path.resourceDir();
-        const videoSrc = convertFileSrc(`${resource_dir}/videos/bg-h264.mov`);
-
         // Create a new source element
         const source = document.createElement('source');
         source.src = videoSrc;
@@ -27,8 +22,8 @@
         backgroundVideo.appendChild(source);
 
         try {
-        // Load the video
-        backgroundVideo.load();
+            // Load the video
+            backgroundVideo.load();
         } catch (e) {
             await info(`video error: ${e}`)
         }
@@ -44,7 +39,7 @@
 <video
         autoplay
         bind:this={backgroundVideo}
-        class="absolute w-full h-full object-cover"
+        class="absolute hidden w-full h-full object-cover"
         loop
         muted
         on:canplay={setBackgroundVideoReady}
@@ -53,3 +48,4 @@
         preload="auto">
     Your browser does not support the video tag.
 </video>
+<div class="absolute bg-black/20 w-full h-full"></div>

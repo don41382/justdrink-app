@@ -16,6 +16,9 @@ use crate::{
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 
+#[cfg(target_os = "windows")]
+use window_vibrancy::apply_blur;
+
 const WINDOW_LABEL: &'static str = "session";
 
 pub fn init(app: &AppHandle<Wry>) -> EventId {
@@ -96,6 +99,11 @@ pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
 
         info!("start session window: build");
         let window = window.build()?;
+
+        #[cfg(target_os = "windows")]
+        apply_blur(&window, Some((18, 18, 18, 125)))
+            .expect("Unsupported platform! 'apply_blur' is only supported on Windows");
+
 
         info!("start session window: show window");
         window.show()?;
