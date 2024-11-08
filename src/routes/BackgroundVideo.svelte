@@ -48,4 +48,4 @@
         preload="auto">
     Your browser does not support the video tag.
 </video>
-<div class="absolute bg-black/50 w-full h-full"></div>
+<div class="absolute opacity-50 bg-gradient-to-t via-[#550370]/20 via-40% from-[#550370]/60 to-black/100 w-full h-full"></div>
