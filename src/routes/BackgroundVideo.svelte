@@ -48,4 +48,4 @@
         preload="auto">
     Your browser does not support the video tag.
 </video>
-<div class="absolute bg-black/20 w-full h-full"></div>
+<div class="absolute bg-black/50 w-full h-full"></div>
