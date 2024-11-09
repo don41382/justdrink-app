@@ -32,9 +32,11 @@ impl SessionRepository {
                     "Begin with small, slow shoulder circles to ease into the movement.",
                     "Gradually increase the range of motion, making the circles larger.",
                     "Lift your shoulders up towards your ears during the movement for added stretch.",
-                    "Breathe deeply and evenly to maximize relaxation and tension relief."]
+                    "Breathe deeply and evenly to maximize relaxation and tension relief.",
+                    "Change your rotation direction to balance your movement.",
+                ]
                     .iter().map(|s| s.to_string()).collect(),
-                duration_s: 30,
+                duration_s: 40,
                 active: true,
             },
             Exercise {
