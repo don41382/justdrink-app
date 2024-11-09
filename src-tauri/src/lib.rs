@@ -39,7 +39,6 @@ use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
-use window_vibrancy::apply_vibrancy;
 
 #[specta::specta]
 #[tauri::command]
@@ -121,6 +120,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {
+            info!("open dashboard - only on windows");
             #[cfg(target_os = "windows")]
             {
                 info!("instance of motion minute already open");

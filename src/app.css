@@ -12,7 +12,7 @@
      appearance: none;
      width: 2.5rem;
      height: 1.25rem;
-     background-color: #d1d5db;
+     background-color: #b3b0fd;
      border-radius: 9999px;
      position: relative;
      cursor: pointer;
@@ -21,7 +21,7 @@
  }
 
 .toggle-checkbox:checked {
-    background-color: #497059;
+    background-color: #cc006e;
 }
 
 .toggle-checkbox:checked::before {

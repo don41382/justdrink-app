@@ -9,7 +9,8 @@ export default {
             colors: {
                 transparent: 'transparent',
                 current: 'currentColor',
-                'primary': '#55037',
+                primary: '#9000d4',
+                secondary: '#b3b0fd',
                 'mm-blue': {
                     DEFAULT: '#53666D',
                     50: '#B3C0C5',

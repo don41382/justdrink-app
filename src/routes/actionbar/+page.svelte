@@ -149,7 +149,7 @@
         </div>
         <div class="w-full border-b-2 border-white/70"></div>
         <div class="flex items-stretch w-full rounded-b-2xl">
-            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-800 hover:text-white p-6 rounded-bl-2xl"
+            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-600 hover:text-white p-6 rounded-bl-2xl"
                     onclick={async () => await toggleTimer()}>
                 {#if countdown.pause}
                     <Icon class="w-8 h-8" icon="iconoir:play"/>
@@ -160,7 +160,7 @@
                 {/if}
             </button>
             <div class="border-l-2 border-white/70"></div>
-            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-mm-orange-400 hover:text-white p-6 rounded-br-2xl"
+            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-primary hover:text-white p-6 rounded-br-2xl"
                     onclick={async () => { await startSession() }}>
                 <Icon class="w-8 h-8" icon="hugeicons:workout-warm-up"/>
                 <span class="text-lg font-light tracking-wide">Start Now</span>

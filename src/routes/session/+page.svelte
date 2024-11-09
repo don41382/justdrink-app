@@ -128,8 +128,8 @@
 
         <div class="absolute top-9 left-10">
             {#if exercise !== undefined && countdownSeconds !== undefined}
-                <h1 class="text-6xl text-[#9000d4] tracking-tight font-bold mb-4">{exercise.title}</h1>
-                <h1 class="text-4xl text-[#b3b0fd] font-light tracking-wide w-1/2 mb-4">{exercise.description}</h1>
+                <h1 class="text-6xl text-primary tracking-tight font-bold mb-4">{exercise.title}</h1>
+                <h1 class="text-4xl text-secondary font-light tracking-wide w-1/2 mb-4">{exercise.description}</h1>
                 {#if license && (license.status === 'Paid' || license.status === 'Invalid')}
                     <span class="text-gray-500 font-light tracking-wide">{license.message}</span>
                 {/if}
@@ -143,15 +143,21 @@
             {/if}
         </div>
         <div class="absolute top-9 right-10 z-20 text-gray-300 flex flex-col items-center">
-            <div class="text-6xl font-light tracking-wide">
+            <div class="text-6xl font-light tracking-wide mb-4">
                 {#if countdownSeconds !== undefined}
                 <span in:fade={{ duration: 1000 }}>
                     {formatCountdown(countdownSeconds)}
                 </span>
                 {/if}
             </div>
+            <div class="flex space-x-2 items-center">
+                <div class="font-bold rounded-md border border-secondary py-1 px-2 text-secondary">
+                    ESC
+                </div>
+                <span class="text-secondary">to skip</span>
+            </div>
         </div>
-        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-[#b3b0fd] flex flex-col">
+        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-secondary flex flex-col">
             {#if exercise !== undefined && countdownSeconds !== undefined}
                 <div class="text-xl font-light">
                     <AdviceMessage advices={exercise.advices}/>
@@ -159,7 +165,7 @@
             {/if}
         </div>
         <div class="absolute bottom-7 right-10 z-20 flex flex-col items-center">
-            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-l border text-gray-300 border-gray-200 inline-flex items-center"
+            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-md border text-secondary border-secondary inline-flex items-center"
                     onclick={() => closeApp("UserEscape")}>
                 Skip Motion
                 <Icon icon="mdi-light:arrow-right" class="ml-2 size-7"/>
