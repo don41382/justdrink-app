@@ -36,7 +36,7 @@ use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
 use tauri::{App, AppHandle, Manager, RunEvent, Window, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
-use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
@@ -134,7 +134,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
-            None,
+            Some(vec!["--quiet"]),
         ))
         .plugin(
             tauri_plugin_aptabase::Builder::new("A-EU-5037339452")

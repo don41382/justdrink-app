@@ -69,9 +69,9 @@
                     finishSound.play();
                 }
 
-                /*if (countdownSeconds < 1) {
+                if (countdownSeconds < 1) {
                     show = false;
-                }*/
+                }
             }
         }, 1000);
     }
@@ -130,7 +130,7 @@
             {#if exercise !== undefined && countdownSeconds !== undefined}
                 <h1 class="text-6xl text-primary tracking-tight font-bold mb-4">{exercise.title}</h1>
                 <h1 class="text-4xl text-secondary font-light tracking-wide w-1/2 mb-4">{exercise.description}</h1>
-                {#if license && (license.status === 'Paid' || license.status === 'Invalid')}
+                {#if license && (license.status === 'Trail' || license.status === 'Invalid')}
                     <span class="text-gray-500 font-light tracking-wide">{license.message}</span>
                 {/if}
             {/if}
@@ -165,7 +165,7 @@
             {/if}
         </div>
         <div class="absolute bottom-7 right-10 z-20 flex flex-col items-center">
-            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-md border text-secondary border-secondary inline-flex items-center"
+            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-lg border text-secondary border-secondary inline-flex items-center"
                     onclick={() => closeApp("UserEscape")}>
                 Skip Motion
                 <Icon icon="mdi-light:arrow-right" class="ml-2 size-7"/>

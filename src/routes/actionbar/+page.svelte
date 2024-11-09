@@ -6,9 +6,9 @@
     import type {UnlistenFn} from "@tauri-apps/api/event";
     import {getCurrentWindow} from "@tauri-apps/api/window";
     import AutoSize from "../AutoSize.svelte";
+    import {info} from "@tauri-apps/plugin-log";
 
     let countdownUnlistenFn: UnlistenFn;
-
 
     let {data} = $props();
     let iconPath = $state(data.iconPath);
@@ -21,6 +21,7 @@
     });
 
     onMount(async () => {
+        await info("dashboard mounted")
         countdownUnlistenFn = await events.countdownEvent.listen(async (data) => {
             countdown.time = formatTime(getSeconds(data.payload.status));
             countdown.pause = isPause(data.payload.status);
