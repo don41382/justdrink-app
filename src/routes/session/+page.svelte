@@ -44,7 +44,6 @@
                 `Session could not be started. Reason: ${err}`,
                 `error during init: ${err}`);
         })
-        backgroundLoadingFinished = true;
     });
 
     async function init() {
@@ -123,13 +122,13 @@
         <AudioPlayer bind:this={music} filename="session-01.mp3" initialVolume={0.4}/>
         <audio bind:this={finishSound} src="" preload="auto"></audio>
 
-        <!-- <BackgroundVideo videoSrc={data.backgroundVideoSrc} bind:backgroundVideoLoaded={backgroundLoadingFinished}/> -->
-        <div class="absolute opacity-100 bg-gradient-to-t from-[#550370]/50 to-90% to-black/100 w-full h-full"></div>
+        <BackgroundVideo videoSrc={data.backgroundVideoSrc} bind:backgroundVideoLoaded={backgroundLoadingFinished}/>
+        <!--<div class="absolute opacity-100 bg-gradient-to-t from-primary/80 to-50% to-transparent w-full h-full"></div>-->
 
         <div class="absolute top-9 left-10">
             {#if exercise !== undefined && countdownSeconds !== undefined}
                 <h1 class="text-6xl text-primary tracking-tight font-bold mb-4">{exercise.title}</h1>
-                <h1 class="text-4xl text-secondary font-light tracking-wide w-1/2 mb-4">{exercise.description}</h1>
+                <h1 class="text-4xl text-primary/80 font-light tracking-wide w-1/2 mb-4">{exercise.description}</h1>
                 {#if license && (license.status === 'Trail' || license.status === 'Invalid')}
                     <span class="text-gray-500 font-light tracking-wide">{license.message}</span>
                 {/if}
@@ -142,7 +141,7 @@
                 </div>
             {/if}
         </div>
-        <div class="absolute top-9 right-10 z-20 text-gray-300 flex flex-col items-center">
+        <div class="absolute top-9 right-10 z-20 text-primary/80 flex flex-col items-center">
             <div class="text-6xl font-light tracking-wide mb-4">
                 {#if countdownSeconds !== undefined}
                 <span in:fade={{ duration: 1000 }}>
@@ -150,14 +149,14 @@
                 </span>
                 {/if}
             </div>
-            <div class="flex space-x-2 items-center">
-                <div class="font-bold rounded-md border border-secondary py-1 px-2 text-secondary">
+            <div class="flex space-x-2 items-center text-primary/80">
+                <div class="font-bold rounded-md border border-primary/60 py-1 px-2">
                     ESC
                 </div>
-                <span class="text-secondary">to skip</span>
+                <span>to skip</span>
             </div>
         </div>
-        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-secondary flex flex-col">
+        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-white/60 flex flex-col">
             {#if exercise !== undefined && countdownSeconds !== undefined}
                 <div class="text-xl font-light">
                     <AdviceMessage advices={exercise.advices}/>
@@ -165,7 +164,7 @@
             {/if}
         </div>
         <div class="absolute bottom-7 right-10 z-20 flex flex-col items-center">
-            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-lg border text-secondary border-secondary inline-flex items-center"
+            <button class="bg-white bg-opacity-5 hover:bg-white hover:bg-opacity-20 font-bold py-2 px-4 rounded-lg border text-white/80 border-white/80 inline-flex items-center"
                     onclick={() => closeApp("UserEscape")}>
                 Skip Motion
                 <Icon icon="mdi-light:arrow-right" class="ml-2 size-7"/>
