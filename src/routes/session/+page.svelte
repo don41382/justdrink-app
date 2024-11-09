@@ -44,6 +44,7 @@
                 `Session could not be started. Reason: ${err}`,
                 `error during init: ${err}`);
         })
+        backgroundLoadingFinished = true;
     });
 
     async function init() {
@@ -122,35 +123,35 @@
         <AudioPlayer bind:this={music} filename="session-01.mp3" initialVolume={0.4}/>
         <audio bind:this={finishSound} src="" preload="auto"></audio>
 
-        <BackgroundVideo videoSrc={data.backgroundVideoSrc} bind:backgroundVideoLoaded={backgroundLoadingFinished}/>
+        <!-- <BackgroundVideo videoSrc={data.backgroundVideoSrc} bind:backgroundVideoLoaded={backgroundLoadingFinished}/> -->
+        <div class="absolute opacity-100 bg-gradient-to-t from-[#550370]/50 to-90% to-black/100 w-full h-full"></div>
 
         <div class="absolute top-9 left-10">
             {#if exercise !== undefined && countdownSeconds !== undefined}
-                <h1 class="text-6xl text-[#cc006e] tracking-tight font-bold mb-4">{exercise.title}</h1>
+                <h1 class="text-6xl text-[#9000d4] tracking-tight font-bold mb-4">{exercise.title}</h1>
                 <h1 class="text-4xl text-[#b3b0fd] font-light tracking-wide w-1/2 mb-4">{exercise.description}</h1>
                 {#if license && (license.status === 'Paid' || license.status === 'Invalid')}
-                    <span class="text-white/50 font-light">{license.message}</span>
+                    <span class="text-gray-500 font-light tracking-wide">{license.message}</span>
                 {/if}
             {/if}
         </div>
         <div class="absolute bottom-0 z-10 w-full flex items-center justify-center">
             {#if exercise}
                 <div out:fade={{ duration: 1000 }}>
-                    <VideoPlayer filename={data.sessionDetail.exercise.id} class="max-h-[80vh] h-auto"/>
+                    <VideoPlayer filename={data.sessionDetail.exercise.id} class="max-h-[70vh] h-auto"/>
                 </div>
             {/if}
         </div>
         <div class="absolute top-9 right-10 z-20 text-gray-300 flex flex-col items-center">
-            <div class="text-5xl font-light mb-6">
+            <div class="text-6xl font-light tracking-wide">
                 {#if countdownSeconds !== undefined}
                 <span in:fade={{ duration: 1000 }}>
                     {formatCountdown(countdownSeconds)}
                 </span>
                 {/if}
             </div>
-
         </div>
-        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-white/40 flex flex-col">
+        <div class="absolute bottom-7 left-10 z-20 w-1/4 text-[#b3b0fd] flex flex-col">
             {#if exercise !== undefined && countdownSeconds !== undefined}
                 <div class="text-xl font-light">
                     <AdviceMessage advices={exercise.advices}/>

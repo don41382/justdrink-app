@@ -39,7 +39,7 @@
 <video
         autoplay
         bind:this={backgroundVideo}
-        class="absolute hidden w-full h-full object-cover"
+        class="absolute w-full h-full object-cover"
         loop
         muted
         on:canplay={setBackgroundVideoReady}
@@ -48,4 +48,4 @@
         preload="auto">
     Your browser does not support the video tag.
 </video>
-<div class="absolute opacity-50 bg-gradient-to-t via-[#550370]/20 via-40% from-[#550370]/60 to-black/100 w-full h-full"></div>
+

@@ -14,7 +14,7 @@ impl SessionRepository {
             Exercise {
                 id: SessionId("rotate-your-head".to_string()),
                 title: "Rotate your head".to_string(),
-                description: "Slowly rotate your head".to_string(),
+                description: "Slowly rotate your head to release tension and improve neck mobility.".to_string(),
                 advices: vec![
                     "You can perform this mobility exercise either sitting or standing.",
                     "Relax your shoulders and begin to slowly circle your head.",
