@@ -64,7 +64,7 @@ jobs:
           mkdir src-tauri/videos
           curl https://storage.googleapis.com/motion-minute-download/videos/v2.zip -o v2.zip
           tar -xf v2.zip -C src-tauri/videos
-          rm v1.zip # clean up the zip file
+          rm v2.zip # clean up the zip file
 
       - name: install signtool (windows)
         if: matrix.os == 'windows'
