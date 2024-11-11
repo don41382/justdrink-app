@@ -119,7 +119,7 @@
          out:fade={{duration: fadeOutDurationSeconds * 1000}} onoutrostart={beforeCloseApp}
          onoutroend={() => closeApp("EndOfTime")}>
 
-        <AudioPlayer bind:this={music} filename="session-01.mp3" initialVolume={0.4}/>
+        <AudioPlayer bind:this={music} filename="session-01.mp3" initialVolume={0.2}/>
         <audio bind:this={finishSound} src="" preload="auto"></audio>
 
         <BackgroundVideo videoSrc={data.backgroundVideoSrc} bind:backgroundVideoLoaded={backgroundLoadingFinished}/>

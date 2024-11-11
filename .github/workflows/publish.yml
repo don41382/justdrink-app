@@ -62,7 +62,7 @@ jobs:
       - name: Create videos directory and download videos
         run: |
           mkdir src-tauri/videos
-          curl https://storage.googleapis.com/motion-minute-download/videos/v1.zip -o v1.zip
+          curl https://storage.googleapis.com/motion-minute-download/videos/v2.zip -o v2.zip
           tar -xf v1.zip -C src-tauri/videos
           rm v1.zip # clean up the zip file
 
