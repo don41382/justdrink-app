@@ -19,7 +19,7 @@ impl SessionRepository {
                     "You can perform this mobility exercise either sitting or standing.",
                     "Relax your shoulders and begin to slowly circle your head.",
                     "Start with a smaller range of motion. Decide for yourself how far you want to go into the stretch.",
-                    "Very important: Perform the head circles very slowly and consciously, and avoid hasty, thoughtless movements."]
+                    "Important: Perform the head circles very slowly and consciously, and avoid hasty, thoughtless movements."]
                     .iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
