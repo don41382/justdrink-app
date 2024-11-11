@@ -94,7 +94,7 @@ where
             .transparent(true)
             .decorations(false)
             .skip_taskbar(true)
-            .resizable(true)
+            .resizable(false)
             .transparent(true)
             .shadow(true)
             .build()?;
