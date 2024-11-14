@@ -37,7 +37,7 @@
     "macOS": {
       "entitlements": "./appstore/Entitlements.plist",
       "files": {
-        "embedded.provisionprofile": "./appstore/Motion_Minute_MacOS_Profile.provisionprofile"
+        "embedded.provisionprofile": "./Motion_Minute_MacOS_Profile.provisionprofile"
       }
     },
     "createUpdaterArtifacts": true,
