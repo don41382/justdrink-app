@@ -238,7 +238,7 @@ impl LicenseManager {
             response::LicenseStatus::ActiveTrial => {
                 let trail = response.trail.ok_or_else(|| {
                     ServerRequestError::Other(anyhow::anyhow!(
-                        "marked as active trail, but no details not found"
+                        "marked as active trial, but no details not found"
                     ))
                 })?;
                 LicenseStatus::Valid(ValidTypes::Trail(TrailDetails {
@@ -256,7 +256,7 @@ impl LicenseManager {
                 }))
             }
             response::LicenseStatus::Expired => {
-                LicenseStatus::Expired("You trail expired".to_string())
+                LicenseStatus::Expired("You trial expired".to_string())
             }
         };
         Ok(license_status)
