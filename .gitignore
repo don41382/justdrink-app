@@ -11,3 +11,4 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /src-tauri/videos/**
 /.idea/workspace.xml
+/src-tauri/appstore/Motion_Minute_MacOS_Profile.provisionprofile
