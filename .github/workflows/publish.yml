@@ -86,13 +86,13 @@ jobs:
       #    security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
       #    security find-identity -v -p codesigning build.keychain
 
-      - name: Verify Certificate (macos)
-        if: matrix.os == 'macos'
-        run: |
-          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID")
-          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
-          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
-          echo "Certificate imported."
+#      - name: Verify Certificate (macos)
+#        if: matrix.os == 'macos'
+#        run: |
+#          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID")
+#          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
+#          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
+#          echo "Certificate imported."
 
       - name: Decode Apple Private API key to file (macos)
         if: matrix.os == 'macos'
