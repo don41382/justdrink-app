@@ -17,7 +17,7 @@ jobs:
             os: macos
             self-hosted: true
             arch: aarch64
-            args: "--target universal-apple-darwin"
+            args: "--target universal-apple-darwin --bundles app"
             enable: true
           # - runs-on: "self-hosted-windows"
           #  os: windows
@@ -48,7 +48,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.arch == 'aarch64' && 'aarch64-apple-darwin,x86_64-apple-darwin' || ' x86_64-pc-windows-msvc' }}
+          targets: ${{ matrix.arch == 'aarch64' && 'aarch64-app-store' || ' x86_64-pc-windows-msvc' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
