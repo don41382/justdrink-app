@@ -96,11 +96,16 @@ jobs:
           echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
           echo "Certificate imported."
 
-      - name: Write Private API key to file (macos)
+      - name: Decode Apple Private API key to file (macos)
         if: matrix.os == 'macos'
         run: |
           echo "${{ secrets.APPLE_PRIVATE_API_KEY }}" | base64 --decode > $HOME/apple_private_api_key.p8
           echo "APPLE_API_KEY_PATH=$HOME/apple_private_api_key.p8" >> $GITHUB_ENV
+
+      - name: Decode Apple Provision to file (macos)
+        if: matrix.os == 'macos'
+        run: |
+          echo "${{ secrets.APPLE_PRIVATE_API_KEY }}" | base64 --decode > $HOME/src-tauri/appstore/Motion_Minute_MacOS_Profile.provisionprofile
 
       - uses: tauri-apps/tauri-action@v0
         env:
