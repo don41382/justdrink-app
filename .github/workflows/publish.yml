@@ -71,28 +71,28 @@ jobs:
         run:
           curl https://github.com/Levminer/trusted-signing-cli/releases/download/0.3.0/trusted-signing-cli.exe -o trusted-signing-cli.exe
 
-      # Apple Certification
-      #- name: Import Apple Developer Certificate (macos)
-      #  if: matrix.os == 'macos'
-      #  env:
-      #    APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      #    APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      #    KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      #  run: |
-      #    echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
-      #    security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-      #    security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-      #    security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-      #    security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-      #    security find-identity -v -p codesigning build.keychain
+       # Apple Certification
+      - name: Import Apple Developer Certificate (macos)
+        if: matrix.os == 'macos'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          security find-identity -v -p codesigning build.keychain
 
-#      - name: Verify Certificate (macos)
-#        if: matrix.os == 'macos'
-#        run: |
-#          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID")
-#          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
-#          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
-#          echo "Certificate imported."
+      - name: Verify Certificate (macos)
+        if: matrix.os == 'macos'
+        run: |
+          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID")
+          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
+          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
+          echo "Certificate imported."
 
       - name: Decode Apple Private API key to file (macos)
         if: matrix.os == 'macos'
@@ -130,7 +130,6 @@ jobs:
       - name: Cleanup
         if: matrix.os == 'macos' && (success() || failure())
         run: |
-          security delete-keychain build.keychain || true
           if [ -n "${{ env.APPLE_API_KEY_PATH }}" ] && [ -f "${{ env.APPLE_API_KEY_PATH }}" ]; then
             rm "${{ env.APPLE_API_KEY_PATH }}"
           fi
