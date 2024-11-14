@@ -17,7 +17,7 @@ jobs:
             os: macos
             self-hosted: true
             arch: aarch64
-            args: "--target universal-apple-darwin"
+            args: "--target universal-apple-darwin --bundles app"
             enable: true
           - runs-on: "self-hosted-windows"
             os: windows
