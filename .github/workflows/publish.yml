@@ -13,12 +13,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
+#          - runs-on: "self-hosted-macos"
+#            os: macos
+#            self-hosted: true
+#            arch: aarch64
+#            args: "--target universal-apple-darwin"
+#            enable: true
+#            appstore: false
           - runs-on: "self-hosted-macos"
             os: macos
             self-hosted: true
             arch: aarch64
-            args: "--target universal-apple-darwin --bundles app"
+            args: "--target universal-apple-darwin"
             enable: true
+            appstore: true
           # - runs-on: "self-hosted-windows"
           #  os: windows
           #  self-hosted: true
@@ -48,7 +56,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.arch == 'aarch64' && 'aarch64-app-store' || ' x86_64-pc-windows-msvc' }}
+          targets: ${{ matrix.arch == 'aarch64' || ' x86_64-pc-windows-msvc' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -83,6 +91,7 @@ jobs:
           echo "${{ secrets.APPLE_PROVISION_FILE }}" | base64 --decode > $GITHUB_WORKSPACE/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile
 
       - uses: tauri-apps/tauri-action@v0
+        if: matrix.appstore == false
         env:
           GITHUB_TOKEN: ${{ secrets.MINUTE_MOTION_RELEASE_REPO_GITHUB_SECRET }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -103,6 +112,22 @@ jobs:
           owner: "don41382"
           repo: "motion-minute-app-releases"
           args: ${{ matrix.args }}
+
+      - uses: tauri-apps/tauri-action@v0
+        if: matrix.appstore == true
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          args: "--bundle app"
+
+      - name: generate and upload installer package
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          xcrun productbuild --sign "3rd Party Mac Developer Installer" --component "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app"
+          xcrun altool --upload-app --type macos --file "Motion Minute.pkg" --apiKey $APPLE_API_KEY_ID --apiIssuer $APPLE_API_ISSUER
 
       - name: Cleanup
         if: matrix.os == 'macos' && (success() || failure())
