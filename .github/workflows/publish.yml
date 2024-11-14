@@ -104,7 +104,7 @@ jobs:
       - name: Decode Apple Provision Profile to file (macos)
         if: matrix.os == 'macos'
         run: |
-          echo "${{ secrets.APPLE_PROVISION_FILE }}" | base64 --decode > $HOME/minutemotion-app/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile
+          echo "${{ secrets.APPLE_PROVISION_FILE }}" | base64 --decode > $GITHUB_WORKSPACE/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile
 
       - uses: tauri-apps/tauri-action@v0
         env:
