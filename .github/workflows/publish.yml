@@ -131,7 +131,6 @@ jobs:
       - name: Cleanup
         if: matrix.os == 'macos' && (success() || failure())
         run: |
-          security delete-keychain build.keychain || true
           if [ -n "${{ env.APPLE_API_KEY_PATH }}" ] && [ -f "${{ env.APPLE_API_KEY_PATH }}" ]; then
             rm "${{ env.APPLE_API_KEY_PATH }}"
           fi

@@ -8,5 +8,7 @@
     <string>com.rocketsolutions.motionminute</string>
     <key>com.apple.developer.team-identifier</key>
     <string>LXYUBHT3K4</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 </dict>
 </plist>
