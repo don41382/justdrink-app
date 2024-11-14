@@ -71,7 +71,6 @@ jobs:
         run:
           curl https://github.com/Levminer/trusted-signing-cli/releases/download/0.3.0/trusted-signing-cli.exe -o trusted-signing-cli.exe
 
-
       # Apple Certification
       - name: Import Apple Developer Certificate (macos)
         if: matrix.os == 'macos'
@@ -105,7 +104,7 @@ jobs:
       - name: Decode Apple Provision Profile to file (macos)
         if: matrix.os == 'macos'
         run: |
-          echo "${{ secrets.APPLE_PROVISION_FILE }}" | base64 --decode > $HOME/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile
+          echo "${{ secrets.APPLE_PROVISION_FILE }}" | base64 --decode > $HOME/minutemotion-app/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile
 
       - uses: tauri-apps/tauri-action@v0
         env:

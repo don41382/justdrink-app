@@ -35,7 +35,7 @@
   },
   "bundle": {
     "macOS": {
-      "entitlements": "./appstore/Entitlements.plist",
+      "entitlements": "./Entitlements.plist",
       "files": {
         "embedded.provisionprofile": "./Motion_Minute_MacOS_Profile.provisionprofile"
       }
