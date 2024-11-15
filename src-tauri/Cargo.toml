@@ -4,8 +4,12 @@ version = "0.1.4"
 description = "Motion Minute is your personal reminder to take regular, healthy breaks while working at your desk, boosting wellness and productivity."
 authors = ["Felix Eckhardt"]
 edition = "2021"
+default-run = "motion-minute"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "motion-minute"
 
 [lib]
 name = "motionminute_app_lib"
