@@ -130,7 +130,6 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           cargo tauri build --bundles app --target universal-apple-darwin
-          cargo tauri bundle --bundles app --target universal-apple-darwin
 
 
       - name: generate and upload installer package
