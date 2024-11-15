@@ -122,7 +122,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          args: "--bundles app --config src-tauri/tauri.appstore.conf.json ${{ matrix.args }}"
+          args: "--bundles app --config 'src-tauri/tauri.appstore2.conf.json' ${{ matrix.args }}"
 
       - name: generate and upload installer package
         env:
