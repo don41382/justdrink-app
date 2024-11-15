@@ -123,7 +123,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           cd $GITHUB_WORKSPACE
-          cargo tauri build --bundles app --target universal-apple-darwin
+          cargo tauri build --bundles app --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json
           cargo tauri bundle --bundles app --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json
 
 
