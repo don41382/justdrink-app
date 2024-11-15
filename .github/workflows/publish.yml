@@ -122,11 +122,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MINUTE_MOTION_RELEASE_REPO_GITHUB_SECRET }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_DISTRIBUTION }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
         run: |
           cd $GITHUB_WORKSPACE
           cargo tauri build --bundles app --target universal-apple-darwin
@@ -137,7 +132,9 @@ jobs:
         env:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
         run: |
+          codesign --sign "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)" "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" 
           xcrun productbuild --sign "3rd Party Mac Developer Installer" \
             --product "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app/Contents/Info.plist" \
             --component "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" /Applications "Motion Minute.pkg"
