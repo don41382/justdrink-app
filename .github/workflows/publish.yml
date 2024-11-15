@@ -133,7 +133,7 @@ jobs:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
         run: |
-          xcrun productbuild --sign "3rd Party Mac Developer Installer" --component "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" "Motion Minute.pkg"
+          xcrun productbuild --sign "3rd Party Mac Developer Installer" --component "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" /Applications "Motion Minute.pkg"
           xcrun altool --upload-app --type macos --file "Motion Minute.pkg" --apiKey "$APPLE_API_KEY_ID" --apiIssuer $APPLE_API_ISSUER
 
       - name: Cleanup
