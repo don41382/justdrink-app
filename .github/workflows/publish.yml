@@ -116,15 +116,18 @@ jobs:
           repo: "motion-minute-app-releases"
           args: ${{ matrix.args }}
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: bundle & build
         if: matrix.appstore == true
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          args: "--config 'src-tauri/tauri.appstore.conf.json' ${{ matrix.args }}"
+        run:
+          pnpm tauri build --no-bundle
+          pnpm tauri bundle --bundles app --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json
+
 
       - name: generate and upload installer package
+        if: matrix.appstore == true
         env:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
