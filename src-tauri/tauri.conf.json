@@ -60,11 +60,10 @@
     "copyright": "2024 - Rocket Solutions SL",
     "publisher": "Rocket Solutions SL",
     "longDescription": "Motion Minute is your personal reminder to take regular, healthy breaks while working at your desk, boosting wellness and productivity.",
-    "resources": {
-      "videos/*" :  "videos/",
-      "audio/*" :  "audio/",
-      "icons/*" :  "icons/",
-      "infoplist/**": "./"
-    }
+    "resources": [
+      "videos/*",
+      "audio/*",
+      "icons/*"
+    ]
   }
 }
