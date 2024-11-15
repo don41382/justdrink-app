@@ -1,5 +1,5 @@
 [package]
-name = "motionminute-app"
+name = "motion-minute"
 version = "0.1.4"
 description = "Motion Minute is your personal reminder to take regular, healthy breaks while working at your desk, boosting wellness and productivity."
 authors = ["Felix Eckhardt"]
