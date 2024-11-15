@@ -133,12 +133,14 @@ jobs:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
+          APP_PATH: "src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app"
         run: |
-          cp $GITHUB_WORKSPACE/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" 
-          codesign --sign "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)" --entitlements "./src-tauri/Entitlements.plist" "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" 
+          codesign --remove-signature $APP_PATH
+          cp $GITHUB_WORKSPACE/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile $APP_PATH/Contents 
+          codesign --sign "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)" --entitlements "./src-tauri/Entitlements.plist" $APP_PATH 
           xcrun productbuild --sign "3rd Party Mac Developer Installer" \
-            --product "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app/Contents/Info.plist" \
-            --component "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" /Applications "Motion Minute.pkg"
+            --product "$APP_PATH/Contents/Info.plist" \
+            --component $APP_PATH /Applications "Motion Minute.pkg"
           xcrun altool --upload-app --type macos --file "Motion Minute.pkg" --apiKey "$APPLE_API_KEY_ID" --apiIssuer $APPLE_API_ISSUER
 
       - name: Cleanup
