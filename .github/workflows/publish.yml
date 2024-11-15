@@ -82,10 +82,9 @@ jobs:
       - name: Decode Apple Private API key to file (macos)
         if: matrix.os == 'macos'
         run: |
-          echo "${{ secrets.APPLE_PRIVATE_API_KEY }}" | base64 --decode > $HOME/apple_private_api_key.p8
-          echo "APPLE_API_KEY_PATH=$HOME/apple_private_api_key.p8" >> $GITHUB_ENV
           mkdir -p $HOME/private_keys
-          echo "APPLE_API_KEY_PATH=$HOME/private_keys/AuthKey\_apple_private_api_key.p8"
+          echo "${{ secrets.APPLE_PRIVATE_API_KEY }}" | base64 --decode > $HOME/private_keys/AuthKey\_apple_private_api_key.p8
+          echo "APPLE_API_KEY_PATH=$HOME/private_keys/AuthKey\_apple_private_api_key.p8" >> $GITHUB_ENV
 
       - name: Decode Apple Provision Profile to file (macos)
         if: matrix.os == 'macos'
@@ -133,7 +132,7 @@ jobs:
       - name: Cleanup
         if: matrix.os == 'macos' && (success() || failure())
         run: |
-          rm $HOME/private_keys
+          rm -r $HOME/private_keys
           if [ -n "${{ env.APPLE_API_KEY_PATH }}" ] && [ -f "${{ env.APPLE_API_KEY_PATH }}" ]; then
             rm "${{ env.APPLE_API_KEY_PATH }}"
           fi
