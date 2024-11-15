@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-schema-generator/schemas/config.schema.json",
-  "productName": "Motion Minute",
+  "productName": "Motion-Minute",
   "version": "0.1.23",
   "identifier": "com.rocketsolutions.motionminute",
   "plugins": {
