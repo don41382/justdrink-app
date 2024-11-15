@@ -116,13 +116,13 @@ jobs:
           repo: "motion-minute-app-releases"
           args: ${{ matrix.args }}
 
-      - name: bundle & build
+      - name: bundle & build for app-store
         if: matrix.appstore == true
         env:
           GITHUB_TOKEN: ${{ secrets.MINUTE_MOTION_RELEASE_REPO_GITHUB_SECRET }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_DEVELOPMENT }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_DISTRIBUTION }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (37DUYU477Y)"
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
