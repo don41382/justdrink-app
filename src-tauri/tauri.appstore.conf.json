@@ -1,5 +1,4 @@
 {
-  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-schema-generator/schemas/config.schema.json",
   "bundle": {
     "macOS": {
       "entitlements": "./Entitlements.plist",
@@ -9,3 +8,4 @@
     }
   }
 }
+
