@@ -137,10 +137,8 @@ jobs:
           APP_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app"
           xattr -cr "$APP_PATH"
           codesign --remove-signature "$APP_PATH"
-          cp $GITHUB_WORKSPACE/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile "$APP_PATH/Contents/embedded.provisionprofile"
-          codesign --sign "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)" --entitlements "./src-tauri/Entitlements.plist" "$APP_PATH" 
+          codesign --sign "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)" "$APP_PATH" 
           xcrun productbuild --sign "3rd Party Mac Developer Installer" \
-            --product "$APP_PATH/Contents/Info.plist" \
             --component "$APP_PATH" /Applications "Motion Minute.pkg"
           xcrun altool --upload-app --type macos --file "Motion Minute.pkg" --apiKey "$APPLE_API_KEY_ID" --apiIssuer $APPLE_API_ISSUER
 
