@@ -119,13 +119,14 @@ jobs:
       - name: bundle & build
         if: matrix.appstore == true
         env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_DISTRIBUTION }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.MINUTE_MOTION_RELEASE_REPO_GITHUB_SECRET }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_DEVELOPMENT }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (37DUYU477Y)"
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
         run: |
           cd $GITHUB_WORKSPACE
           cargo tauri build --bundles app --target universal-apple-darwin
@@ -146,7 +147,7 @@ jobs:
       - name: Cleanup
         if: matrix.os == 'macos' && (success() || failure())
         run: |
-          rm -r $HOME/private_keys
+          # rm -r $HOME/private_keys
           if [ -n "${{ env.APPLE_API_KEY_PATH }}" ] && [ -f "${{ env.APPLE_API_KEY_PATH }}" ]; then
             rm "${{ env.APPLE_API_KEY_PATH }}"
           fi
