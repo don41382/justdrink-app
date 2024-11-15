@@ -134,7 +134,7 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
         run: |
-          codesign --sign "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)" "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" 
+          # codesign --sign "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)" "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" 
           xcrun productbuild --sign "3rd Party Mac Developer Installer" \
             --product "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app/Contents/Info.plist" \
             --component "./src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app" /Applications "Motion Minute.pkg"
