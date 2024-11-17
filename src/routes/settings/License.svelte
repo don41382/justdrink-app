@@ -82,7 +82,7 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
         <h2 class="text-lg font-semibold text-gray-900">License</h2>
-        <div class="flex items-center rounded-full px-3 py-1 text-sm bg-gray-200 {app.license_info.status === 'Trail' || app.license_info.status === 'Paid'  ? 'text-black' : 'text-mm-orange'}">
+        <div class="flex items-center rounded-full px-3 py-1 text-sm bg-gray-200 {app.license_info.status === 'Trail' || app.license_info.status === 'Paid'  ? 'text-black' : 'text-orange-600'}">
             {#if app.license_info.message}
                 {app.license_info.message}
             {/if}
@@ -107,7 +107,7 @@
                placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XX" type="text"/>
         <div class="mb-4">
             {#if error}
-                <p class="text-mm-orange text-sm">{error}</p>
+                <p class="text-red-800 text-sm">{error}</p>
             {/if}
         </div>
         <div class="flex justify-between">
@@ -120,7 +120,7 @@
                 <button class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2" on:click={async () => getALicense()}>
                     Get a license
                 </button>
-                <button class="text-white rounded-lg px-4 py-2 bg-mm-orange hover:bg-mm-orange-200"
+                <button class="text-white rounded-lg px-4 py-2 bg-primary hover:bg-primary/50"
                         on:click={async () => registerLicense()}>
                     Activate Motion Minute
                 </button>
