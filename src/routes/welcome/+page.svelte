@@ -55,7 +55,7 @@
             </div>
         </div>
 
-        <h1 class="text-4xl text-mm-orange text-center mb-2">Motion Minute</h1>
+        <h1 class="text-4xl text-secondary text-center mb-2">Motion Minute</h1>
 
         <p class="text-center text-neutral-600 mb-8">
             Stay active and energized throughout your day with gentle reminders to stretch and move.
@@ -67,7 +67,7 @@
                 {#each sessionTimes as duration}
                     <button
                             on:click={() => selectDuration(duration)}
-                            class="{next_break_duration_minutes === duration ? 'text-white bg-mm-green' : 'text-black bg-gray-200'} hover:bg-mm-green-300 py-2 rounded-md">
+                            class="{next_break_duration_minutes === duration ? 'text-white bg-gray-950' : 'text-black bg-gray-200'} hover:bg-black/50 hover:text-white py-2 rounded-md">
                         <span class="font-thin">every</span>
                         {formatDuration(duration)}
                     </button>
@@ -82,7 +82,7 @@
             <label class="text-sm text-neutral-600" for="load-startup">Load on startup</label>
         </div>
 
-        <button class="w-full bg-mm-orange hover:bg-mm-orange-200 text-white py-2 rounded-md" on:click={startSession}>
+        <button class="w-full bg-primary hover:bg-primary/50 text-white py-2 rounded-md" on:click={startSession}>
             Start your first session
         </button>
     </div>
