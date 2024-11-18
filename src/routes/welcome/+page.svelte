@@ -15,8 +15,10 @@
 
     let contentDiv: HTMLDivElement;
 
+    info("show welcome window")
+
     onMount(async () => {
-        await info("welcome video mounted!")
+        await info("mount welcome window")
         icon_path = convertFileSrc(`${await tauri_path.resourceDir()}/icons/128x128.png`);
         await fitAndShowWindow(contentDiv);
     });
