@@ -125,7 +125,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           cargo tauri build --no-bundle
-          cargo tauri bundle --bundles app --target universal-apple-darwin --config tauri.appstore.conf.json
+          cargo tauri bundle --bundles app --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json
 
 
       - name: generate and upload installer package
