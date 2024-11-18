@@ -101,7 +101,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_DEVELOPMENT }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: "Apple Development: Felix Eckhardt (37DUYU477Y)"
+          APPLE_SIGNING_IDENTITY: "Developer ID Application: Felix Eckhardt (LXYUBHT3K4)"
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
         with:
@@ -119,16 +119,13 @@ jobs:
       - name: bundle & build for app-store
         if: matrix.appstore == true
         env:
-          GITHUB_TOKEN: ${{ secrets.MINUTE_MOTION_RELEASE_REPO_GITHUB_SECRET }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
         run: |
           cd $GITHUB_WORKSPACE
-          cargo tauri build --bundles app --target universal-apple-darwin
+          cargo tauri build -- --no-bundle
+          cargo tauri bundle --bundles app --target universal-apple-darwin --config tauri.appstore.conf.json
 
 
       - name: generate and upload installer package
@@ -136,15 +133,10 @@ jobs:
         env:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
+          APPLE_SIGNING_IDENTITY: "3rd Party Mac Developer Installer: Felix Eckhardt (LXYUBHT3K4)"
         run: |
           APP_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/Motion Minute.app"
-          xattr -cr "$APP_PATH"
-          cp $GITHUB_WORKSPACE/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile "$APP_PATH/Contents/embedded.provisionprofile"
-          codesign --force --sign "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)" --entitlements "./src-tauri/Entitlements.plist" "$APP_PATH" 
-          xcrun productbuild --sign "3rd Party Mac Developer Installer" \
-            --product "$APP_PATH/Contents/Info.plist" \
-            --component "$APP_PATH" /Applications "Motion Minute.pkg"
+          xcrun productbuild --sign "$APPLE_SIGNING_IDENTITY" --component "$APP_PATH" /Applications "Motion Minute.pkg"
           xcrun altool --upload-app --type macos --file "Motion Minute.pkg" --apiKey "$APPLE_API_KEY_ID" --apiIssuer $APPLE_API_ISSUER
 
       - name: Cleanup
