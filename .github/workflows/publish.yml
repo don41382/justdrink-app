@@ -124,7 +124,7 @@ jobs:
           APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
         run: |
           cd $GITHUB_WORKSPACE
-          cargo tauri build -- --no-bundle
+          cargo tauri build --no-bundle
           cargo tauri bundle --bundles app --target universal-apple-darwin --config tauri.appstore.conf.json
 
 
