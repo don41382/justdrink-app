@@ -11,6 +11,14 @@
     "alert",
     "updater"
   ],
+  "remote": {
+    "urls": [
+      "https://*.motionminute.app",
+      "https://*.tauri.app",
+      "https://api.mixpanel.com",
+      "https://eu.aptabase.com"
+    ]
+  },
   "permissions": [
     "autostart:default",
     "autostart:allow-is-enabled",
