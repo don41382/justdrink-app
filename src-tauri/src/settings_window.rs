@@ -97,7 +97,7 @@ fn write_settings(
         version: version.unwrap_or("0.0.0".to_string()),
         details: settings_details.clone(),
     })
-    .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
+        .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
 
     store.set("data".to_string(), json_data);
     store.save()?;
@@ -173,16 +173,17 @@ where
         WINDOW_LABEL,
         tauri::WebviewUrl::App(format!("/settings?settings_tab={:?}", selected_tab).into()),
     )
-    .title("Settings")
-    .center()
-    .visible(false)
-    .always_on_top(true)
-    .transparent(true)
-    .decorations(true)
-    .skip_taskbar(false)
-    .shadow(true)
-    .resizable(false)
-    .build()?;
+        .title("Settings")
+        .center()
+        .visible(false)
+        .always_on_top(true)
+        .transparent(true)
+        .decorations(true)
+        .skip_taskbar(false)
+        .shadow(true)
+        .maximized(true)
+        .resizable(false)
+        .build()?;
 
     info!("start with new settings - done");
     Ok(())

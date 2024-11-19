@@ -2,7 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
     import type {UnlistenFn} from "@tauri-apps/api/event";
-    import {debug} from "@tauri-apps/plugin-log";
+    import {debug, info} from "@tauri-apps/plugin-log";
 
     export let ready: boolean = true;
 
@@ -40,7 +40,7 @@
 
     onDestroy(() => {
         if (observer) observer.disconnect();
-        resize();
+        resize?.();
     });
 </script>
 

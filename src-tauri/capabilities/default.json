@@ -32,6 +32,7 @@
     "core:window:allow-set-focus",
     "core:window:allow-center",
     "core:window:allow-set-size",
+    "core:window:allow-start-dragging",
     "global-shortcut:allow-is-registered",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",

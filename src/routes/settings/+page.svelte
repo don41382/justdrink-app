@@ -1,6 +1,6 @@
 <script lang="ts">
     import {commands, events, type Settings, type SettingsUserDetails, type SettingsTabs} from '../../bindings';
-    import {onMount} from 'svelte';
+    import {onDestroy, onMount} from 'svelte';
     import {getCurrentWindow} from "@tauri-apps/api/window";
     import {debug, info} from "@tauri-apps/plugin-log";
     import Icon from "@iconify/svelte";
