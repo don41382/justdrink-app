@@ -18,6 +18,10 @@ crate-type = ["lib", "cdylib", "staticlib"]
 [build-dependencies]
 tauri-build = { version = "2.0.1", features = [] }
 
+[features]
+default = []
+fullversion = []
+
 [dependencies]
 tauri = { version = "2.0.6", features = ["protocol-asset", "macos-private-api", "tray-icon", "native-tls"] }
 serde = { version = "1", features = ["derive"] }

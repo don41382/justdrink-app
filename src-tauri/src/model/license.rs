@@ -8,6 +8,7 @@ use tauri_specta::Event;
 pub enum LicenseInfoStatus {
     Trail,
     Paid,
+    Full,
     Invalid,
 }
 
@@ -34,6 +35,11 @@ impl LicenseStatus {
                     status: LicenseInfoStatus::Paid,
                     license_key: Some(details.license_key.clone()),
                     message: Some("Your license is valid".to_string()),
+                },
+                ValidTypes::Full => LicenseInfo {
+                    status: LicenseInfoStatus::Full,
+                    license_key: None,
+                    message: Some("Full-Version".to_string()),
                 },
             },
             LicenseStatus::Expired(_) => LicenseInfo {

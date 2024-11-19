@@ -68,9 +68,11 @@ pub struct PaidDetails {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum ValidTypes {
     Trail(TrailDetails),
     Paid(PaidDetails),
+    Full
 }
 
 #[allow(dead_code)]
@@ -107,6 +109,17 @@ enum ServerRequestError {
 impl LicenseManager {
     pub fn new(app_handle: &AppHandle, device_id: &model::device::DeviceId) -> Self {
         let client = Client::new();
+
+        #[cfg(feature = "fullversion")]
+        {
+            info!("Full version enabled, skipping license validation.");
+            return Self {
+                client,
+                device_id: device_id.clone(),
+                status: LicenseStatus::Valid(ValidTypes::Full),
+            };
+        }
+
         let status = match Self::validate(client.clone(), device_id) {
             Ok(license) => license,
             Err(err) => {

@@ -57,6 +57,10 @@
                     app.license_info = result;
                     error = null;
                     break;
+                case "Full":
+                    app.license_info = result;
+                    error = null;
+                    break;
                 case "Invalid":
                     error = result.message;
                     break;
@@ -82,49 +86,59 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
         <h2 class="text-lg font-semibold text-gray-900">License</h2>
-        <div class="flex items-center rounded-full px-3 py-1 text-sm bg-gray-200 {app.license_info.status === 'Trail' || app.license_info.status === 'Paid'  ? 'text-black' : 'text-orange-600'}">
+        <div class="flex items-center rounded-full px-3 py-1 text-sm bg-gray-200 {app.license_info.status === 'Invalid'  ? 'text-orange-600' : 'text-black'}">
             {#if app.license_info.message}
                 {app.license_info.message}
             {/if}
         </div>
     </div>
+
     <div class="flex-col">
-        {#if app.license_info.status === 'Paid'}
+        {#if app.license_info.status === 'Full'}
             <div class="flex-col">
-                <p class="text-mm-green font-normal accent-mm-green">Your license is active.</p>
+                <p class="text-mm-green font-normal accent-mm-green">You purchased the full version.</p>
                 <p class="text-gray-700 font-thin mb-4">Thank you for supporting Motion Minute.</p>
             </div>
         {:else}
-            <p class="text-gray-700 mb-4">
-                Enter the license key you received in your email after purchasing Motion Minute to activate it on this
-                device:
-            </p>
-        {/if}
-        <input bind:value={licenseCode}
-               class="w-full border-2 border-gray-300 rounded-lg p-2 mb-1 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-               disabled={app.license_info.license_key === licenseCode && app.license_info.status === 'Paid'}
-               maxlength="29" on:input={handleInput}
-               placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XX" type="text"/>
-        <div class="mb-4">
-            {#if error}
-                <p class="text-red-800 text-sm">{error}</p>
-            {/if}
-        </div>
-        <div class="flex justify-between">
             {#if app.license_info.status === 'Paid'}
-                <button class="text-white rounded-lg px-4 py-2 bg-gray-500 hover:bg-gray-800 ml-auto"
-                        on:click={async () => reset()}>
-                    Reset license
-                </button>
+                <div class="flex-col">
+                    <p class="text-mm-green font-normal accent-mm-green">Your license is active.</p>
+                    <p class="text-gray-700 font-thin mb-4">Thank you for supporting Motion Minute.</p>
+                </div>
             {:else}
-                <button class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2" on:click={async () => getALicense()}>
-                    Get a license
-                </button>
-                <button class="text-white rounded-lg px-4 py-2 bg-primary hover:bg-primary/50"
-                        on:click={async () => registerLicense()}>
-                    Activate Motion Minute
-                </button>
+                <p class="text-gray-700 mb-4">
+                    Enter the license key you received in your email after purchasing Motion Minute to activate it on
+                    this
+                    device:
+                </p>
             {/if}
-        </div>
+            <input bind:value={licenseCode}
+                   class="w-full border-2 border-gray-300 rounded-lg p-2 mb-1 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                   disabled={app.license_info.license_key === licenseCode && app.license_info.status === 'Paid'}
+                   maxlength="29" on:input={handleInput}
+                   placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XX" type="text"/>
+            <div class="mb-4">
+                {#if error}
+                    <p class="text-red-800 text-sm">{error}</p>
+                {/if}
+            </div>
+            <div class="flex justify-between">
+                {#if app.license_info.status === 'Paid'}
+                    <button class="text-white rounded-lg px-4 py-2 bg-gray-500 hover:bg-gray-800 ml-auto"
+                            on:click={async () => reset()}>
+                        Reset license
+                    </button>
+                {:else}
+                    <button class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2"
+                            on:click={async () => getALicense()}>
+                        Get a license
+                    </button>
+                    <button class="text-white rounded-lg px-4 py-2 bg-primary hover:bg-primary/50"
+                            on:click={async () => registerLicense()}>
+                        Activate Motion Minute
+                    </button>
+                {/if}
+            </div>
+        {/if}
     </div>
 </div>
