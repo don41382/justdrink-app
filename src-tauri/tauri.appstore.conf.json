@@ -5,9 +5,6 @@
       "files": {
         "embedded.provisionprofile": "./Motion_Minute_MacOS_Profile.provisionprofile"
       }
-    },
-    "build": {
-      "features": ["fullversion"]
     }
   }
 }
