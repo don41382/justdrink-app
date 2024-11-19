@@ -176,12 +176,13 @@ where
         .title("Settings")
         .center()
         .visible(false)
+        .inner_size(1024.0, 768.0)
         .always_on_top(true)
         .transparent(true)
         .decorations(true)
         .skip_taskbar(false)
         .shadow(true)
-        .maximized(true)
+        .minimizable(false)
         .resizable(false)
         .build()?;
 

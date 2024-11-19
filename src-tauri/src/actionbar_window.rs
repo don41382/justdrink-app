@@ -23,7 +23,7 @@ where
             .decorations(false)
             .shadow(true)
             .resizable(false)
-            .maximized(true)
+            .inner_size(1024.0, 768.0)
             .visible(false)
             .build()?;
     }
