@@ -3,6 +3,7 @@
     import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
     import type {UnlistenFn} from "@tauri-apps/api/event";
     import {debug, info} from "@tauri-apps/plugin-log";
+    import {type} from "@tauri-apps/plugin-os"
 
     export let ready: boolean = true;
 
@@ -19,7 +20,7 @@
             const width: number = Math.ceil(rect.width * factor);
             const height: number = Math.ceil(rect.height * factor);
 
-            let topPadding = await currentWindow.isDecorated() ? 55 : 0
+            let topPadding = await currentWindow.isDecorated() && type() === 'macos' ? 55 : 0
             let size = new PhysicalSize(width, height + topPadding);
 
             await currentWindow.setSize(size);
