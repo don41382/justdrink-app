@@ -225,7 +225,7 @@ pub fn run() {
                     .set_activation_policy(ActivationPolicy::Accessory)
                     .unwrap();
 
-                window.hide().unwrap();
+                window.destroy().unwrap();
             }
             WindowEvent::ScaleFactorChanged { .. } => {}
             WindowEvent::DragDrop(_) => {}

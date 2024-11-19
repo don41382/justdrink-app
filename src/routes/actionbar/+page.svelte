@@ -123,12 +123,12 @@
 </script>
 
 <AutoSize class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg"
-          ready={ready}>
+          data-tauri-drag-region ready={ready}>
     <!-- Header with Icon and Title -->
     <div class="flex items-center space-x-3">
-        <div class="flex items-center space-x-2 mr-16">
-            <img alt="mm" class="w-8 h-8" src="{iconPath}">
-            <p class="text-xl font-semibold text-left whitespace-nowrap">Motion Minute</p>
+        <div class="flex items-center space-x-2 mr-16 select-none">
+            <img alt="mm" class="w-8 h-8" data-tauri-drag-region src="{iconPath}">
+            <p class="text-xl font-semibold text-left whitespace-nowrap" data-tauri-drag-region>Motion Minute</p>
         </div>
         <div class="flex space-x-2 justify-end">
             <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-mm-green-100 hover:text-white p-1"
