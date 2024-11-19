@@ -30,7 +30,7 @@
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm tauri build --bundles app,dmg --target universal-apple-darwin",
+    "beforeBuildCommand": "pnpm build",
     "frontendDist": "../build"
   },
   "bundle": {
