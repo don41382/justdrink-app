@@ -17,6 +17,14 @@ async toggleTimer() : Promise<void> {
 async timerChange(changeTime: ChangeTime) : Promise<void> {
     await TAURI_INVOKE("timer_change", { changeTime });
 },
+async feedbackWindowSendFeedback(feedback: string, rating: FeedbackRate) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("feedback_window_send_feedback", { feedback, rating }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async updateSettings(settings: SettingsUserDetails) : Promise<null> {
     return await TAURI_INVOKE("update_settings", { settings });
 },
@@ -34,8 +42,13 @@ async startFirstSession(nextBreakDurationMinutes: number, enableOnStartup: boole
 async loadSessionDetails() : Promise<SessionDetail | null> {
     return await TAURI_INVOKE("load_session_details");
 },
-async endSession(reason: SessionEndingReason) : Promise<void> {
-    await TAURI_INVOKE("end_session", { reason });
+async endSession(reason: SessionEndingReason) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("end_session", { reason }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 async openSettings() : Promise<null> {
     return await TAURI_INVOKE("open_settings");
@@ -94,6 +107,7 @@ export type AppDetails = { version: string; license_info: LicenseInfo }
 export type ChangeTime = { Add: number } | { Remove: number }
 export type CountdownEvent = { status: TimerStatus }
 export type Exercise = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
+export type FeedbackRate = "UNKNOWN" | "BAD" | "OK" | "AWESOME"
 export type LicenseInfo = { status: LicenseInfoStatus; license_key: string | null; message: string | null }
 export type LicenseInfoStatus = "Trail" | "Paid" | "Full" | "Invalid"
 export type LicenseResult = { status: LicenseResultStatus; error: string | null }

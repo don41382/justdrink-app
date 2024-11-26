@@ -42,5 +42,12 @@ fn default_enable_idle_detection() -> bool {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SettingsSystemDetails {
+    #[serde(default = "default_session_count")]
+    pub(crate) session_count: u32,
+    #[serde(default = "default_feedback_provided")]
+    pub(crate) feedback_provided: bool,
     pub(crate) last_update_check_date: DateTime<Utc>,
 }
+
+fn default_session_count() -> u32 { 0 }
+fn default_feedback_provided() -> bool { false }

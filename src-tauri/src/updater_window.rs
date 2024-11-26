@@ -7,13 +7,15 @@ use tauri_plugin_updater::UpdaterExt;
 
 const WINDOW_LABEL: &str = "updater";
 
-pub fn show_if_update_available(app: &AppHandle, skip_duration_check: bool) -> () {
+pub async fn show_if_update_available(app: &AppHandle, skip_duration_check: bool) -> Result<bool, anyhow::Error> {
     debug!("updater info checking ...");
     let app_handle = app.app_handle().clone();
-    tauri::async_runtime::spawn(async move {
+    let mut skip_duration_check = false;
+    let join = tauri::async_runtime::spawn(async move {
         match show_if_update_available_run(&app_handle, skip_duration_check).await {
-            Ok(_) => {
+            Ok(shown) => {
                 debug!("Check update finished");
+                shown
             }
             Err(err) => {
                 app_handle.alert(
@@ -22,26 +24,33 @@ pub fn show_if_update_available(app: &AppHandle, skip_duration_check: bool) -> (
                     Some(err),
                     false,
                 );
+                false
             }
         }
     });
+    join.await.map_err(|err| err.into())
 }
 
 async fn show_if_update_available_run<R>(
     app_handle: &AppHandle<R>,
     skip_duration_check: bool,
-) -> Result<(), anyhow::Error>
+) -> Result<bool, anyhow::Error>
 where
     R: Runtime,
 {
-    if check_for_new_version_required(app_handle.app_handle(), skip_duration_check)? {
+    let shown = if check_for_new_version_required(app_handle.app_handle(), skip_duration_check)? {
         if is_new_version_available(app_handle.app_handle()).await? {
             debug!("found new version. show update dialog.");
             let _ = show(&app_handle)?;
+            true
+        } else {
+            false
         }
-    }
+    } else {
+        false
+    };
 
-    Ok(())
+    Ok(shown)
 }
 
 fn check_for_new_version_required<R: Runtime>(

@@ -1,7 +1,7 @@
 use crate::model::settings::SettingsSystemDetails;
 use anyhow::Error;
 use chrono::{Duration, Utc};
-use log::{debug, warn};
+use log::{debug, error, warn};
 use std::path::PathBuf;
 use std::string::ToString;
 use tauri::{AppHandle, Manager, Runtime};
@@ -10,6 +10,7 @@ use tauri_plugin_store::StoreBuilder;
 const STORE_NAME: &str = "mm-system-config.json";
 const ROOT_PATH: &str = "system";
 
+#[derive(Clone)]
 pub(crate) struct SettingsSystem {
     settings: SettingsSystemDetails,
 }
@@ -19,10 +20,36 @@ impl SettingsSystem {
         let settings = Self::load_settings_store(app).unwrap_or_else(|err| {
             warn!("system store settings not found: {:?}", err);
             SettingsSystemDetails {
+                session_count: 0,
+                feedback_provided: false,
                 last_update_check_date: Utc::now(),
             }
         });
         SettingsSystem { settings }
+    }
+
+    pub fn settings(&self) -> SettingsSystemDetails {
+        self.settings.clone()
+    }
+
+    pub fn feedback_given<R>(&mut self, app: &AppHandle<R>) -> ()
+    where
+        R: Runtime,
+    {
+        self.settings.feedback_provided = true;
+        self.write_settings(app).unwrap_or_else(|err| {
+            error!("unable to write system settings {}", err)
+        })
+    }
+
+    pub fn increase_session_count<R>(&mut self, app: &AppHandle<R>) -> ()
+    where
+        R: Runtime,
+    {
+        self.settings.session_count += 1;
+        self.write_settings(app).unwrap_or_else(|err| {
+            error!("unable to write system settings {}", err)
+        })
     }
 
     pub fn set_last_check_date<R>(&mut self, app: &AppHandle<R>) -> Result<(), Error>

@@ -18,6 +18,7 @@ mod settings_window;
 mod start_soon_window;
 mod updater_window;
 mod welcome_window;
+mod feedback_window;
 
 use log::{info, warn};
 use serde_json::json;
@@ -76,6 +77,7 @@ fn start_first_session_(
     Ok(())
 }
 
+type FeedbackSenderState = feedback_window::FeedbackSender;
 type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
 type SettingsSystemState = Mutex<SettingsSystem>;
 type CountdownTimerState = CountdownTimer;
@@ -91,6 +93,7 @@ pub fn run() {
             actionbar_window::get_current_timer_status,
             actionbar_window::toggle_timer,
             actionbar_window::timer_change,
+            feedback_window::feedback_window_send_feedback,
             update_settings,
             session_window::start_session,
             session_window::start_first_session,
@@ -198,6 +201,7 @@ pub fn run() {
             }
 
             let device_id = model::device::DeviceId::lookup()?;
+            app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
             app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(
                 app.app_handle(),
                 &device_id,

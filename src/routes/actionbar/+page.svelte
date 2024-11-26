@@ -122,7 +122,7 @@
 
 </script>
 
-<AutoSize class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg"
+<AutoSize class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing"
           data-tauri-drag-region ready={ready}>
     <!-- Header with Icon and Title -->
     <div class="flex items-center space-x-3">
@@ -143,7 +143,7 @@
         </div>
     </div>
     <!-- Timer Section -->
-    <div class="flex flex-col w-full text-center bg-mm-blue-50/20 rounded-lg">
+    <div class="flex flex-col w-full text-center bg-mm-blue-50/20 rounded-lg cursor-default">
         <div class="p-6">
             <div class="text-2xl font-light">next motion in</div>
             <div class="text-6xl font-bold">{countdown.time}</div>

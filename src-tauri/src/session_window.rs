@@ -1,4 +1,5 @@
-use log::info;
+use std::sync::atomic::fence;
+use log::{error, info};
 use std::thread;
 use std::thread::spawn;
 
@@ -8,16 +9,13 @@ use tauri::ActivationPolicy;
 use crate::alert::Alert;
 use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsTabs;
-use crate::{
-    countdown_timer, fullscreen, model, settings_window, start_first_session_, tracking,
-    updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState,
-    TrackingState,
-};
+use crate::{countdown_timer, feedback_window, fullscreen, model, settings_window, start_first_session_, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, TrackingState};
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 
 #[cfg(target_os = "windows")]
 use window_vibrancy::apply_acrylic;
+use crate::feedback_window::{FeedbackDisplay, FeedbackSender};
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -62,6 +60,17 @@ pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
         // stop current running timer
         info!("start session window: stop timer");
         app.state::<CountdownTimerState>().stop();
+
+        // stop current running timer
+        info!("increase session counter");
+        {
+            let settings_system = app.state::<SettingsSystemState>();
+            let mut settings_system = settings_system
+                .lock()
+                .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+            settings_system.increase_session_count(&app);
+        }
+
 
         // send tracking event
         info!("start session window: send tracking");
@@ -186,16 +195,30 @@ pub(crate) fn days_between(
 
 #[specta::specta]
 #[tauri::command]
-pub fn end_session(
+pub async fn end_session(
     app: AppHandle,
     window: Window,
-    timer: State<CountdownTimerState>,
+    timer: State<'_, CountdownTimerState>,
+    settings_system: State<'_, SettingsSystemState>,
     reason: model::session::SessionEndingReason,
-    tracking: State<TrackingState>,
-) {
+    tracking: State<'_, TrackingState>,
+) -> Result<(), String> {
     timer.restart();
-    window.close().unwrap();
     tracking.send_tracking(crate::tracking::Event::EndSession(reason));
 
-    updater_window::show_if_update_available(&app, false);
+    window.close().map_err(|err| format!("window can't be closed: {}", err))?;
+
+    let ask_for_feedback = {
+        let ss = settings_system.lock().expect("settings_system should not be locked");
+        ss.should_show_feedback()
+    };
+
+    let updater_visible =
+        updater_window::show_if_update_available(&app, false)
+            .await.unwrap();
+    if ask_for_feedback && !updater_visible {
+        feedback_window::show(&app).expect("unable to show feedback window");
+    }
+
+    Ok(())
 }

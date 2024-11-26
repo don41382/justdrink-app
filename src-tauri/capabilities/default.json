@@ -4,6 +4,7 @@
   "description": "Capability for the main window",
   "windows": [
     "actionbar",
+    "feedback",
     "session",
     "settings",
     "start_soon",

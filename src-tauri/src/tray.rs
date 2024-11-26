@@ -2,7 +2,7 @@ use crate::alert::Alert;
 use crate::countdown_timer::{CountdownEvent, CountdownTimer, PauseOrigin, TimerStatus};
 use crate::model::settings::SettingsTabs;
 use crate::pretty_time::PrettyTime;
-use crate::{actionbar_window, session_window, settings_window, updater_window};
+use crate::{actionbar_window, feedback_window, session_window, settings_window, updater_window};
 use anyhow::anyhow;
 use std::time::Duration;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
@@ -53,6 +53,14 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                 main_app,
                 "updater",
                 "Check for updates ...",
+                true,
+                None,
+                None::<&str>,
+            )?,
+            &IconMenuItem::with_id(
+                main_app,
+                "feedback",
+                "Feedback ...",
                 true,
                 None,
                 None::<&str>,
@@ -133,6 +141,16 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                     app.alert(
                         "Error while opening settings",
                         "I am sorry, we are unable to open up the settings.",
+                        Some(anyhow!(e)),
+                        false,
+                    );
+                });
+            },
+            "feedback" => {
+                feedback_window::show(app).unwrap_or_else(|e| {
+                    app.alert(
+                        "Error while opening settings",
+                        "I am sorry, we are unable to open up feedback.",
                         Some(anyhow!(e)),
                         false,
                     );

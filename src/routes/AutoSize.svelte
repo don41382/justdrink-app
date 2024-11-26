@@ -2,7 +2,6 @@
     import { onMount, onDestroy } from 'svelte';
     import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
     import type {UnlistenFn} from "@tauri-apps/api/event";
-    import {debug, info} from "@tauri-apps/plugin-log";
     import {type} from "@tauri-apps/plugin-os"
 
     export let ready: boolean = true;
@@ -14,7 +13,6 @@
         const currentWindow = getCurrentWindow();
 
         if (container && ready) {
-            await debug("adjust window size")
             let rect = container.getBoundingClientRect()
             const factor = window.devicePixelRatio;
             const width: number = Math.ceil(rect.width * factor);
