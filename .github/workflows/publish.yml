@@ -33,6 +33,14 @@ jobs:
             arch: x64-windows
             args: "--target x86_64-pc-windows-msvc"
             enabled: true
+            appstore: false
+          - runs-on: "self-hosted-windows"
+            os: windows
+            self-hosted: true
+            arch: x64-windows
+            args: "--target x86_64-pc-windows-msvc"
+            enabled: true
+            appstore: true
     env:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -114,8 +122,8 @@ jobs:
           repo: "motion-minute-app-releases"
           args: ${{ matrix.args }}
 
-      - name: bundle & build for app-store
-        if: matrix.appstore == true
+      - name: bundle & build for app-store mac
+        if: matrix.appstore == true && matrix.os == 'macos'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -125,6 +133,18 @@ jobs:
           cargo tauri build --no-bundle --target universal-apple-darwin --features fullversion
           cargo tauri bundle --bundles app,dmg --target universal-apple-darwin
           cargo tauri bundle --bundles app --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json
+
+
+      - name: bundle & build for app-store windows
+        if: matrix.appstore == true && matrix.os == 'windows'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          cd $GITHUB_WORKSPACE
+          cargo tauri build --no-bundle --target x86_64-pc-windows-msvc --features fullversion
+          cargo tauri bundle --bundles app,dmg --target x86_64-pc-windows-msvc
+          cargo tauri bundle --bundles app --target x86_64-pc-windows-msvc --config src-tauri/tauri.appstore.windows.conf.json
 
 
       - name: generate and upload installer package
