@@ -130,8 +130,7 @@ jobs:
           APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
         run: |
           cd $GITHUB_WORKSPACE
-          cargo tauri build --target universal-apple-darwin --features fullversion
-          cargo tauri bundle --bundles app --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json
+          pnpm run tauri build --target universal-apple-darwin --features fullversion --config src-tauri/tauri.appstore.conf.json
 
 
       - name: bundle & build for app-store windows
