@@ -130,7 +130,7 @@ jobs:
           APPLE_SIGNING_IDENTITY: "Apple Distribution: Felix Eckhardt (LXYUBHT3K4)"
         run: |
           cd $GITHUB_WORKSPACE
-          pnpm run tauri build --target universal-apple-darwin --features fullversion --config src-tauri/tauri.appstore.conf.json
+          pnpm run tauri build --target universal-apple-darwin --features "fullversion default" --config src-tauri/tauri.appstore.conf.json
 
 
       - name: bundle & build for app-store windows
@@ -140,7 +140,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           cd "$GITHUB_WORKSPACE"
-          pnpm run tauri build --target x86_64-pc-windows-msvc --features "fullversion default" --config src-tauri/tauri.appstore.conf.json
+          pnpm run tauri build --target x86_64-pc-windows-msvc --features "fullversion default" --config src-tauri/tauri.appstore.windows.conf.json
 
 
       - name: generate and upload installer package
