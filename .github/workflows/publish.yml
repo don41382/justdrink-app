@@ -140,7 +140,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           cd "$GITHUB_WORKSPACE"
-          pnpm run tauri build --target x86_64-pc-windows-msvc --features fullversion,default-tls --config src-tauri/tauri.appstore.conf.json
+          pnpm run tauri build --target x86_64-pc-windows-msvc --features "fullversion default" --config src-tauri/tauri.appstore.conf.json
 
 
       - name: generate and upload installer package
