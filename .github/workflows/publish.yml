@@ -27,20 +27,20 @@ jobs:
 #            args: "--target universal-apple-darwin"
 #            enable: true
 #            appstore: true
-#          - runs-on: "self-hosted-windows"
-#            os: windows
-#            self-hosted: true
-#            arch: x64-windows
-#            args: "--target x86_64-pc-windows-msvc"
-#            enabled: true
-#            appstore: false
           - runs-on: "self-hosted-windows"
             os: windows
             self-hosted: true
             arch: x64-windows
             args: "--target x86_64-pc-windows-msvc"
             enabled: true
-            appstore: true
+            appstore: false
+#          - runs-on: "self-hosted-windows"
+#            os: windows
+#            self-hosted: true
+#            arch: x64-windows
+#            args: "--target x86_64-pc-windows-msvc"
+#            enabled: true
+#            appstore: true
     env:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
