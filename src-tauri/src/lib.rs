@@ -216,8 +216,11 @@ pub fn run() {
 
             tray::create_tray(app.handle())?;
 
-            info!("show updater window");
-            updater_window::show_if_update_available(app.handle(), true);
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                info!("show updater window");
+                updater_window::show_if_update_available(&app_handle, true).await.unwrap();
+            });
 
             Ok(())
         })
