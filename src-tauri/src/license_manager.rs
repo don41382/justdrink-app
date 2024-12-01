@@ -72,7 +72,7 @@ pub struct PaidDetails {
 pub enum ValidTypes {
     Trail(TrailDetails),
     Paid(PaidDetails),
-    Full
+    Full,
 }
 
 #[allow(dead_code)]
@@ -237,7 +237,7 @@ impl LicenseManager {
             _ => Err(ServerRequestError::Other(anyhow::anyhow!(
                 "failed license request, unknown error with: {:?}, url: {:?}",
                 response.status(),
-                response.url()
+                response.url().path()
             ))),
         }
     }

@@ -142,6 +142,7 @@ pub fn run() {
         .plugin(
             tauri_plugin_aptabase::Builder::new("A-EU-5037339452")
                 .with_panic_hook(Box::new(|client, info, msg| {
+                    info!("add aptabase panic hook");
                     let location = info
                         .location()
                         .map(|loc| format!("{}:{}:{}", loc.file(), loc.line(), loc.column()))
