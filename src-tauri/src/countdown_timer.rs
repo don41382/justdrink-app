@@ -91,6 +91,10 @@ impl CountdownTimer {
 
     /// Starts the countdown timer with the specified duration.
     pub fn start(&self, duration: Duration) {
+
+        // ensure that no other timer is running
+        self.stop();
+
         {
             let mut rem_time = self.remaining_time.lock().unwrap();
             *rem_time = duration;
