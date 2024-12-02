@@ -127,10 +127,11 @@ impl LicenseManager {
                     ServerRequestError::BadRequest(err) => {
                         app_handle.alert(
                             "License Error",
-                            format!("Unable to access the license server: {}", err).as_str(),
+                                format!("Unable to access the license server: {}", err).as_str(),
                             None,
                             false,
                         );
+                        LicenseStatus::Invalid("Unable to validate your license.".to_string())
                     }
                     ServerRequestError::Other(err) => {
                         app_handle.alert(
@@ -139,9 +140,9 @@ impl LicenseManager {
                             Some(err),
                             false,
                         );
+                        LicenseStatus::Invalid("Unable to access license server.".to_string())
                     }
                 }
-                LicenseStatus::Invalid("Unable to access license server.".to_string())
             }
         };
         Self {
