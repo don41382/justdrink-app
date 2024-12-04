@@ -6,7 +6,7 @@ use tauri_specta::Event;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub enum LicenseInfoStatus {
-    Trail,
+    Trial,
     Paid,
     Full,
     Invalid,
@@ -22,9 +22,9 @@ pub struct LicenseInfo {
 impl LicenseStatus {
     pub(crate) fn to_license_info(&self) -> model::license::LicenseInfo {
         match self {
-            LicenseStatus::Valid(trail_type) => match trail_type {
-                ValidTypes::Trail(details) => LicenseInfo {
-                    status: model::license::LicenseInfoStatus::Trail,
+            LicenseStatus::Valid(trial_types) => match trial_types {
+                ValidTypes::Trial(details) => LicenseInfo {
+                    status: model::license::LicenseInfoStatus::Trial,
                     license_key: None,
                     message: Some(format!(
                         "Your trial has {:?} days remaining",

@@ -36,7 +36,7 @@ mod response {
 
     #[allow(dead_code)]
     #[derive(Deserialize, Debug, Clone)]
-    pub(super) struct Trail {
+    pub(super) struct Trial {
         #[serde(rename(deserialize = "startsAt"))]
         pub(super) starts_at: DateTime<Utc>,
         #[serde(rename(deserialize = "expiresAt"))]
@@ -52,13 +52,13 @@ mod response {
     #[derive(Deserialize, Debug, Clone)]
     pub(super) struct Response {
         pub(super) status: LicenseStatus,
-        pub(super) trail: Option<Trail>,
+        pub(super) trial: Option<Trial>,
         pub(crate) paid: Option<Paid>,
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct TrailDetails {
+pub struct TrialDetails {
     pub expired_at: chrono::DateTime<Utc>,
 }
 
@@ -70,7 +70,7 @@ pub struct PaidDetails {
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub enum ValidTypes {
-    Trail(TrailDetails),
+    Trial(TrialDetails),
     Paid(PaidDetails),
     Full,
 }
@@ -250,13 +250,13 @@ impl LicenseManager {
 
         let license_status = match response.status {
             response::LicenseStatus::ActiveTrial => {
-                let trail = response.trail.ok_or_else(|| {
+                let trial = response.trial.ok_or_else(|| {
                     ServerRequestError::Other(anyhow::anyhow!(
                         "marked as active trial, but no details not found"
                     ))
                 })?;
-                LicenseStatus::Valid(ValidTypes::Trail(TrailDetails {
-                    expired_at: trail.expires_at,
+                LicenseStatus::Valid(ValidTypes::Trial(TrialDetails {
+                    expired_at: trial.expires_at,
                 }))
             }
             response::LicenseStatus::ActivePaid => {

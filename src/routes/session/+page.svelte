@@ -129,7 +129,7 @@
             {#if exercise !== undefined && countdownSeconds !== undefined}
                 <h1 class="text-6xl text-primary tracking-tight font-bold mb-4">{exercise.title}</h1>
                 <h1 class="text-4xl text-primary/80 font-light tracking-wide w-1/2 mb-4">{exercise.description}</h1>
-                {#if license && (license.status === 'Trail' || license.status === 'Invalid')}
+                {#if license && (license.status === 'Trial' || license.status === 'Invalid')}
                     <span class="text-gray-500 font-light tracking-wide">{license.message}</span>
                 {/if}
             {/if}

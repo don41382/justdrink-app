@@ -49,7 +49,7 @@
         if (licenseCode) {
             let result = await commands.settingsRegisterLicense(licenseCode);
             switch (result.status) {
-                case "Trail":
+                case "Trial":
                     app.license_info = result;
                     error = null;
                     break;
