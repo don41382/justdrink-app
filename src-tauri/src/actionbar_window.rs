@@ -1,3 +1,4 @@
+use std::env;
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
 use crate::{countdown_timer, CountdownTimerState};
 use tauri::{AppHandle, Manager, Runtime};
@@ -29,6 +30,11 @@ where
     }
 
     Ok(())
+}
+
+pub fn should_show_dashboard() -> bool {
+    let args: Vec<String> = env::args().collect();
+    !args.contains(&"--quiet".to_string())
 }
 
 #[specta::specta]

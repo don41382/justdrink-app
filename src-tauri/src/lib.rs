@@ -190,6 +190,9 @@ pub fn run() {
                 Ok(settings) => {
                     app.manage::<SettingsDetailsState>(Mutex::new(Some(settings.clone())));
                     setup_timer(app, settings.clone()).unwrap();
+                    if actionbar_window::should_show_dashboard() {
+                        show_dashboard(app.app_handle());
+                    }
                 }
                 Err(err) => {
                     warn!("could not load settings: {}", err);
