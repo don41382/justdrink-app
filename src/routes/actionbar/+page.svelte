@@ -108,7 +108,6 @@
 
     async function openSettings() {
         await commands.openSettings();
-        await getCurrentWindow().close();
     }
 
     async function startSession() {
