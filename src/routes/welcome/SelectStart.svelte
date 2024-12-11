@@ -11,7 +11,7 @@
             Thanks for choosing Motion Minute. Let's quickly setup your motion sessions in the next steps.
         </p>
         <div class="flex justify-center">
-            <img class="w-[350px]" src={welcomePath}/>
+            <img class="h-[300px]" src={welcomePath}/>
         </div>
     </div>
 </div>
