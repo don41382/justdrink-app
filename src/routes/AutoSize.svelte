@@ -29,12 +29,16 @@
             let topPadding = await currentWindow.isDecorated() && type() === 'macos' ? 55 : 0
             let size = new PhysicalSize(width, height + topPadding);
 
-            await debug(`resizing now to ${width}x${height + topPadding}`)
+            let current = await currentWindow.outerSize()
+            await debug(`size before ${current.width}x${current.height}`)
+            await debug(`size after ${width}x${height + topPadding}`)
 
             await currentWindow.setSize(size);
-            await getCurrentWindow().center();
-            await getCurrentWindow().show();
-            await getCurrentWindow().setFocus();
+            await tick();
+
+            await currentWindow.center();
+            await currentWindow.show();
+            await currentWindow.setFocus();
         }
     }
 
