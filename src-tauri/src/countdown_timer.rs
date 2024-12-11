@@ -9,7 +9,7 @@ use tauri::AppHandle;
 use tauri_specta::Event;
 use timer::{Guard, Timer};
 
-const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(250);
+const TICKER_SPEED_MS: chrono::Duration = chrono::Duration::milliseconds(1000);
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
 pub struct CountdownEvent {

@@ -15,18 +15,20 @@
 
     let ready = $state(false);
 
-    let countdown = $state({
-        time: '',
+    let countdown: {time: string | undefined, pause: boolean} = $state({
+        time: undefined,
         pause: false
     });
 
     onMount(async () => {
         await info("dashboard mounted")
-        countdownUnlistenFn = await events.countdownEvent.listen(async (data) => {
-            countdown.time = formatTime(getSeconds(data.payload.status));
-            countdown.pause = isPause(data.payload.status);
-            ready = true;
+        countdown.time = formatTime(getSeconds(data.timerStatus))
+        countdown.pause = isPause(data.timerStatus)
+        countdownUnlistenFn = await events.countdownEvent.listen(async (response) => {
+            countdown.time = formatTime(getSeconds(response.payload.status));
+            countdown.pause = isPause(response.payload.status);
         });
+        ready = true;
     })
 
 
@@ -121,8 +123,9 @@
 
 </script>
 
-<AutoSize class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing"
-          data-tauri-drag-region ready={ready}>
+<AutoSize
+        class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing"
+        data-tauri-drag-region ready={ready}>
     <!-- Header with Icon and Title -->
     <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-2 mr-16 select-none">
