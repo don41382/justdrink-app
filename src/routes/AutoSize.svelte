@@ -1,18 +1,26 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
+    import {onMount, onDestroy, tick} from 'svelte';
     import {getCurrentWindow, PhysicalSize} from '@tauri-apps/api/window';
-    import type {UnlistenFn} from "@tauri-apps/api/event";
     import {type} from "@tauri-apps/plugin-os"
+    import type { Snippet } from 'svelte';
+    import {debug} from "@tauri-apps/plugin-log";
 
-    export let ready: boolean = true;
+    interface Props {
+        ready: boolean;
+        children: Snippet;
+        [key: string]: unknown;
+    }
 
-    let container: HTMLDivElement;
-    let resize: UnlistenFn;
+    let {ready = true, children, ...rest}: Props = $props();
+
+    let container: HTMLDivElement | null = $state(null);
 
     async function resizeWindow() {
         const currentWindow = getCurrentWindow();
+        await debug("resizeWindow called");
 
         if (container && ready) {
+            await tick();
             let rect = container.getBoundingClientRect()
             const factor = window.devicePixelRatio;
             const width: number = Math.ceil(rect.width * factor);
@@ -21,10 +29,16 @@
             let topPadding = await currentWindow.isDecorated() && type() === 'macos' ? 55 : 0
             let size = new PhysicalSize(width, height + topPadding);
 
+            let current = await currentWindow.outerSize()
+            await debug(`size before ${current.width}x${current.height}`)
+            await debug(`size after ${width}x${height + topPadding}`)
+
             await currentWindow.setSize(size);
-            await getCurrentWindow().center();
-            await getCurrentWindow().show();
-            await getCurrentWindow().setFocus();
+            await tick();
+
+            await currentWindow.center();
+            await currentWindow.show();
+            await currentWindow.setFocus();
         }
     }
 
@@ -39,10 +53,9 @@
 
     onDestroy(() => {
         if (observer) observer.disconnect();
-        resize?.();
     });
 </script>
 
-<div {...$$restProps} bind:this={container}>
-    <slot></slot>
+<div {...rest} bind:this={container}>
+    {@render children?.()}
 </div>

@@ -93,7 +93,7 @@ fn write_settings(
     app: &AppHandle,
     settings_details: &SettingsUserDetails,
 ) -> Result<(), anyhow::Error> {
-    let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build()?;
+    let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
     let version = app.app_handle().config().version.clone();
 
     let json_data = serde_json::to_value(UserSettingsStore {
@@ -113,7 +113,7 @@ fn load_settings_store(app: &AppHandle) -> Result<UserSettingsStore, anyhow::Err
         "loading settings: {:?}",
         app.path().app_data_dir()?.join(&path)
     );
-    let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build()?;
+    let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
 
     let data_json = store
         .get("data".to_string())

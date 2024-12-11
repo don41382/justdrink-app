@@ -50,8 +50,6 @@ tauri-plugin-aptabase = { git = "https://github.com/aptabase/tauri-plugin-aptaba
 tauri-plugin-process = "2"
 window-vibrancy = { git = "https://github.com/tauri-apps/window-vibrancy" }
 
-
-
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.26.0"
 objc = "0.2.7"
