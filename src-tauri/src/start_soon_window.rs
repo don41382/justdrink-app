@@ -3,6 +3,7 @@ use crate::{countdown_timer, detect_mouse_state, settings_window, CountdownTimer
 use mouse_position::mouse_position::Mouse;
 use std::thread::sleep;
 use std::time::Duration;
+use log::warn;
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 
 #[cfg(target_os = "windows")]
@@ -83,11 +84,15 @@ where
                             #[cfg(target_os = "windows")]
                             window
                                 .set_position(PhysicalPosition::new(x + 20, y - 130))
-                                .unwrap();
+                                .unwrap_or_else(|err| {
+                                    warn!("start soon window position can't be set: {:?}", err)
+                                });
                             #[cfg(target_os = "macos")]
                             window
                                 .set_position(LogicalPosition::new(x + 10, y - 90))
-                                .unwrap();
+                                .unwrap_or_else(|err| {
+                                    warn!("start soon window position can't be set: {:?}", err)
+                                })
                         }
                         Mouse::Error => {}
                     }

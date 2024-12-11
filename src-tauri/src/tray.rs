@@ -70,6 +70,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
         ],
     )?;
 
+    let app_handle = main_app.clone();
     CountdownEvent::listen(main_app.app_handle(), move |event| {
         let timer_control_text = if event.payload.status.is_running() {
             "Pause"
@@ -77,7 +78,10 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
             "Resume"
         };
 
-        menu_timer_control.set_text(timer_control_text).unwrap();
+        menu_timer_control.set_text(timer_control_text).unwrap_or_else(|err | {
+            app_handle.alert("Can't set timer in tray", "Unable to update tray", Some(anyhow::anyhow!(err)), true);
+        });
+
         menu_status
             .set_text(format!("Dashboard ({})", event.payload.status.to_text()))
             .unwrap()
