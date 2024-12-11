@@ -2,7 +2,6 @@ use crate::model::settings::SettingsSystemDetails;
 use anyhow::Error;
 use chrono::{Duration, Utc};
 use log::{debug, error, warn};
-use std::path::PathBuf;
 use std::string::ToString;
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_store::StoreBuilder;
@@ -70,7 +69,7 @@ impl SettingsSystem {
         R: Runtime,
     {
         debug!("save system settings");
-        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
+        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build()?;
 
         let json_data = serde_json::to_value(self.settings.clone())
             .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
@@ -82,11 +81,11 @@ impl SettingsSystem {
     }
 
     fn load_settings_store(app: &AppHandle) -> Result<SettingsSystemDetails, anyhow::Error> {
-        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
+        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build()?;
 
         let data_json = store
             .get(ROOT_PATH.to_string())
-            .ok_or_else(|| tauri_plugin_store::Error::NotFound(PathBuf::from(ROOT_PATH)))?;
+            .ok_or_else(|| anyhow::anyhow!("can't find settings in {}", ROOT_PATH))?;
 
         let settings: SettingsSystemDetails = serde_json::from_value(data_json.clone())
             .map_err(|e| tauri_plugin_store::Error::Deserialize(Box::new(e)))?;
