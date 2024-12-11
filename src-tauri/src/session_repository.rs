@@ -40,8 +40,8 @@ impl SessionRepository {
                 active: true,
             },
             Exercise {
-                id: SessionId("seated-hip-mobility".to_string()),
-                title: "Seated Hip Mobility".to_string(),
+                id: SessionId("pelvic-tilt".to_string()),
+                title: "Pelvic Tilt".to_string(),
                 description: "A seated exercise to improve hip flexibility and core engagement through controlled pelvic movements.".to_string(),
                 advices: vec![
                     "Sit comfortably on a chair with your upper body upright and maintain a natural curve in your lower back.",

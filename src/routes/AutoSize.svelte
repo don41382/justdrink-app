@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import { getCurrentWindow, PhysicalSize } from '@tauri-apps/api/window';
+    import {onMount, onDestroy} from 'svelte';
+    import {getCurrentWindow, PhysicalSize} from '@tauri-apps/api/window';
     import type {UnlistenFn} from "@tauri-apps/api/event";
     import {type} from "@tauri-apps/plugin-os"
 
-    export let ready: boolean = true;
+    let {ready = true, ...rest} = $props();
 
     let container: HTMLDivElement;
     let resize: UnlistenFn;
@@ -43,6 +43,6 @@
     });
 </script>
 
-<div {...$$restProps} bind:this={container}>
+<div {...rest} bind:this={container}>
     <slot></slot>
 </div>
