@@ -23,7 +23,7 @@ default = []
 fullversion = []
 
 [dependencies]
-tauri = { version = "2.1.1", features = ["protocol-asset", "macos-private-api", "tray-icon", "native-tls"] }
+tauri = { version = "2.1.0", features = ["protocol-asset", "macos-private-api", "tray-icon", "native-tls"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 log = "0.4.22"
