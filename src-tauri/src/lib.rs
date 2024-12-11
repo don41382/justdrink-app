@@ -233,6 +233,11 @@ pub fn run() {
                 // called only on macos
                 show_dashboard(app);
             }
+            RunEvent::ExitRequested { .. } => {
+                info!("Closing Motion Minute. Stop timer.");
+                let timer = app.state::<CountdownTimerState>();
+                timer.stop();
+            }
             _ => {}
         })
 }
