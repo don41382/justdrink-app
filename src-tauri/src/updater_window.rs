@@ -10,7 +10,6 @@ const WINDOW_LABEL: &str = "updater";
 pub async fn show_if_update_available(app: &AppHandle, skip_duration_check: bool) -> Result<bool, anyhow::Error> {
     debug!("updater info checking ...");
     let app_handle = app.app_handle().clone();
-    let mut skip_duration_check = false;
     let join = tauri::async_runtime::spawn(async move {
         match show_if_update_available_run(&app_handle, skip_duration_check).await {
             Ok(shown) => {

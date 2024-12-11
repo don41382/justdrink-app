@@ -19,6 +19,7 @@ mod start_soon_window;
 mod updater_window;
 mod welcome_window;
 mod feedback_window;
+mod subscription_manager;
 
 use log::{info, warn};
 use serde_json::json;
@@ -35,7 +36,7 @@ use crate::session_repository::SessionRepository;
 use crate::alert::Alert;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
-use tauri::{App, AppHandle, Manager, RunEvent, Window, WindowEvent};
+use tauri::{App, AppHandle, Manager, RunEvent, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::{MacosLauncher};
 use tauri_plugin_log::Target;
@@ -55,28 +56,6 @@ fn update_settings(app_handle: AppHandle, settings: model::settings::SettingsUse
     });
 }
 
-fn start_first_session_(
-    app_handle: &AppHandle,
-    welcome_window: Window,
-    next_break_duration_minutes: u32,
-    enable_on_startup: bool,
-) -> Result<(), anyhow::Error> {
-    settings_window::set_settings(
-        &app_handle,
-        model::settings::SettingsUserDetails {
-            active: true,
-            next_break_duration_minutes,
-            allow_tracking: true,
-            enable_idle_detection: true,
-            enable_on_startup,
-        },
-        true,
-    )?;
-    welcome_window.hide()?;
-    session_window::start(&app_handle)?;
-    Ok(())
-}
-
 type FeedbackSenderState = feedback_window::FeedbackSender;
 type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
 type SettingsSystemState = Mutex<SettingsSystem>;
@@ -84,6 +63,7 @@ type CountdownTimerState = CountdownTimer;
 type TrackingState = Tracking;
 type SessionRepositoryState = Mutex<SessionRepository>;
 type LicenseManagerState = Mutex<license_manager::LicenseManager>;
+type SubscriptionManagerState = subscription_manager::SubscriptionManager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -199,8 +179,8 @@ pub fn run() {
                     app.manage::<SettingsDetailsState>(Mutex::new(
                         None::<model::settings::SettingsUserDetails>,
                     ));
-                    info!("display welcome screen");
                     welcome_window::show(app.app_handle())?;
+                    info!("display welcome screen");
                 }
             }
 
@@ -210,6 +190,7 @@ pub fn run() {
                 app.app_handle(),
                 &device_id,
             )));
+            app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(device_id.clone()));
 
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;

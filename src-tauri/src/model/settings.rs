@@ -31,6 +31,7 @@ pub struct SettingsUserDetails {
     pub(crate) active: bool,
     pub(crate) allow_tracking: bool,
     pub(crate) enable_on_startup: bool,
+    pub(crate) consent: bool,
 
     #[serde(default = "default_enable_idle_detection")]
     pub(crate) enable_idle_detection: bool,

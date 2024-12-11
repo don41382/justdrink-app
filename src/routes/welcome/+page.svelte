@@ -1,89 +1,81 @@
 <script lang="ts">
-    import {commands} from '../../bindings';
+    import SelectSessionTime from "./SelectSessionTime.svelte";
+    import AutoSize from "../AutoSize.svelte";
+    import SelectEnd from "./SelectEnd.svelte";
+    import SelectStart from "./SelectStart.svelte";
     import {enable} from "@tauri-apps/plugin-autostart";
-    import {info, warn} from "@tauri-apps/plugin-log";
-    import {onMount} from "svelte";
-    import * as tauri_path from "@tauri-apps/api/path";
-    import {convertFileSrc} from "@tauri-apps/api/core";
-    import {fitAndShowWindow} from "../../helper";
-    import {formatDuration, sessionTimes} from "../session-times";
+    import {commands} from "../../bindings";
+    import {type Time, times} from "./Time";
+    import {info} from "@tauri-apps/plugin-log";
 
-    let next_break_duration_minutes: number = sessionTimes[sessionTimes.length-2];
-    let enable_on_startup = true;
+    let {data} = $props();
 
-    let icon_path: string;
+    type WelcomeStep = "Start" | "Time" | "Finish"
+    let steps: WelcomeStep[] = ["Start", "Time", "Finish"];
+    let currentStep: WelcomeStep = $state("Start")
 
-    let contentDiv: HTMLDivElement;
+    let email: string | null = $state(null);
+    let consent: boolean = $state(true);
+    let selectedDuration: Time = $state(times[1]);
 
-    info("show welcome window")
-
-    onMount(async () => {
-        await info("mount welcome window")
-        icon_path = convertFileSrc(`${await tauri_path.resourceDir()}/icons/128x128.png`);
-        await fitAndShowWindow(contentDiv);
-    });
-
-    async function startSession() {
-        await info("start session")
-        if (enable_on_startup) {
-            await info("enable startup")
-            await enable()
+    function next() {
+        const currentIndex = steps.indexOf(currentStep);
+        if (currentIndex < steps.length - 1) {
+            currentStep = steps[currentIndex + 1];
+        } else if (steps[currentIndex] ==  "Finish") {
+            info(`start first session, email: ${email}, consent: ${consent}`)
+            enable()
+            commands.startFirstSession(
+                selectedDuration.minutes,
+                email,
+                consent,
+                true
+            )
         }
-
-        await commands.startFirstSession(
-            next_break_duration_minutes,
-            enable_on_startup
-        );
-
     }
 
-    function selectDuration(duration: number) {
-        next_break_duration_minutes = duration;
+    function back() {
+        const currentIndex = steps.indexOf(currentStep);
+        if (currentIndex > 0) {
+            currentStep = steps[currentIndex - 1];
+        }
     }
-
-    // allows no context menu
-    document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
 
-<div bind:this={contentDiv}
-     class="bg-gray-100 w-[500px] h-full p-16 flex flex-col items-center justify-center cursor-default rounded-2xl">
-    <div class="z-10">
-        <div class="mb-6 text-center" id="logo">
-            <div class="flex items-center justify-center">
-                <img alt="logo" class="w-32 h-32 transform scale-125" src="{icon_path}">
+<AutoSize
+        class="flex flex-col bg-gray-100 w-[650px] h-min-[600px] px-12 justify-center cursor-default rounded-2xl"
+        ready={true}>
+        <div class="flex-none pt-8 mb-8">
+            <div class="flex">
+                <img alt="Motion Minute" class="size-8" src="{data.iconPath}">
+                <p class="text-xl ml-2">Motion Minute</p>
             </div>
         </div>
 
-        <h1 class="text-4xl text-secondary text-center mb-2">Motion Minute</h1>
 
-        <p class="text-center text-neutral-600 mb-8">
-            Stay active and energized throughout your day with gentle reminders to stretch and move.
-        </p>
-
-        <div class="mb-8" id="session-options">
-            <h2 class="text-lg font-semibold mb-3">How often do you want to exercise?</h2>
-            <div class="grid grid-cols-1 gap-3">
-                {#each sessionTimes as duration}
-                    <button
-                            on:click={() => selectDuration(duration)}
-                            class="{next_break_duration_minutes === duration ? 'text-white bg-gray-950' : 'text-black bg-gray-200'} hover:bg-black/50 hover:text-white py-2 rounded-md">
-                        <span class="font-thin">every</span>
-                        {formatDuration(duration)}
-                    </button>
-                {/each}
-            </div>
+        <div class="flex-grow mb-12 w-full">
+            {#if currentStep === "Start"}
+                <SelectStart welcomePath={data.welcomePath}/>
+            {:else if currentStep === "Time"}
+                <SelectSessionTime bind:selectedDuration={selectedDuration} />
+            {:else if currentStep === "Finish"}
+                <SelectEnd bind:email={email} bind:consent={consent} />
+            {/if}
         </div>
 
-        <div class="flex items-center mb-8">
-            <input bind:checked={enable_on_startup}
-                   class="mr-2 h-4 w-4 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500"
-                   type="checkbox">
-            <label class="text-sm text-neutral-600" for="load-startup">Load on startup</label>
+        <div class="flex-none flex w-full pb-12">
+            {#if currentStep !== "Start"}
+                <button class="text-gray-600 py-2 rounded-md" onclick={back}>
+                    Back
+                </button>
+            {/if}
+            <button class="bg-primary hover:bg-primary/50 text-white py-2 rounded-md px-8 ml-auto" onclick={next}>
+                {#if currentStep === "Finish"}
+                    Start Session
+                {:else}
+                    Next
+                {/if}
+            </button>
         </div>
-
-        <button class="w-full bg-primary hover:bg-primary/50 text-white py-2 rounded-md" on:click={startSession}>
-            Start your first session
-        </button>
-    </div>
-</div>
+</AutoSize>

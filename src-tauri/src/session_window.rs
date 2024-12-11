@@ -1,5 +1,4 @@
-use std::sync::atomic::fence;
-use log::{error, info};
+use log::{info};
 use std::thread;
 use std::thread::spawn;
 
@@ -9,13 +8,13 @@ use tauri::ActivationPolicy;
 use crate::alert::Alert;
 use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsTabs;
-use crate::{countdown_timer, feedback_window, fullscreen, model, settings_window, start_first_session_, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, TrackingState};
+use crate::{countdown_timer, feedback_window, fullscreen, model, session_window, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, SubscriptionManagerState, TrackingState};
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 
 #[cfg(target_os = "windows")]
 use window_vibrancy::apply_acrylic;
-use crate::feedback_window::{FeedbackDisplay, FeedbackSender};
+use crate::feedback_window::{FeedbackDisplay};
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -129,6 +128,8 @@ pub async fn start_first_session(
     app_handle: AppHandle,
     welcome_window: Window,
     next_break_duration_minutes: u32,
+    email: Option<String>,
+    consent: bool,
     enable_on_startup: bool,
 ) -> Result<(), String> {
     spawn(move || {
@@ -137,6 +138,8 @@ pub async fn start_first_session(
             &app_handle.app_handle(),
             welcome_window,
             next_break_duration_minutes,
+            email,
+            consent,
             enable_on_startup,
         ) {
             Ok(_) => {}
@@ -150,6 +153,38 @@ pub async fn start_first_session(
     });
     Ok(())
 }
+
+fn start_first_session_(
+    app_handle: &AppHandle,
+    welcome_window: Window,
+    next_break_duration_minutes: u32,
+    email: Option<String>,
+    consent: bool,
+    enable_on_startup: bool,
+) -> Result<(), anyhow::Error> {
+    let subscription_manager = app_handle.state::<SubscriptionManagerState>();
+    settings_window::set_settings(
+        &app_handle,
+        model::settings::SettingsUserDetails {
+            active: true,
+            next_break_duration_minutes,
+            allow_tracking: true,
+            enable_idle_detection: true,
+            enable_on_startup,
+            consent,
+        },
+        true,
+    )?;
+
+    subscription_manager.subscribe(email.clone(), consent).unwrap_or_else(|err| {
+        app_handle.alert("Unable to subscribe", format!("Sorry, we were not able to subscribe the user {:?}.", email.clone()).as_str(), Some(err), true);
+    });
+
+    welcome_window.hide()?;
+    session_window::start(&app_handle)?;
+    Ok(())
+}
+
 
 #[specta::specta]
 #[tauri::command]

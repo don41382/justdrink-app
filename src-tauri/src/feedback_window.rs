@@ -1,5 +1,4 @@
-use anyhow::Error;
-use log::{error, warn};
+use log::{error};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{AppHandle, Manager, Runtime, State};

@@ -22,6 +22,7 @@ const DEFAULT_SESSION: SettingsUserDetails = SettingsUserDetails {
     allow_tracking: true,
     enable_on_startup: true,
     enable_idle_detection: true,
+    consent: false,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -67,7 +68,7 @@ pub fn load_settings(
 
 #[specta::specta]
 #[tauri::command]
-pub fn open_browser(window: Window, app_handle: AppHandle, url: String) -> () {
+pub fn open_browser(window: Window, app_handle: AppHandle, url: String, close: bool) -> () {
     match webbrowser::open(url.as_str()) {
         Ok(_) => {}
         Err(err) => {
@@ -83,7 +84,9 @@ pub fn open_browser(window: Window, app_handle: AppHandle, url: String) -> () {
             );
         }
     }
-    window.close().expect("settings window to close");
+    if close {
+        window.close().expect("settings window to close");
+    }
 }
 
 fn write_settings(

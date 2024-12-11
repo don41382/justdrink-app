@@ -13,7 +13,7 @@
     });
 
     function openUrl(url: string) {
-        commands.openBrowser(url);
+        commands.openBrowser(url, true);
     }
 
 </script>
