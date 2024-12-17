@@ -36,7 +36,7 @@ use crate::session_repository::SessionRepository;
 use crate::alert::Alert;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
-use tauri::{App, AppHandle, Manager, RunEvent, WindowEvent};
+use tauri::{App, AppHandle, Listener, Manager, RunEvent, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::{MacosLauncher};
 use tauri_plugin_log::Target;

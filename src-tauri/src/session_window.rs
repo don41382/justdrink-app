@@ -9,7 +9,7 @@ use crate::alert::Alert;
 use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsTabs;
 use crate::{countdown_timer, feedback_window, fullscreen, model, session_window, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, SubscriptionManagerState, TrackingState};
-use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
+use tauri::{AppHandle, Emitter, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 
 #[cfg(target_os = "windows")]
@@ -22,14 +22,10 @@ pub fn init(app: &AppHandle<Wry>) -> EventId {
     let app_handle = app.clone();
     countdown_timer::CountdownEvent::listen(app, move |status| {
         if status.payload.status == countdown_timer::TimerStatus::Finished {
-            info!(
-                "Thread after timer runs out: {}",
-                thread::current()
-                    .name()
-                    .unwrap_or("Unnamed Thread")
-                    .to_string()
-            );
-            start(&app_handle).unwrap();
+            let app_handle_start = app_handle.clone();
+            app_handle.run_on_main_thread(move || {
+                start(&app_handle_start.app_handle()).unwrap();
+            }).unwrap();
         }
     })
 }
@@ -49,6 +45,13 @@ pub async fn start_session(app: AppHandle) -> () {
 }
 
 pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
+    info!("Start session on thread: {}",
+        thread::current()
+            .name()
+            .unwrap_or("Unnamed Thread")
+            .to_string()
+    );
+
     let license_manager = app.state::<LicenseManagerState>();
     if license_manager
         .try_lock()
