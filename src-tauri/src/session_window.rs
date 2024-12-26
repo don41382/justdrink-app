@@ -9,7 +9,7 @@ use crate::alert::Alert;
 use crate::model::session::SessionDetail;
 use crate::model::settings::SettingsTabs;
 use crate::{countdown_timer, feedback_window, fullscreen, model, session_window, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, SubscriptionManagerState, TrackingState};
-use tauri::{AppHandle, Emitter, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
+use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 
 #[cfg(target_os = "windows")]
@@ -133,6 +133,7 @@ pub async fn start_first_session(
     next_break_duration_minutes: u32,
     email: Option<String>,
     consent: bool,
+    pains: Vec<String>,
     enable_on_startup: bool,
 ) -> Result<(), String> {
     spawn(move || {
@@ -143,6 +144,7 @@ pub async fn start_first_session(
             next_break_duration_minutes,
             email,
             consent,
+            pains,
             enable_on_startup,
         ) {
             Ok(_) => {}
@@ -163,6 +165,7 @@ fn start_first_session_(
     next_break_duration_minutes: u32,
     email: Option<String>,
     consent: bool,
+    pains: Vec<String>,
     enable_on_startup: bool,
 ) -> Result<(), anyhow::Error> {
     let subscription_manager = app_handle.state::<SubscriptionManagerState>();
@@ -172,6 +175,7 @@ fn start_first_session_(
             active: true,
             next_break_duration_minutes,
             allow_tracking: true,
+            pains,
             enable_idle_detection: true,
             enable_on_startup,
             consent,

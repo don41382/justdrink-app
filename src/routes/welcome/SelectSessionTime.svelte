@@ -19,7 +19,8 @@
             {#each times as time}
                 <button
                         onclick={() => select(time)}
-                        class="group flex-col cursor-pointer shadow-sm rounded-xl p-4 items-center w-36 {(selectedDuration.minutes === time.minutes) ? 'bg-primary text-white' : 'bg-gray-200 hover:border-gray-600 hover:bg-gray-300'}">
+                        class="group flex-col cursor-pointer shadow-sm rounded-xl p-4 items-center w-36 border-2 border-white
+                               {(selectedDuration.minutes === time.minutes) ? 'bg-gray-800 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
                     <span class="text-xs font-light">every</span>
                     <div class="text-lg w-full mb-1">
                         {time.minutes} min

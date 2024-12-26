@@ -8,5 +8,5 @@ export async function loadAppIcon() {
 
 export async function loadImage(img: string) {
     const resourceDir = await tauri_path.resourceDir();
-    return convertFileSrc(`${resourceDir}/icons/mm-welcome.png`);
+    return convertFileSrc(`${resourceDir}/icons/${img}`);
 }

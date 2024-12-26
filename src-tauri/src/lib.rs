@@ -36,7 +36,7 @@ use crate::session_repository::SessionRepository;
 use crate::alert::Alert;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
-use tauri::{App, AppHandle, Listener, Manager, RunEvent, WindowEvent};
+use tauri::{App, AppHandle, Manager, RunEvent, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::{MacosLauncher};
 use tauri_plugin_log::Target;
@@ -244,7 +244,6 @@ pub fn run() {
 
 fn show_dashboard(app: &AppHandle) {
     actionbar_window::show(app.app_handle()).unwrap_or_else(|err| {
-        info!("there is an error");
         app.alert(
             "Can't open action menu",
             "Action Menu can't be opened during new instance. Please try again later.",

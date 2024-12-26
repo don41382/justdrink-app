@@ -4,7 +4,7 @@
     import {onMount} from "svelte";
 
     let {email = $bindable(), consent = $bindable()}: {
-        email: string,
+        email: string | null,
         consent: boolean
     } = $props();
 

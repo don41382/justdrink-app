@@ -1,6 +1,7 @@
 use crate::model::license::LicenseInfo;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use specta::datatype::StructType;
 use specta::Type;
 use tauri_specta::Event;
 
@@ -30,6 +31,7 @@ pub struct SettingsUserDetails {
     pub(crate) next_break_duration_minutes: u32,
     pub(crate) active: bool,
     pub(crate) allow_tracking: bool,
+    pub(crate) pains: Vec<String>,
     pub(crate) enable_on_startup: bool,
     pub(crate) consent: bool,
 
