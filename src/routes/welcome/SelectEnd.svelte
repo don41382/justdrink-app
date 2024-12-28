@@ -40,7 +40,7 @@
                 type="checkbox">
         <label class="text-sm text-neutral-600" for="consent">I agree to receive emails from Motion Minute and
             understand I can unsubscribe anytime. See our
-            <a class="underline cursor-pointer" onclick={() => openUrl("https://www.motionminute.app/privacy")}>Privacy
+            <a class="underline cursor-pointer" onclick={() => openUrl("https://www.motionminute.app/privacy?utm_source=app&utm_medium=consent")}>Privacy
                 Details</a>
             for details.
         </label>

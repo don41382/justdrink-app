@@ -317,7 +317,7 @@ pub fn settings_reset_license(app_handle: AppHandle) -> LicenseInfo {
 #[specta::specta]
 #[tauri::command]
 pub fn get_a_license(window: Window, app_handle: AppHandle) -> () {
-    let url = "https://motionminute.app/pricing";
+    let url = "https://motionminute.app/pricing?utm_source=app&utm_medium=settings";
     match webbrowser::open(&url) {
         Ok(_) => {}
         Err(err) => {

@@ -28,11 +28,11 @@
             </div>
         </div>
         <div class="flex justify-center text-xs font-normal space-x-4 mb-4">
-            <button class="text-mm-blue" on:click={() => openUrl("https://www.motionminute.app")}>Homepage</button>
+            <button class="text-mm-blue" on:click={() => openUrl("https://www.motionminute.app?utm_source=app&utm_medium=about")}>Homepage</button>
             <p>|</p>
-            <button class="text-mm-blue" on:click={() => openUrl("https://www.motionminute.app/imprint")}>Imprint</button>
+            <button class="text-mm-blue" on:click={() => openUrl("https://www.motionminute.app/imprint?utm_source=app&utm_medium=about")}>Imprint</button>
             <p>|</p>
-            <button class="text-mm-blue" on:click={() => openUrl("https://www.motionminute.app/privacy")}>Privacy</button>
+            <button class="text-mm-blue" on:click={() => openUrl("https://www.motionminute.app/privacy?utm_source=app&utm_medium=about")}>Privacy</button>
         </div>
         <div class="text-xs text-mm-blue">
             <p>Copyright 2024 Rocket Solutions S.L.</p>
