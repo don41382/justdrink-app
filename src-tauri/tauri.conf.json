@@ -57,7 +57,8 @@
     "resources": [
       "videos/*",
       "audio/*",
-      "icons/*"
+      "icons/*",
+      "icons/welcome/*"
     ]
   }
 }
