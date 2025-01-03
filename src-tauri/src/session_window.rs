@@ -169,6 +169,7 @@ fn start_first_session_(
     enable_on_startup: bool,
 ) -> Result<(), anyhow::Error> {
     let subscription_manager = app_handle.state::<SubscriptionManagerState>();
+    app_handle.state::<TrackingState>().send_tracking(tracking::Event::FirstSession);
     settings_window::set_settings(
         &app_handle,
         model::settings::SettingsUserDetails {
