@@ -28,9 +28,7 @@
     })
 
     function setVideoReady() {
-        if (videoElement.readyState === 4) {
-            videoReady = true;
-        }
+        videoReady = true;
     }
 
     $: ready = videoReady;
