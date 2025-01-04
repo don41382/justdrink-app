@@ -10,6 +10,8 @@ fi
 PLATFORM=$1
 ZIP_NAME="$PLATFORM.zip"
 
+rm -f "$ZIP_NAME"
+
 # Determine the file pattern and handle platform-specific logic
 if [ "$PLATFORM" == "mac" ]; then
     FILE_PATTERN="*.mov"

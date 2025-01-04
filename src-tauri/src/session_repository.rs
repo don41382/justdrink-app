@@ -181,7 +181,7 @@ impl SessionRepository {
             },
             Exercise {
                 id: SessionId("elbow-to-knee".to_string()),
-                title: "Elbow-to-Knee".to_string(),
+                title: "Elbow to Knee".to_string(),
                 description: "A dynamic seated exercise to engage the core and improve coordination.".to_string(),
                 advices: vec![
                     "Sit on a sturdy chair with your back straight and feet flat on the floor.",
