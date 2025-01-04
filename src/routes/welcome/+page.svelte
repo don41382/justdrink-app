@@ -33,7 +33,6 @@
                 selectedDuration.minutes,
                 email,
                 consent,
-                selectedPains.map(pain => pain.id),
                 true
             )
         }
