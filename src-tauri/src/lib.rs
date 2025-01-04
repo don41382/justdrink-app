@@ -196,9 +196,6 @@ pub fn run() {
             start_soon_window::init(app.app_handle())?;
             detect_idling::init(app.app_handle())?;
 
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(ActivationPolicy::Accessory);
-
             tray::create_tray(app.handle())?;
 
             let app_handle = app.handle().clone();

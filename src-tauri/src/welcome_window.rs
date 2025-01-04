@@ -17,8 +17,7 @@ pub fn show(app: &AppHandle) -> Result<(), anyhow::Error> {
     .always_on_top(true)
     .focused(true)
     .decorations(false)
-    .skip_taskbar(true)
-    .resizable(true)
+    .resizable(false)
     .shadow(true)
     .visible(false)
     .build()?;

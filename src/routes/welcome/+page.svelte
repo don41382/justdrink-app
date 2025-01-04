@@ -45,13 +45,24 @@
             currentStep = steps[currentIndex - 1];
         }
     }
+
+    const getProgress = () => (steps.indexOf(currentStep) / (steps.length - 1)) * 100;
 </script>
 
 
 <AutoSize
         class="flex flex-col bg-gray-100 w-[650px] min-h-[550px] px-12 justify-center cursor-default rounded-2xl"
         ready={true}>
-        <div class="flex-none pt-8 mb-8">
+
+        <!-- Progress Bar -->
+        <div class="absolute top-0 left-0 w-full h-4 rounded-t-2xl overflow-hidden">
+            <div
+                    class="h-2 bg-primary/50 transition-all duration-1000"
+                    style="width: {getProgress()}%;"
+            ></div>
+        </div>
+
+        <div class="flex-none pt-8 mb-4">
             <div class="flex">
                 <img alt="Motion Minute" class="size-8" src="{data.iconPath}">
                 <p class="text-xl ml-2">Motion Minute</p>
@@ -73,7 +84,7 @@
             {/if}
         </div>
 
-        <div class="flex-none flex w-full pb-12">
+        <div class="flex-none flex w-full pb-10">
             {#if currentStep !== "Start"}
                 <button class="text-gray-600 py-2 rounded-md" onclick={back}>
                     Back

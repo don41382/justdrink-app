@@ -21,13 +21,13 @@
 </script>
 
 <div class="w-full">
-    <div class="mb-4">
-        <h2 class="text-lg font-semibold tracking-wide ">Stay up-to-date!</h2>
-        <p>Stay in the loop to get update on new features, exercises and tips!</p>
+    <div class="mb-8">
+        <h1 class="text-4xl text-secondary text-left mb-2">Stay up-to-date!</h1>
+        <p class="text-neutral-600 mb-2">Stay in the loop to get update on new exercises, features and tips!</p>
     </div>
     <div class="mb-4">
-        <label class="block text-gray-700 text-sm font-normal mb-1" for="email">
-            E-Mail
+        <label class="block text-gray-700 text-sm font-medium mb-1" for="email">
+            Your E-Mail
         </label>
         <input bind:this={emailInput} bind:value={email}
                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
