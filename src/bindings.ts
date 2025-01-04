@@ -31,9 +31,9 @@ async updateSettings(settings: SettingsUserDetails) : Promise<null> {
 async startSession() : Promise<null> {
     return await TAURI_INVOKE("start_session");
 },
-async startFirstSession(nextBreakDurationMinutes: number, email: string | null, consent: boolean, pains: string[], enableOnStartup: boolean) : Promise<Result<null, string>> {
+async startFirstSession(nextBreakDurationMinutes: number, email: string | null, consent: boolean, enableOnStartup: boolean) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("start_first_session", { nextBreakDurationMinutes, email, consent, pains, enableOnStartup }) };
+    return { status: "ok", data: await TAURI_INVOKE("start_first_session", { nextBreakDurationMinutes, email, consent, enableOnStartup }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -119,7 +119,7 @@ export type SessionId = string
 export type SessionStartEvent = { details: SessionDetail }
 export type Settings = { app: AppDetails; user: SettingsUserDetails; selected_tab: SettingsTabs }
 export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
-export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; pains: string[]; enable_on_startup: boolean; consent: boolean; enable_idle_detection?: boolean }
+export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean; consent: boolean; enable_idle_detection?: boolean }
 export type TimerStatus = { NotStarted: number } | { Active: number } | { Paused: [PauseOrigin, number] } | "Finished"
 
 /** tauri-specta globals **/

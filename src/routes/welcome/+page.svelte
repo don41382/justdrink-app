@@ -14,7 +14,7 @@
     let {data} = $props();
 
     type WelcomeStep = "Start" | "PainType" | "SessionTime" | "Disclaimer" | "Finish"
-    let steps: WelcomeStep[] = ["Start", "PainType", "SessionTime", "Disclaimer", "Finish"];
+    let steps: WelcomeStep[] = ["Start", "SessionTime", "Disclaimer", "Finish"];
     let currentStep: WelcomeStep = $state("Start")
 
     let email: string | null = $state(null);
@@ -92,7 +92,7 @@
             {/if}
             <button class="bg-primary hover:bg-primary/50 text-white py-2 rounded-md px-8 ml-auto" onclick={next}>
                 {#if currentStep === "Finish"}
-                    Start Session
+                    Start your first session
                 {:else}
                     Next
                 {/if}

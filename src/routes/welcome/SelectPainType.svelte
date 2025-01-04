@@ -33,7 +33,7 @@
     <div class="flex-none flex-col">
         <h1 class="text-4xl text-secondary text-left mb-2">What are you struggling with?</h1>
         <p class="text-neutral-600">
-            Select the area of discomfort so we can help you find the right solution.
+            Let us know where you're feeling discomfort.
         </p>
         <div class="flex space-x-2 justify-center mt-8">
             {#each pains as pain}

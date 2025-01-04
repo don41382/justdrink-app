@@ -19,7 +19,6 @@ const STORE_NAME: &str = "mm-config.json";
 const DEFAULT_SESSION: SettingsUserDetails = SettingsUserDetails {
     next_break_duration_minutes: 60,
     active: true,
-    pains: vec![],
     allow_tracking: true,
     enable_on_startup: true,
     enable_idle_detection: true,

@@ -133,7 +133,6 @@ pub async fn start_first_session(
     next_break_duration_minutes: u32,
     email: Option<String>,
     consent: bool,
-    pains: Vec<String>,
     enable_on_startup: bool,
 ) -> Result<(), String> {
     spawn(move || {
@@ -144,7 +143,6 @@ pub async fn start_first_session(
             next_break_duration_minutes,
             email,
             consent,
-            pains,
             enable_on_startup,
         ) {
             Ok(_) => {}
@@ -165,7 +163,6 @@ fn start_first_session_(
     next_break_duration_minutes: u32,
     email: Option<String>,
     consent: bool,
-    pains: Vec<String>,
     enable_on_startup: bool,
 ) -> Result<(), anyhow::Error> {
     let subscription_manager = app_handle.state::<SubscriptionManagerState>();
@@ -176,7 +173,6 @@ fn start_first_session_(
             active: true,
             next_break_duration_minutes,
             allow_tracking: true,
-            pains,
             enable_idle_detection: true,
             enable_on_startup,
             consent,
