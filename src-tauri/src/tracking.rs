@@ -1,11 +1,12 @@
 use crate::model::session::SessionEndingReason;
-use crate::SettingsDetailsState;
+use crate::{license_manager, LicenseManagerState, SettingsDetailsState};
 use log::{info, warn};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest::blocking::{Client, ClientBuilder};
+use crate::license_manager::{LicenseStatus, ValidTypes};
 
 pub(crate) struct Tracking {
     client: Client,
@@ -69,6 +70,10 @@ impl Tracking {
     }
 
     pub fn send_tracking(&self, event: Event) {
+        let state = self.app_handle.state::<LicenseManagerState>()
+            .try_lock()
+            .map(|s| s.get_status())
+            .unwrap_or(license_manager::LicenseStatus::Invalid("license-manager-lock-failure".to_string()));
         let allow_tracking = {
             let settings = self.app_handle.state::<SettingsDetailsState>();
             let result = if let Ok(guard) = settings.try_lock() {
@@ -88,6 +93,7 @@ impl Tracking {
                     "platform": self.platform,
                     "arch": self.arch,
                     "distinct_id": self.machine_id,
+                    "license_state": state.to_license_status_name()
                 }
             }]);
             let client_clone = self.client.clone();
@@ -119,6 +125,36 @@ impl Tracking {
             Ok(())
         } else {
             Err(anyhow::anyhow!("error sending tracking event: {}", json))
+        }
+    }
+}
+
+trait LicenseConverter {
+    fn to_license_status_name(&self) -> String;
+}
+
+impl LicenseConverter for license_manager::LicenseStatus {
+    fn to_license_status_name(&self) -> String {
+        match self {
+            LicenseStatus::Valid(types) => {
+                match types {
+                    ValidTypes::Trial(_) => {
+                        "trial".to_string()
+                    }
+                    ValidTypes::Paid(_) => {
+                        "paid".to_string()
+                    }
+                    ValidTypes::Full => {
+                        "full".to_string()
+                    }
+                }
+            }
+            LicenseStatus::Expired(_) => {
+                "expired".to_string()
+            }
+            LicenseStatus::Invalid(reason) => {
+                format!("invalid_{}", reason)
+            }
         }
     }
 }
