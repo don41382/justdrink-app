@@ -71,9 +71,9 @@ impl Tracking {
 
     pub fn send_tracking(&self, event: Event) {
         let state = self.app_handle.state::<LicenseManagerState>()
-            .try_lock()
-            .map(|s| s.get_status())
-            .unwrap_or(license_manager::LicenseStatus::Invalid("license-manager-lock-failure".to_string()));
+            .lock()
+            .expect("send tracking requires license manager")
+            .get_status();
         let allow_tracking = {
             let settings = self.app_handle.state::<SettingsDetailsState>();
             let result = if let Ok(guard) = settings.try_lock() {
