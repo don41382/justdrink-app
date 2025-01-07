@@ -11,6 +11,7 @@ use tauri::{
     tray::TrayIconBuilder,
     AppHandle, Manager, Wry,
 };
+use tauri::image::Image;
 use tauri_specta::Event;
 
 const TRAY_ID: &'static str = "tray";
@@ -87,8 +88,9 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
             .unwrap()
     });
 
+    let tray_icon = tray_icon(main_app.app_handle())?;
     let _ = TrayIconBuilder::with_id(TRAY_ID)
-        .icon(main_app.app_handle().default_window_icon().unwrap().clone())
+        .icon(tray_icon)
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
@@ -194,4 +196,17 @@ pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> ta
         tray.set_title(tray_text)?;
     }
     Ok(())
+}
+
+fn tray_icon(app: &AppHandle<Wry>) -> tauri::Result<Image<'_>> {
+    if cfg!(target_os = "macos") {
+        let image = Image::from_path("icons/128x128-bw.png")?;
+        Ok(image)
+    } else {
+        let image =
+            app
+                .default_window_icon()
+                .ok_or_else(|| tauri::Error::Anyhow(anyhow!("boom")))?;
+        Ok(image.clone())
+    }
 }
