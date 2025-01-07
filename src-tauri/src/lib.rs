@@ -159,9 +159,16 @@ pub fn run() {
         .setup(move |app| {
             app.track_event("app_started", None);
             builder.mount_events(app.app_handle());
+            let device_id = model::device::DeviceId::lookup()?;
+            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(&device_id)));
+            app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
+            app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(device_id.clone()));
 
             app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
-            app.manage::<TrackingState>(Tracking::new(app.app_handle()).unwrap());
+            app.manage::<SettingsDetailsState>(Mutex::new(
+                None::<model::settings::SettingsUserDetails>,
+            ));
+            app.manage::<TrackingState>(Tracking::new(app.app_handle())?);
             app.manage::<SettingsSystemState>(Mutex::new(settings_system::SettingsSystem::load(
                 app.app_handle(),
             )));
@@ -176,18 +183,10 @@ pub fn run() {
                 }
                 Err(err) => {
                     warn!("could not load settings: {}", err);
-                    app.manage::<SettingsDetailsState>(Mutex::new(
-                        None::<model::settings::SettingsUserDetails>,
-                    ));
                     welcome_window::show(app.app_handle())?;
                     info!("display welcome screen");
                 }
             }
-
-            let device_id = model::device::DeviceId::lookup()?;
-            app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
-            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(&device_id)));
-            app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(device_id.clone()));
 
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;
