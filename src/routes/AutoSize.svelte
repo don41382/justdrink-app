@@ -52,6 +52,7 @@
     });
 
     onDestroy(() => {
+        debug("unmount observer");
         if (observer) observer.disconnect();
     });
 </script>
