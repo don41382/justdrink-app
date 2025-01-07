@@ -30,18 +30,21 @@ pub fn init(app: &AppHandle<Wry>) -> EventId {
     })
 }
 
+// hack is required, if you remove async and run_mon_main_thread, it hangs on Windows machines
 #[specta::specta]
 #[tauri::command]
 pub async fn start_session(app: AppHandle) -> () {
-    start(&app).unwrap_or_else(|err| {
-        app.alert(
-            "Can't start session",
-            "There was an error while trying to start the session.",
-            Some(err),
-            false,
-        );
-        ()
-    });
+    app.clone().run_on_main_thread(move || {
+        start(&app).unwrap_or_else(|err| {
+            app.alert(
+                "Can't start session",
+                "There was an error while trying to start the session.",
+                Some(err),
+                false,
+            );
+            ()
+        });
+    }).expect("start_session running thread");
 }
 
 pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {

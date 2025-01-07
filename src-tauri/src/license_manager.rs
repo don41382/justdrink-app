@@ -131,7 +131,7 @@ impl LicenseManager {
     }
 
     fn validate(
-        client: Client,
+        client: &Client,
         device_id: &model::device::DeviceId,
     ) -> Result<LicenseStatus, ServerRequestError> {
         info!("validating license");
@@ -257,7 +257,7 @@ impl LicenseManager {
     pub fn get_status(&mut self, app_handle: &AppHandle) -> LicenseStatus {
         match &self.status {
             None => {
-                match Self::validate(self.client.clone(), &self.device_id) {
+                match Self::validate(&self.client, &self.device_id) {
                     Ok(status) => {
                         self.status = Some(status.clone());
                         status
