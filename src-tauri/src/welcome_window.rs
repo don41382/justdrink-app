@@ -30,7 +30,7 @@ pub fn show(app: &AppHandle) -> Result<(), anyhow::Error> {
 }
 
 #[cfg(feature = "fullversion")]
-pub fn open_tahnk_you() {}
+pub fn open_thank_you() {}
 
 
 #[cfg(not(feature = "fullversion"))]
