@@ -54,7 +54,7 @@ pub fn load_settings(
     info!("load settings data");
     let version = app_handle.app_handle().config().version.clone();
     let license_manager = app_handle.state::<LicenseManagerState>();
-    let license_status = license_manager.lock().unwrap().get_status();
+    let license_status = license_manager.lock().unwrap().get_status(&app_handle.app_handle());
     info!("load settings data - done");
     model::settings::Settings {
         app: model::settings::AppDetails {

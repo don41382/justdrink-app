@@ -7,7 +7,7 @@ use tauri_plugin_updater::UpdaterExt;
 
 const WINDOW_LABEL: &str = "updater";
 
-pub async fn show_if_update_available(app: &AppHandle, skip_duration_check: bool) -> Result<bool, anyhow::Error> {
+pub async fn show_if_update_available(app: &AppHandle, skip_duration_check: bool, silent_error: bool) -> bool {
     debug!("updater info checking ...");
     let app_handle = app.app_handle().clone();
     let join = tauri::async_runtime::spawn(async move {
@@ -21,13 +21,13 @@ pub async fn show_if_update_available(app: &AppHandle, skip_duration_check: bool
                     "Can't show update dialog",
                     "Error while show update dialog.",
                     Some(err),
-                    false,
+                    silent_error,
                 );
                 false
             }
         }
     });
-    join.await.map_err(|err| err.into())
+    join.await.expect("updater should be able to join thread")
 }
 
 async fn show_if_update_available_run<R>(

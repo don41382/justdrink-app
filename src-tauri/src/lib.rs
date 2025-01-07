@@ -166,14 +166,6 @@ pub fn run() {
                 app.app_handle(),
             )));
 
-            let device_id = model::device::DeviceId::lookup()?;
-            app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
-            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(
-                app.app_handle(),
-                &device_id,
-            )));
-            app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(device_id.clone()));
-
             match settings_window::get_settings(app.app_handle()) {
                 Ok(settings) => {
                     app.manage::<SettingsDetailsState>(Mutex::new(Some(settings.clone())));
@@ -192,6 +184,11 @@ pub fn run() {
                 }
             }
 
+            let device_id = model::device::DeviceId::lookup()?;
+            app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
+            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(&device_id)));
+            app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(device_id.clone()));
+
             session_window::init(app.app_handle());
             start_soon_window::init(app.app_handle())?;
             detect_idling::init(app.app_handle())?;
@@ -201,7 +198,7 @@ pub fn run() {
             let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 info!("show updater window");
-                updater_window::show_if_update_available(&app_handle, true).await.unwrap();
+                updater_window::show_if_update_available(&app_handle, true, true).await;
             });
 
             Ok(())

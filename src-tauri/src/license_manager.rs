@@ -1,5 +1,5 @@
+use std::thread;
 use crate::alert::Alert;
-use crate::model::device::DeviceId;
 use crate::model::license::LicenseInfo;
 use crate::{model, LicenseManagerState};
 use anyhow::Error;
@@ -95,8 +95,8 @@ impl LicenseStatus {
 
 pub struct LicenseManager {
     client: Client,
-    pub device_id: DeviceId,
-    status: LicenseStatus,
+    pub device_id: model::device::DeviceId,
+    status: Option<LicenseStatus>,
 }
 
 #[allow(dead_code)]
@@ -107,48 +107,27 @@ enum ServerRequestError {
 }
 
 impl LicenseManager {
-    pub fn new(app_handle: &AppHandle, device_id: &model::device::DeviceId) -> Self {
+    pub fn new(device_id: &model::device::DeviceId) -> Self {
         let client = Client::new();
 
         #[cfg(feature = "fullversion")]
         {
             info!("Full version enabled, skipping license validation.");
-            return Self {
+            Self {
                 client,
                 device_id: device_id.clone(),
-                status: LicenseStatus::Valid(ValidTypes::Full),
+                status: Some(LicenseStatus::Valid(ValidTypes::Full)),
             };
         }
 
-        let status = match Self::validate(client.clone(), device_id) {
-            Ok(license) => license,
-            Err(err) => {
-                match err {
-                    ServerRequestError::BadRequest(err) => {
-                        app_handle.alert(
-                            "License Error",
-                                format!("Unable to access the license server: {}", err).as_str(),
-                            None,
-                            false,
-                        );
-                        LicenseStatus::Invalid("Unable to validate your license.".to_string())
-                    }
-                    ServerRequestError::Other(err) => {
-                        app_handle.alert(
-                            "License Error",
-                            "Unable to access the license server.: Please try again later",
-                            Some(err),
-                            false,
-                        );
-                        LicenseStatus::Invalid("Unable to access license server.".to_string())
-                    }
-                }
+        #[cfg(not(feature = "fullversion"))]
+        {
+            info!("Trail version enabled. Need license check.");
+            Self {
+                client,
+                device_id: device_id.clone(),
+                status: None,
             }
-        };
-        Self {
-            client,
-            device_id: device_id.clone(),
-            status,
         }
     }
 
@@ -186,7 +165,7 @@ impl LicenseManager {
             match &status {
                 LicenseStatus::Valid(_) => {
                     info!("register new license");
-                    self.status = status.clone();
+                    self.status = Some(status.clone());
                 }
                 invalid => {
                     info!("invalid response, not setting license: {:?}", invalid);
@@ -207,7 +186,7 @@ impl LicenseManager {
         })?;
 
         Self::parse_response(&url, response).and_then(|status| {
-            self.status = status.clone();
+            self.status = Some(status.clone());
             Ok(status)
         })
     }
@@ -276,8 +255,44 @@ impl LicenseManager {
         Ok(license_status)
     }
 
-    pub fn get_status(&self) -> LicenseStatus {
-        self.status.clone()
+    pub fn get_status(&mut self, app_handle: &AppHandle) -> LicenseStatus {
+        info!("get_status on license_manager");
+        match &self.status {
+            None => {
+                match Self::validate(self.client.clone(), &self.device_id) {
+                    Ok(status) => {
+                        self.status = Some(status.clone());
+                        status
+                    }
+                    Err(err) => {
+                        warn!("License validation failed during get_status: {:?}", err);
+                        match err {
+                            ServerRequestError::BadRequest(msg) => {
+                                app_handle.alert(
+                                    "License Error",
+                                    &format!("Unable to validate the license: {}", msg),
+                                    None,
+                                    false,
+                                );
+                                LicenseStatus::Invalid(format!("Unable to validate the license: {}", msg))
+                            }
+                            ServerRequestError::Other(e) => {
+                                app_handle.alert(
+                                    "License Error",
+                                    "Unable to access the license server. Please try again later.",
+                                    Some(e),
+                                    false,
+                                );
+                                LicenseStatus::Invalid("Unable to access the license server. Please try again later.".to_string())
+                            }
+                        }
+                    }
+                }
+            }
+            Some(status) => {
+                status.clone()
+            }
+        }
     }
 }
 

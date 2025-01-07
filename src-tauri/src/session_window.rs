@@ -32,7 +32,7 @@ pub fn init(app: &AppHandle<Wry>) -> EventId {
 
 #[specta::specta]
 #[tauri::command]
-pub async fn start_session(app: AppHandle) -> () {
+pub fn start_session(app: AppHandle) -> () {
     start(&app).unwrap_or_else(|err| {
         app.alert(
             "Can't start session",
@@ -56,7 +56,7 @@ pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
     if license_manager
         .try_lock()
         .expect("Could not lock license manager")
-        .get_status()
+        .get_status(&app.app_handle())
         .is_active()
     {
         // stop current running timer
@@ -214,7 +214,7 @@ pub fn load_session_details(
             let status = license_manager
                 .lock()
                 .expect("license manager is locked")
-                .get_status();
+                .get_status(app.app_handle());
 
             Some(SessionDetail {
                 exercise: exercise.clone(),
@@ -253,8 +253,8 @@ pub async fn end_session(
     };
 
     let updater_visible =
-        updater_window::show_if_update_available(&app, false)
-            .await.unwrap();
+        updater_window::show_if_update_available(&app, false, false)
+            .await;
     if ask_for_feedback && !updater_visible {
         feedback_window::show(&app).expect("unable to show feedback window");
     }
