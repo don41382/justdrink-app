@@ -5,6 +5,7 @@ use crate::pretty_time::PrettyTime;
 use crate::{dashboard_window, feedback_window, session_window, settings_window, updater_window};
 use anyhow::anyhow;
 use std::time::Duration;
+use dark_light::Mode;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
 use tauri::{
     menu::{Menu, MenuItem},
@@ -92,6 +93,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
     let tray_icon = tray_icon(main_app.app_handle())?;
     let _ = TrayIconBuilder::with_id(TRAY_ID)
         .icon(tray_icon)
+        .icon_as_template(true)
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
@@ -201,7 +203,7 @@ pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> ta
 
 fn tray_icon(app: &AppHandle<Wry>) -> tauri::Result<Image<'_>> {
     if cfg!(target_os = "macos") {
-        let image = Image::from_path(app.path().resolve("icons/128x128-bw.png", BaseDirectory::Resource)?)?;
+        let image = Image::from_path(app.path().resolve("icons/128x128-tray-light.png", BaseDirectory::Resource)?)?;
         Ok(image)
     } else {
         let image =
