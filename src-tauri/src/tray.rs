@@ -5,7 +5,6 @@ use crate::pretty_time::PrettyTime;
 use crate::{dashboard_window, feedback_window, session_window, settings_window, updater_window};
 use anyhow::anyhow;
 use std::time::Duration;
-use dark_light::Mode;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
 use tauri::{
     menu::{Menu, MenuItem},
