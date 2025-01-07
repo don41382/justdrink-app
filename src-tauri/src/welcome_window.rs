@@ -29,6 +29,11 @@ pub fn show(app: &AppHandle) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+#[cfg(feature = "fullversion")]
+pub fn open_tahnk_you() {}
+
+
+#[cfg(not(feature = "fullversion"))]
 pub fn open_thank_you() {
     let url = format!(
         "https://www.motionminute.app/thank-you/{}?utm_source=app&utm_medium=install",
