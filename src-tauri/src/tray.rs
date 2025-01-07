@@ -90,7 +90,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
     let _ = TrayIconBuilder::with_id(TRAY_ID)
         .icon(main_app.app_handle().default_window_icon().unwrap().clone())
         .menu(&menu)
-        .menu_on_left_click(true)
+        .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "dashboard" => {
                 actionbar_window::show(app.app_handle()).unwrap_or_else(|e| {

@@ -69,7 +69,7 @@ impl SettingsSystem {
         R: Runtime,
     {
         debug!("save system settings");
-        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
+        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build()?;
 
         let json_data = serde_json::to_value(self.settings.clone())
             .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
@@ -81,7 +81,7 @@ impl SettingsSystem {
     }
 
     fn load_settings_store(app: &AppHandle) -> Result<SettingsSystemDetails, anyhow::Error> {
-        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build();
+        let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build()?;
 
         let data_json = store
             .get(ROOT_PATH.to_string())

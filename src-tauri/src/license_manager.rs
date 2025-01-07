@@ -1,4 +1,3 @@
-use std::thread;
 use crate::alert::Alert;
 use crate::model::license::LicenseInfo;
 use crate::{model, LicenseManagerState};
@@ -256,7 +255,6 @@ impl LicenseManager {
     }
 
     pub fn get_status(&mut self, app_handle: &AppHandle) -> LicenseStatus {
-        info!("get_status on license_manager");
         match &self.status {
             None => {
                 match Self::validate(self.client.clone(), &self.device_id) {
