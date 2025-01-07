@@ -116,7 +116,7 @@ impl LicenseManager {
                 client,
                 device_id: device_id.clone(),
                 status: Some(LicenseStatus::Valid(ValidTypes::Full)),
-            };
+            }
         }
 
         #[cfg(not(feature = "fullversion"))]
