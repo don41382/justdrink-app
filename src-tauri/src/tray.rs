@@ -2,7 +2,7 @@ use crate::alert::Alert;
 use crate::countdown_timer::{CountdownEvent, CountdownTimer, PauseOrigin, TimerStatus};
 use crate::model::settings::SettingsTabs;
 use crate::pretty_time::PrettyTime;
-use crate::{actionbar_window, feedback_window, session_window, settings_window, updater_window};
+use crate::{dashboard_window, feedback_window, session_window, settings_window, updater_window};
 use anyhow::anyhow;
 use std::time::Duration;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
@@ -93,7 +93,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
         .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "dashboard" => {
-                actionbar_window::show(app.app_handle()).unwrap_or_else(|e| {
+                dashboard_window::show(app.app_handle()).unwrap_or_else(|e| {
                     app.alert(
                         "Error while showing dashboard",
                         "I am sorry, we are unable to show the dashboard. Please try again later.",

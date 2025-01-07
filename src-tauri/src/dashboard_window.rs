@@ -3,7 +3,7 @@ use crate::countdown_timer::{PauseOrigin, TimerStatus};
 use crate::{countdown_timer, CountdownTimerState};
 use tauri::{AppHandle, Manager, Runtime};
 
-pub(crate) const WINDOW_LABEL: &'static str = "actionbar";
+pub(crate) const WINDOW_LABEL: &'static str = "dashboard";
 
 pub fn show<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
 where
@@ -16,7 +16,7 @@ where
         let _window = tauri::WebviewWindowBuilder::new(
             app,
             WINDOW_LABEL,
-            tauri::WebviewUrl::App("/actionbar".into()),
+            tauri::WebviewUrl::App("/dashboard".into()),
         )
             .title("Motion Minute - Actionbar")
             .center()

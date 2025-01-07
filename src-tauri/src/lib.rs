@@ -9,7 +9,7 @@ mod session_repository;
 mod tracking;
 mod tray;
 
-mod actionbar_window;
+mod dashboard_window;
 mod fullscreen;
 mod license_manager;
 mod session_window;
@@ -70,9 +70,9 @@ pub fn run() {
     let builder = build_typescript_interfaces(
         collect_commands![
             alert::alert_log_client_error,
-            actionbar_window::get_current_timer_status,
-            actionbar_window::toggle_timer,
-            actionbar_window::timer_change,
+            dashboard_window::get_current_timer_status,
+            dashboard_window::toggle_timer,
+            dashboard_window::timer_change,
             feedback_window::feedback_window_send_feedback,
             update_settings,
             session_window::start_session,
@@ -177,7 +177,7 @@ pub fn run() {
                 Ok(settings) => {
                     app.manage::<SettingsDetailsState>(Mutex::new(Some(settings.clone())));
                     setup_timer(app, settings.clone()).unwrap();
-                    if actionbar_window::should_show_dashboard() {
+                    if dashboard_window::should_show_dashboard() {
                         show_dashboard(app.app_handle());
                     }
                 }
@@ -236,7 +236,7 @@ pub fn run() {
 }
 
 fn show_dashboard(app: &AppHandle) {
-    actionbar_window::show(app.app_handle()).unwrap_or_else(|err| {
+    dashboard_window::show(app.app_handle()).unwrap_or_else(|err| {
         app.alert(
             "Can't open action menu",
             "Action Menu can't be opened during new instance. Please try again later.",
