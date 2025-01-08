@@ -6,10 +6,9 @@ use chrono::Utc;
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::http::StatusCode;
+use tauri::http::{StatusCode};
 use tauri::{AppHandle, Manager, State, Window};
 use tauri_plugin_http::reqwest::blocking::{Client, Response};
-use crate::model::device::DeviceId;
 
 mod response {
     use chrono::{DateTime, Utc};
@@ -30,6 +29,8 @@ mod response {
         ActiveTrial,
         #[serde(rename(deserialize = "ACTIVE_PAID"))]
         ActivePaid,
+        #[serde(rename(deserialize = "ACTIVE_APPLE_APP_STORE"))]
+        ActiveAppleAppStore,
         #[serde(rename(deserialize = "EXPIRED"))]
         Expired,
     }
@@ -110,24 +111,11 @@ impl LicenseManager {
     pub fn new(device_id: &model::device::DeviceId) -> Self {
         let client = Client::new();
 
-        #[cfg(feature = "fullversion")]
-        {
-            info!("Full version enabled, skipping license validation.");
-            Self {
-                client,
-                device_id: device_id.clone(),
-                status: Some(LicenseStatus::Valid(ValidTypes::Full)),
-            }
-        }
-
-        #[cfg(not(feature = "fullversion"))]
-        {
-            info!("Trail version enabled. Need license check.");
-            Self {
-                client,
-                device_id: device_id.clone(),
-                status: None,
-            }
+        info!("LicenseManager started.");
+        Self {
+            client,
+            device_id: device_id.clone(),
+            status: None,
         }
     }
 
@@ -140,11 +128,25 @@ impl LicenseManager {
             "https://motionminute.app/app/v1/license/validate?device-id={}",
             device_id.get_hash_hex_id()
         );
-        let response = client.post(&url).body("").send().map_err(|err| {
-            ServerRequestError::Other(anyhow::anyhow!("failed to send license request: {:?}", err))
-        })?;
+
+        let response = client
+            .post(&url)
+            .header("origin", Self::origin())
+            .body("")
+            .send()
+            .map_err(|err| {
+                ServerRequestError::Other(anyhow::anyhow!("failed to send license request: {:?}", err))
+            })?;
 
         Self::parse_response(&url, response)
+    }
+
+    fn origin() -> String {
+        if cfg!(feature = "fullversion") {
+            "APPLE_APP_STORE".to_string()
+        } else {
+            "FREEMIUM_APP".to_string()
+        }
     }
 
     fn register_license(
@@ -251,6 +253,13 @@ impl LicenseManager {
             response::LicenseStatus::Expired => {
                 LicenseStatus::Expired("You trial expired".to_string())
             }
+            response::LicenseStatus::ActiveAppleAppStore => {
+                if cfg!(feature = "fullversion") {
+                    LicenseStatus::Valid(ValidTypes::Full)
+                } else {
+                    LicenseStatus::Invalid("This license only works with the Apple App Store Version.".to_string())
+                }
+            }
         };
         Ok(license_status)
     }
@@ -292,10 +301,6 @@ impl LicenseManager {
                 status.clone()
             }
         }
-    }
-
-    pub fn get_device_id(&self) -> DeviceId {
-        self.device_id.clone()
     }
 }
 

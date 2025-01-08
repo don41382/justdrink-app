@@ -122,7 +122,7 @@ pub fn run() {
         .plugin(
             tauri_plugin_aptabase::Builder::new("A-EU-5037339452")
                 .with_panic_hook(Box::new(|client, info, msg| {
-                    info!("add aptabase panic hook");
+                    info!("panic detection");
                     let location = info
                         .location()
                         .map(|loc| format!("{}:{}:{}", loc.file(), loc.line(), loc.column()))
@@ -160,6 +160,8 @@ pub fn run() {
             app.track_event("app_started", None);
             builder.mount_events(app.app_handle());
             let device_id = model::device::DeviceId::lookup()?;
+            info!("application start, device id: {}", &device_id.get_hash_hex_id());
+
             app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(&device_id)));
             app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
             app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(device_id.clone()));
