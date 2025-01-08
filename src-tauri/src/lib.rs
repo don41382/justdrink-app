@@ -168,7 +168,7 @@ pub fn run() {
             app.manage::<SettingsDetailsState>(Mutex::new(
                 None::<model::settings::SettingsUserDetails>,
             ));
-            app.manage::<TrackingState>(Tracking::new(app.app_handle())?);
+            app.manage::<TrackingState>(Tracking::new(&device_id, app.app_handle())?);
             app.manage::<SettingsSystemState>(Mutex::new(settings_system::SettingsSystem::load(
                 app.app_handle(),
             )));
@@ -183,7 +183,7 @@ pub fn run() {
                 }
                 Err(err) => {
                     warn!("could not load settings: {}", err);
-                    welcome_window::show(app.app_handle())?;
+                    welcome_window::show(app.app_handle(), &device_id)?;
                     info!("display welcome screen");
                 }
             }

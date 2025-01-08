@@ -2,16 +2,16 @@ use crate::model::session::SessionEndingReason;
 use crate::{license_manager, LicenseManagerState, SettingsDetailsState};
 use log::{info, warn};
 use serde_json::{json, Value};
-use sha2::{Digest, Sha256};
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest::blocking::{Client, ClientBuilder};
 use crate::license_manager::{LicenseStatus, ValidTypes};
+use crate::model::device::DeviceId;
 
 pub(crate) struct Tracking {
     client: Client,
     app_handle: AppHandle,
-    machine_id: String,
+    machine_id: DeviceId,
     app_version: String,
     platform: String,
     arch: String,
@@ -43,13 +43,12 @@ impl Event {
 }
 
 impl Tracking {
-    pub fn new(app_handle: &AppHandle) -> Result<Self, anyhow::Error> {
-        let id = Self::get_machine_id();
+    pub fn new(device_id: &DeviceId, app_handle: &AppHandle) -> Result<Self, anyhow::Error> {
         let platform = tauri_plugin_os::platform().to_string();
         let arch = tauri_plugin_os::arch().to_string();
         Ok(Tracking {
             client: ClientBuilder::new().build()?,
-            machine_id: id,
+            machine_id: device_id.clone(),
             app_version: app_handle
                 .config()
                 .clone()
@@ -59,14 +58,6 @@ impl Tracking {
             platform,
             arch,
         })
-    }
-
-    pub fn get_machine_id() -> String {
-        let id = machine_uid::get().unwrap_or_else(|e| {
-            warn!("can't get machine uid: {}", e);
-            "unknown".to_string()
-        });
-        format!("{:x}", Sha256::digest(id.as_bytes()))
     }
 
     pub fn send_tracking(&self, event: Event) {
@@ -92,7 +83,7 @@ impl Tracking {
                     "app_version": self.app_version,
                     "platform": self.platform,
                     "arch": self.arch,
-                    "distinct_id": self.machine_id,
+                    "distinct_id": self.machine_id.get_hash_hex_id(),
                     "license_state": state.to_license_status_name()
                 }
             }]);

@@ -9,6 +9,7 @@ use specta::Type;
 use tauri::http::StatusCode;
 use tauri::{AppHandle, Manager, State, Window};
 use tauri_plugin_http::reqwest::blocking::{Client, Response};
+use crate::model::device::DeviceId;
 
 mod response {
     use chrono::{DateTime, Utc};
@@ -291,6 +292,10 @@ impl LicenseManager {
                 status.clone()
             }
         }
+    }
+
+    pub fn get_device_id(&self) -> DeviceId {
+        self.device_id.clone()
     }
 }
 
