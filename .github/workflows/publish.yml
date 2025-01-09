@@ -114,7 +114,7 @@ jobs:
           releaseDraft: true
           prerelease: false
           updaterJsonKeepUniversal: true
-          releaseCommitish: "main"
+          releaseCommitish: ${{ github.ref_name }}
           owner: "don41382"
           repo: "motion-minute-app-releases"
           args: ${{ matrix.args }}
