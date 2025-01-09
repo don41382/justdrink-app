@@ -4,11 +4,11 @@ import type {UpdateState} from "./updateState";
 
 function getPrereleaseHeader(): boolean {
     const prereleaseParam = new URLSearchParams(window.location.search).get("prerelease");
-    return prereleaseParam !== null;
+    return prereleaseParam === "true";
 }
 
 /** @type {import('./$types').PageLoad} */
-export async function load({params}): Promise<{ iconPath: string; updateState: UpdateState }> {
+export async function load(): Promise<{ iconPath: string; updateState: UpdateState }> {
     const iconPath = await loadAppIcon();
     const updateState = await check({
         headers: { "prerelease": String(getPrereleaseHeader()) }
