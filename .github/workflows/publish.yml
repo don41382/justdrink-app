@@ -94,6 +94,7 @@ jobs:
           echo "${{ secrets.APPLE_PROVISION_FILE }}" | base64 --decode > $GITHUB_WORKSPACE/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile
 
       - name: Set release name
+        shell: bash
         run: echo "RELEASE_NAME=$(if [[ '${{ github.ref_name }}' == 'develop' ]]; then echo '__VERSION__-beta'; else echo '__VERSION__'; fi)" >> $GITHUB_ENV
 
       - uses: tauri-apps/tauri-action@v0
