@@ -50,7 +50,7 @@ pub async fn open_settings(app_handle: AppHandle) -> () {
 #[tauri::command]
 pub fn load_settings(
     app_handle: AppHandle,
-    settings: State<SettingsDetailsState>,
+    settings: State<'_, SettingsDetailsState>,
 ) -> model::settings::Settings {
     info!("load settings data");
     let version = app_handle.app_handle().config().version.clone();
@@ -62,7 +62,7 @@ pub fn load_settings(
             version: version.unwrap_or("unknown".to_string()),
             license_info: license_status.to_license_info(),
         },
-        user: settings.lock().unwrap().clone().unwrap_or(DEFAULT_SESSION),
+        user: settings.lock().expect("settings to be unlocked").clone().unwrap_or(DEFAULT_SESSION),
         selected_tab: SettingsTabs::Session,
     }
 }
@@ -134,7 +134,7 @@ pub fn set_settings(
     let timer = app.state::<CountdownTimerState>();
     {
         let settings_session = app.state::<SettingsDetailsState>();
-        *settings_session.lock().unwrap() = Some(settings.clone());
+        *settings_session.lock().expect("settings session is locked") = Some(settings.clone());
     }
 
     // save settings

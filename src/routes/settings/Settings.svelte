@@ -7,6 +7,8 @@
     export let user: SettingsUserDetails;
     export let updateSettings: (updatedSettings: SettingsUserDetails) => Promise<void>;
 
+    info(`settings-beta: ${user.beta_version}`)
+
     let next_break_duration_minutes: number = user.next_break_duration_minutes;
 
     async function submit() {

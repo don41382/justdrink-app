@@ -177,8 +177,7 @@ pub fn run() {
 
             match settings_window::get_settings(app.app_handle()) {
                 Ok(settings) => {
-                    app.manage::<SettingsDetailsState>(Mutex::new(Some(settings.clone())));
-                    setup_timer(app, settings.clone()).unwrap();
+                    settings_window::set_settings(app.app_handle(), settings, true)?;
                     if dashboard_window::should_show_dashboard() {
                         show_dashboard(app.app_handle());
                     }
@@ -260,18 +259,4 @@ fn build_typescript_interfaces(
     builder.export(Typescript::default(), "../src/bindings.ts")?;
 
     Ok(builder)
-}
-
-fn setup_timer(
-    app: &mut App,
-    settings: model::settings::SettingsUserDetails,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let timer = app.state::<CountdownTimerState>();
-
-    if settings.active {
-        timer.start(Duration::from_secs(
-            (settings.next_break_duration_minutes * 60).into(),
-        ));
-    }
-    Ok(())
 }
