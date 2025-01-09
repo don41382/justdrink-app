@@ -56,7 +56,7 @@
     document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
-<AutoSize class="cursor-default w-[800px] h-[500px] bg-gray-100 rounded-b-2xl flex overflow-x-hidden" ready={ready}>
+<AutoSize class="cursor-default w-[800px] h-[600px] bg-gray-100 rounded-b-2xl flex overflow-x-hidden" ready={ready}>
     {#if settings}
         <!-- Sidebar -->
         <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
