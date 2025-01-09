@@ -93,6 +93,9 @@ jobs:
         run: |
           echo "${{ secrets.APPLE_PROVISION_FILE }}" | base64 --decode > $GITHUB_WORKSPACE/src-tauri/Motion_Minute_MacOS_Profile.provisionprofile
 
+      - name: Set release name
+        run: echo "RELEASE_NAME=$(if [[ '${{ github.ref_name }}' == 'develop' ]]; then echo '__VERSION__-beta'; else echo '__VERSION__'; fi)" >> $GITHUB_ENV
+
       - uses: tauri-apps/tauri-action@v0
         if: matrix.appstore == false
         env:
@@ -104,7 +107,7 @@ jobs:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
         with:
           tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: "__VERSION__"
+          releaseName: ${{env.RELEASE_NAME}}
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
