@@ -1,8 +1,9 @@
 use crate::alert::Alert;
-use crate::SettingsSystemState;
+use crate::{SettingsDetailsState, SettingsSystemState};
 use anyhow::Error;
 use log::debug;
 use tauri::{AppHandle, Manager, Runtime, Window};
+use tauri::http::{HeaderMap, HeaderValue};
 use tauri_plugin_updater::UpdaterExt;
 
 const WINDOW_LABEL: &str = "updater";
@@ -90,10 +91,19 @@ where
         .map(|w| w.is_visible().unwrap_or(false))
         .unwrap_or(false);
     if !visible {
+        let pre_release: bool = {
+            let sds = app_handle.state::<SettingsDetailsState>();
+            let sd =
+                sds
+                    .lock()
+                    .expect("settings details can't be unlocked");
+            sd.clone().map(|d| d.beta_version).unwrap_or(false)
+        };
+
         let _w = tauri::WebviewWindowBuilder::new(
             app_handle,
             WINDOW_LABEL,
-            tauri::WebviewUrl::App("/updater".into()),
+            tauri::WebviewUrl::App(format!("/updater?prerelease={:?}", pre_release).into()),
         )
             .title("New version is available")
             .resizable(false)
@@ -115,7 +125,25 @@ async fn is_new_version_available<R>(app: &AppHandle<R>) -> Result<bool, anyhow:
 where
     R: Runtime,
 {
-    if let Some(_update) = app.updater()?.check().await? {
+    let pre_release: bool = {
+        let sds = app.state::<SettingsDetailsState>();
+        let sd =
+            sds
+                .lock()
+                .expect("settings details can't be unlocked");
+        sd.clone().map(|d| d.beta_version).unwrap_or(false)
+    };
+
+    let mut headers = HeaderMap::new();
+    headers.insert("prerelease", HeaderValue::from_str(pre_release.to_string().as_str())?);
+
+    debug!("checking for new update, pre-release: {pre_release}");
+
+    if let Some(_update) = app
+        .updater_builder()
+        .headers(headers)
+        .build()
+        ?.check().await? {
         Ok(true)
     } else {
         Ok(false)

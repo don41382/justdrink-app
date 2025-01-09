@@ -1,14 +1,18 @@
 import {check, type Update} from "@tauri-apps/plugin-updater";
-import type {StateType} from "./stateType";
 import {loadAppIcon} from "../../app";
-import type {UpdateAvailable, UpdateState} from "./updateState";
-import {commands} from "../../bindings";
+import type {UpdateState} from "./updateState";
 
+function getPrereleaseHeader(): boolean {
+    const prereleaseParam = new URLSearchParams(window.location.search).get("prerelease");
+    return prereleaseParam !== null;
+}
 
 /** @type {import('./$types').PageLoad} */
 export async function load({params}): Promise<{ iconPath: string; updateState: UpdateState }> {
     const iconPath = await loadAppIcon();
-    const updateState = await check().then((update: Update | null): UpdateState => {
+    const updateState = await check({
+        headers: { "prerelease": String(getPrereleaseHeader()) }
+    }).then((update: Update | null): UpdateState => {
         if (update === null) {
             return {state: "upToDate"};
         } else {

@@ -23,6 +23,7 @@ const DEFAULT_SESSION: SettingsUserDetails = SettingsUserDetails {
     enable_on_startup: true,
     enable_idle_detection: true,
     consent: false,
+    beta_version: false,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

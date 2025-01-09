@@ -32,6 +32,8 @@ pub struct SettingsUserDetails {
     pub(crate) allow_tracking: bool,
     pub(crate) enable_on_startup: bool,
     pub(crate) consent: bool,
+    #[serde(default = "default_disable_beta_version")]
+    pub(crate) beta_version: bool,
 
     #[serde(default = "default_enable_idle_detection")]
     pub(crate) enable_idle_detection: bool,
@@ -40,6 +42,11 @@ pub struct SettingsUserDetails {
 fn default_enable_idle_detection() -> bool {
     true
 }
+
+fn default_disable_beta_version() -> bool {
+    false
+}
+
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SettingsSystemDetails {

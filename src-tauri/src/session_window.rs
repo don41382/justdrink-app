@@ -179,6 +179,7 @@ fn start_first_session_(
             enable_idle_detection: true,
             enable_on_startup,
             consent,
+            beta_version: false
         },
         true,
     )?;
@@ -258,6 +259,7 @@ pub async fn end_session(
     let updater_visible =
         updater_window::show_if_update_available(&app, false, false)
             .await;
+
     if ask_for_feedback && !updater_visible {
         feedback_window::show(&app).expect("unable to show feedback window");
     }
