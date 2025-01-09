@@ -108,9 +108,9 @@ jobs:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          tagName: app-${{env.RELEASE_NAME}} # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: ${{env.RELEASE_NAME}}
-          releaseBody: "See the assets to download this version and install."
+          releaseBody: "See the assets to download this version and install for ${{env.RELEASE_NAME}}"
           releaseDraft: true
           prerelease: false
           updaterJsonKeepUniversal: true
