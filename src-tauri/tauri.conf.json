@@ -40,6 +40,7 @@
       "nsis": {
         "installerIcon": "icons/icon.ico"
       },
+      "defaultInstallLocation": "$LOCALAPPDATA/$APPNAME",
       "signCommand": "trusted-signing-cli --endpoint https://weu.codesigning.azure.net --account motion-minute-sign --certificate motion-minute-certificate %1"
     },
     "active": true,
