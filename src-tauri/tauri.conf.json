@@ -38,7 +38,8 @@
     "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
-        "installerIcon": "icons/icon.ico"
+        "installerIcon": "icons/icon.ico",
+        "installMode": "perMachine"
       },
       "signCommand": "trusted-signing-cli --endpoint https://weu.codesigning.azure.net --account motion-minute-sign --certificate motion-minute-certificate %1"
     },
