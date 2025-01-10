@@ -9,6 +9,9 @@
       "endpoints": [
         "https://motionminute.app/app/v1/updater/latest.json"
       ],
+      "windows": {
+        "installMode": "quiet"
+      },
       "dangerousInsecureTransportProtocol": true
     }
   },
