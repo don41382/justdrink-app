@@ -98,6 +98,9 @@ jobs:
         shell: bash
         run: echo "RELEASE_NAME=$(if [[ '${{ github.ref_name }}' == 'develop' ]]; then echo '__VERSION__-beta'; else echo '__VERSION__'; fi)" >> $GITHUB_ENV
 
+      - name: Install Tauri CLI
+        run: cargo install --locked --git https://github.com/don41382/tauri.git tauri-cli
+
       - uses: tauri-apps/tauri-action@v0
         if: matrix.appstore == false
         env:
