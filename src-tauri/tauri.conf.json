@@ -34,7 +34,7 @@
     "frontendDist": "../build"
   },
   "bundle": {
-    "category": "Utility",
+    "category": "HealthcareAndFitness",
     "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
