@@ -99,6 +99,7 @@ jobs:
         run: echo "RELEASE_NAME=$(if [[ '${{ github.ref_name }}' == 'develop' ]]; then echo '__VERSION__-beta'; else echo '__VERSION__'; fi)" >> $GITHUB_ENV
 
       - name: Install Tauri CLI
+        if: matrix.os == 'windows'
         run: cargo install --locked --git https://github.com/don41382/tauri.git --branch installer-name-missing-fix tauri-cli
 
       - uses: tauri-apps/tauri-action@v0
