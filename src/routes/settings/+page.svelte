@@ -10,12 +10,12 @@
     import License from "./License.svelte";
     import AutoSize from "../AutoSize.svelte";
 
-    let { data } = $props()
+    let {data} = $props()
     let settings = $state(data.settings)
 
     const params = new URLSearchParams(window.location.search);
 
-    let currentPage: SettingsTabs =  $state(toSettingsTab(params.get("settings_tab")));
+    let currentPage: SettingsTabs = $state(toSettingsTab(params.get("settings_tab")));
     let ready = $state(false);
 
     type Page = {
@@ -78,7 +78,7 @@
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto p-8">
             {#if currentPage === 'Session'}
-                <Session user={settings.user} {updateSettings}/>
+                <Session user={settings.user} app={settings.app} {updateSettings}/>
             {:else if currentPage === 'Tracking'}
                 <Tracking user={settings.user} {updateSettings}/>
             {:else if currentPage === 'License'}

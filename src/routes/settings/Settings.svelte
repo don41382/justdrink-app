@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { isEnabled, enable, disable } from "@tauri-apps/plugin-autostart";
-    import type {Settings, SettingsUserDetails} from '../../bindings';
+    import {isEnabled, enable, disable} from "@tauri-apps/plugin-autostart";
+    import type {AppDetails, Settings, SettingsUserDetails} from '../../bindings';
     import {formatDuration, sessionTimes} from "../session-times";
     import {info} from "@tauri-apps/plugin-log";
 
     export let user: SettingsUserDetails;
+    export let app: AppDetails;
     export let updateSettings: (updatedSettings: SettingsUserDetails) => Promise<void>;
 
     info(`settings-beta: ${user.beta_version}`)
@@ -53,15 +54,17 @@
             <span class="text-gray-700">Enable on startup</span>
             <input bind:checked={user.enable_on_startup} class="toggle-checkbox" on:change={submit} type="checkbox">
         </label>
-        <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
-            <div class="flex justify-between items-center">
-                <span class="{user.beta_version ? 'text-gray-700' : 'text-gray-400' }">Enable Beta Access</span>
-                <input bind:checked={user.beta_version} class="toggle-checkbox" on:change={submit} type="checkbox">
-            </div>
-            <div class="{user.beta_version ? 'text-gray-500' : 'text-gray-400' } text-sm space-y-1 mt-1">
-                <p> Opt in to receive early access to beta versions.</p>
-                <p> Please note that these versions may contain bugs or be unstable.</p>
-            </div>
-        </label>
+        {#if app.license_info.status !== "Full"}
+            <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
+                <div class="flex justify-between items-center">
+                    <span class="{user.beta_version ? 'text-gray-700' : 'text-gray-400' }">Enable Beta Access</span>
+                    <input bind:checked={user.beta_version} class="toggle-checkbox" on:change={submit} type="checkbox">
+                </div>
+                <div class="{user.beta_version ? 'text-gray-500' : 'text-gray-400' } text-sm space-y-1 mt-1">
+                    <p> Opt in to receive early access to beta versions.</p>
+                    <p> Please note that these versions may contain bugs or be unstable.</p>
+                </div>
+            </label>
+        {/if}
     </div>
 </div>

@@ -14,7 +14,7 @@ pub async fn show_if_update_available(app: &AppHandle, skip_duration_check: bool
     let join = tauri::async_runtime::spawn(async move {
         match show_if_update_available_run(&app_handle, skip_duration_check).await {
             Ok(shown) => {
-                debug!("Check update finished");
+                debug!("Check update finished, dialog show: {shown}");
                 shown
             }
             Err(err) => {
@@ -38,7 +38,7 @@ async fn show_if_update_available_run<R>(
 where
     R: Runtime,
 {
-    let shown = if check_for_new_version_required(app_handle.app_handle(), skip_duration_check)? {
+    let shown = if !cfg!(feature = "fullversion") && check_for_new_version_required(app_handle.app_handle(), skip_duration_check)? {
         if is_new_version_available(app_handle.app_handle()).await? {
             debug!("found new version. show update dialog.");
             let _ = show(&app_handle)?;

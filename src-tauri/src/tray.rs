@@ -51,6 +51,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
             )?,
             &PredefinedMenuItem::separator(main_app)?,
             &IconMenuItem::with_id(main_app, "about", "About ...", true, None, None::<&str>)?,
+            #[cfg(not(feature = "fullversion"))]
             &IconMenuItem::with_id(
                 main_app,
                 "updater",
@@ -134,6 +135,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                     timer.resume();
                 }
             }
+            #[cfg(not(feature = "fullversion"))]
             "updater" => {
                 updater_window::show(app.app_handle()).unwrap_or_else(|e| {
                     app.alert(
