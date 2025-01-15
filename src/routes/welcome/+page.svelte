@@ -50,7 +50,7 @@
 
 
 <AutoSize
-        class="flex flex-col bg-gray-100 w-[650px] min-h-[550px] px-12 justify-center cursor-default rounded-2xl"
+        class="flex flex-col bg-gray-100 w-[650px] min-h-[450px] px-12 justify-center cursor-default rounded-2xl"
         ready={true}>
 
         <!-- Progress Bar -->
@@ -69,7 +69,7 @@
         </div>
 
 
-        <div class="flex-grow mb-12 w-full">
+        <div class="flex-grow w-full">
             {#if currentStep === "Start"}
                 <SelectStart welcomePath={data.welcomePath}/>
             {:else if currentStep === "PainType"}

@@ -14,7 +14,8 @@ pub fn show(app: &AppHandle, device_id: &DeviceId) -> Result<(), anyhow::Error> 
         .title("Welcome to Motion Minute")
         .center()
         .transparent(true)
-        .always_on_top(true)
+        // TODO: DO NOT COMMIT
+        .always_on_top(false)
         .focused(true)
         .decorations(false)
         .resizable(false)
