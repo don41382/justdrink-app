@@ -229,6 +229,7 @@ pub fn run() {
             }
             RunEvent::ExitRequested { .. } => {
                 info!("Closing Motion Minute. Stop timer.");
+                app.track_event("app_quit", None);
                 let timer = app.state::<CountdownTimerState>();
                 timer.stop();
             }
