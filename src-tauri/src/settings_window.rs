@@ -187,6 +187,7 @@ where
         .skip_taskbar(false)
         .shadow(true)
         .minimizable(false)
+        .maximizable(false)
         .resizable(false)
         .build()?;
 
