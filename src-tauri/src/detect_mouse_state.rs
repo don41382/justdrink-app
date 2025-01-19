@@ -21,7 +21,7 @@ pub fn detect_mouse_shake(on_shake: Box<dyn Fn(MouseState) + Send + 'static>) {
                     shake_window.push_back(x);
 
                     let vec = shake_window.iter().map(|&x| x).collect::<Vec<i32>>();
-                    if is_mouse_shaking(vec, 5, 3) {
+                    if is_mouse_shaking(vec, 10, 3) {
                         on_shake(MouseState::SHAKE);
                         shake_window.clear();
                     }
