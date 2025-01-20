@@ -44,7 +44,7 @@ where
             }
         } else {
             if let Some(window) = app_handle_show.get_webview_window(WINDOW_LABEL) {
-                if window.is_visible().unwrap() {
+                if window.is_visible().unwrap_or(false) {
                     window.hide().unwrap()
                 }
             }
