@@ -289,7 +289,7 @@ impl LicenseManager {
                                     "License Error",
                                     "Unable to access the license server. Please try again later.",
                                     Some(e),
-                                    false,
+                                    true,
                                 );
                                 LicenseStatus::Invalid("Unable to access the license server. Please try again later.".to_string())
                             }
