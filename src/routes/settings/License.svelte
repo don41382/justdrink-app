@@ -131,7 +131,7 @@
                 {:else}
                     <button class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2"
                             on:click={async () => getALicense()}>
-                        Get a license
+                        Buy a license
                     </button>
                     <button class="text-white rounded-lg px-4 py-2 bg-primary hover:bg-primary/50"
                             on:click={async () => registerLicense()}>

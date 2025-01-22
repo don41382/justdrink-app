@@ -59,7 +59,7 @@ pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
     if license_manager
         .try_lock()
         .expect("Could not lock license manager")
-        .get_status(&app.app_handle())
+        .get_status(&app.app_handle(), false)
         .is_active()
     {
         // stop current running timer
@@ -218,7 +218,7 @@ pub fn load_session_details(
             let status = license_manager
                 .lock()
                 .expect("license manager is locked")
-                .get_status(app.app_handle());
+                .get_status(app.app_handle(), false);
 
             Some(SessionDetail {
                 exercise: exercise.clone(),
