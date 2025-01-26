@@ -20,13 +20,13 @@ mod updater_window;
 mod welcome_window;
 mod feedback_window;
 mod subscription_manager;
+mod app_config;
 
 use log::{info, warn};
 use serde_json::json;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
-use std::time::Duration;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 

@@ -1,6 +1,7 @@
 use crate::{tracking, TrackingState};
 use log::warn;
 use tauri::{AppHandle, Manager};
+use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
 
 const WINDOW_LABEL: &str = "welcome";
@@ -35,7 +36,8 @@ pub fn open_thank_you(device_id: &DeviceId) {
         // apple does not allow cross-reference
     } else {
         let url = format!(
-            "https://www.motionminute.app/thank-you/{}?utm_source=app&utm_medium=install",
+            "{}/thank-you/{}?utm_source=app&utm_medium=install",
+            AppConfig::build().get_url(),
             device_id.get_hash_hex_id()
         );
         match webbrowser::open(url.as_str()) {

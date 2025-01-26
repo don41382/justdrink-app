@@ -9,6 +9,7 @@ use specta::Type;
 use tauri::http::{StatusCode};
 use tauri::{AppHandle, Manager, State, Window};
 use tauri_plugin_http::reqwest::blocking::{Client, Response};
+use crate::app_config::AppConfig;
 
 mod response {
     use chrono::{DateTime, Utc};
@@ -125,7 +126,8 @@ impl LicenseManager {
     ) -> Result<LicenseStatus, ServerRequestError> {
         info!("validating license");
         let url = format!(
-            "https://motionminute.app/app/v1/license/validate?device-id={}",
+            "{}/app/v1/license/validate?device-id={}",
+            AppConfig::build().get_url(),
             device_id.get_hash_hex_id()
         );
 
@@ -155,7 +157,8 @@ impl LicenseManager {
     ) -> Result<LicenseStatus, ServerRequestError> {
         info!("register license");
         let url = format!(
-            "https://motionminute.app/app/v1/license/register?device-id={}&license-key={}",
+            "{}/app/v1/license/register?device-id={}&license-key={}",
+            AppConfig::build().get_url(),
             self.device_id.get_hash_hex_id(),
             license_key
         );
@@ -180,7 +183,8 @@ impl LicenseManager {
     fn reset_license(&mut self) -> Result<LicenseStatus, ServerRequestError> {
         info!("reset license");
         let url = format!(
-            "https://motionminute.app/app/v1/license/reset?device-id={}",
+            "{}/app/v1/license/reset?device-id={}",
+            AppConfig::build().get_url(),
             self.device_id.get_hash_hex_id()
         );
         let response = self.client.post(&url).body("").send().map_err(|err| {
@@ -344,7 +348,7 @@ pub fn settings_reset_license(app_handle: AppHandle) -> LicenseInfo {
 #[specta::specta]
 #[tauri::command]
 pub fn get_a_license(window: Window, app_handle: AppHandle) -> () {
-    let url = "https://motionminute.app/pricing?utm_source=app&utm_medium=settings";
+    let url = format!("{}/pricing?utm_source=app&utm_medium=settings",AppConfig::build().get_url());
     match webbrowser::open(&url) {
         Ok(_) => {}
         Err(err) => {

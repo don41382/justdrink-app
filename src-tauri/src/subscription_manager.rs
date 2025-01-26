@@ -1,5 +1,6 @@
 use serde::Serialize;
 use tauri_plugin_http::reqwest::blocking::Client;
+use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
 
 pub struct SubscriptionManager {
@@ -31,7 +32,7 @@ impl SubscriptionManager {
 
         let response = self
             .client
-            .post("https://motionminute.app/app/v1/newsletter/subscribe")
+            .post(format!("{}/app/v1/newsletter/subscribe", AppConfig::build().get_url()))
             .form(&request)
             .send()?;
 

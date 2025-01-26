@@ -15,6 +15,7 @@ use tauri_specta::Event;
 #[cfg(target_os = "windows")]
 use window_vibrancy::apply_acrylic;
 use crate::feedback_window::{FeedbackDisplay};
+use crate::license_manager::LicenseStatus;
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -179,17 +180,34 @@ fn start_first_session_(
             enable_idle_detection: true,
             enable_on_startup,
             consent,
-            beta_version: false
+            beta_version: false,
         },
         true,
     )?;
 
-    subscription_manager.subscribe(email.clone(), consent).unwrap_or_else(|err| {
-        app_handle.alert("Unable to subscribe", format!("Sorry, we were not able to subscribe the user {:?}.", email.clone()).as_str(), Some(err), true);
-    });
+    let status = app_handle.state::<LicenseManagerState>()
+        .lock()
+        .expect("require license manager")
+        .get_status(app_handle.app_handle(), false);
+
 
     welcome_window.hide()?;
-    session_window::start(&app_handle)?;
+
+    match status {
+        LicenseStatus::Valid(_) => {
+            subscription_manager.subscribe(email.clone(), consent).unwrap_or_else(|err| {
+                app_handle.alert("Unable to subscribe", format!("Sorry, we were not able to subscribe the user {:?}.", email.clone()).as_str(), Some(err), true);
+            });
+            start(&app_handle)?;
+        }
+        LicenseStatus::Expired(_) => {
+            settings_window::show(app_handle, SettingsTabs::License)?
+        }
+        LicenseStatus::Invalid(_) => {
+            settings_window::show(app_handle, SettingsTabs::License)?
+        }
+    }
+
     Ok(())
 }
 

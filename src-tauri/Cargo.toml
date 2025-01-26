@@ -21,6 +21,7 @@ tauri-build = { version = "2.0.2", features = [] }
 [features]
 default = []
 fullversion = []
+local = []
 
 [dependencies]
 tauri = { version = "2.2.0", features = ["protocol-asset", "macos-private-api", "tray-icon", "image-png", "native-tls"] }

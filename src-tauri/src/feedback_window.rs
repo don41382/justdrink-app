@@ -4,6 +4,7 @@ use specta::Type;
 use tauri::{AppHandle, Manager, Runtime, State};
 use tauri_plugin_http::reqwest::blocking::Client;
 use crate::{model, FeedbackSenderState, SettingsSystemState};
+use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
 use crate::settings_system::SettingsSystem;
 
@@ -64,7 +65,7 @@ impl FeedbackSender {
         };
 
         let response = self.client
-            .post("https://motionminute.app/app/v1/feedback")
+            .post(format!("{}/app/v1/feedback", AppConfig::build().get_url()))
             .json(&feedback_request)
             .send();
 
