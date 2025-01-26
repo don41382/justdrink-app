@@ -21,6 +21,13 @@ pub struct Exercise {
     pub(crate) advices: Vec<String>,
     pub(crate) duration_s: u16,
     pub(crate) active: bool,
+    pub(crate) availability:  Vec<ExerciseAvailability>,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Type, Event)]
+pub enum ExerciseAvailability {
+    Trial,
+    Full,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]

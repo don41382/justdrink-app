@@ -6,7 +6,7 @@ use std::thread::spawn;
 use tauri::ActivationPolicy;
 
 use crate::alert::Alert;
-use crate::model::session::SessionDetail;
+use crate::model::session::{ExerciseAvailability, SessionDetail};
 use crate::model::settings::SettingsTabs;
 use crate::{countdown_timer, feedback_window, fullscreen, model, session_window, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, SubscriptionManagerState, TrackingState};
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
@@ -15,7 +15,7 @@ use tauri_specta::Event;
 #[cfg(target_os = "windows")]
 use window_vibrancy::apply_acrylic;
 use crate::feedback_window::{FeedbackDisplay};
-use crate::license_manager::LicenseStatus;
+use crate::license_manager::{LicenseStatus, ValidTypes};
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -221,8 +221,14 @@ pub fn load_session_details(
 ) -> Option<model::session::SessionDetail> {
     info!("load session details");
 
+    let status = license_manager
+        .lock()
+        .expect("license manager is locked")
+        .get_status(app.app_handle(), false);
+
     let mut repo = session_repository.lock().unwrap();
-    match repo.pick_random_session() {
+
+    match repo.pick_random_session(&status.to_availability()) {
         None => {
             app.alert(
                 "Session is missing",
@@ -233,15 +239,31 @@ pub fn load_session_details(
             None
         }
         Some(exercise) => {
-            let status = license_manager
-                .lock()
-                .expect("license manager is locked")
-                .get_status(app.app_handle(), false);
-
             Some(SessionDetail {
                 exercise: exercise.clone(),
                 license_info: status.to_license_info(),
             })
+        }
+    }
+}
+
+impl LicenseStatus {
+    fn to_availability(&self) -> ExerciseAvailability {
+        match &self {
+            LicenseStatus::Valid(license) => {
+                match license {
+                    ValidTypes::Trial(_) => {
+                        ExerciseAvailability::Trial
+                    }
+                    ValidTypes::Paid(_) => {
+                        ExerciseAvailability::Full
+                    }
+                    ValidTypes::Full => {
+                        ExerciseAvailability::Full
+                    }
+                }
+            }
+            _ => ExerciseAvailability::Trial
         }
     }
 }

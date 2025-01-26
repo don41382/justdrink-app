@@ -106,7 +106,8 @@ timerStatus: "timer-status"
 export type AppDetails = { version: string; license_info: LicenseInfo }
 export type ChangeTime = { Add: number } | { Remove: number }
 export type CountdownEvent = { status: TimerStatus }
-export type Exercise = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean }
+export type Exercise = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean; availability: ExerciseAvailability[] }
+export type ExerciseAvailability = "Trail" | "Full"
 export type FeedbackRate = "UNKNOWN" | "BAD" | "OK" | "AWESOME"
 export type LicenseInfo = { status: LicenseInfoStatus; license_key: string | null; message: string | null }
 export type LicenseInfoStatus = "Trial" | "Paid" | "Full" | "Invalid"

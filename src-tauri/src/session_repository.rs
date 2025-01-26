@@ -1,4 +1,4 @@
-use crate::model::session::{Exercise, SessionId};
+use crate::model::session::{Exercise, ExerciseAvailability, SessionId};
 use rand::seq::IteratorRandom;
 use std::collections::HashSet;
 
@@ -23,6 +23,7 @@ impl SessionRepository {
                     .iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
+                availability: vec![ExerciseAvailability::Trial, ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("shoulder-circle".to_string()),
@@ -38,6 +39,7 @@ impl SessionRepository {
                     .iter().map(|s| s.to_string()).collect(),
                 duration_s: 40,
                 active: true,
+                availability: vec![ExerciseAvailability::Trial, ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("pelvic-tilt".to_string()),
@@ -52,6 +54,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 20,
                 active: true,
+                availability: vec![ExerciseAvailability::Trial, ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("chair-squat".to_string()),
@@ -65,6 +68,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
+                availability: vec![ExerciseAvailability::Trial, ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("chin-tuck".to_string()),
@@ -81,6 +85,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 20,
                 active: true,
+                availability: vec![ExerciseAvailability::Trial, ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("w-and-y".to_string()),
@@ -97,6 +102,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 40,
                 active: true,
+                availability: vec![ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("standing-calf-raise".to_string()),
@@ -113,6 +119,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
+                availability: vec![ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("seated-knee-extension".to_string()),
@@ -129,6 +136,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
+                availability: vec![ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("seated-glute-stretch-pencil".to_string()),
@@ -145,6 +153,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 40,
                 active: true,
+                availability: vec![ExerciseAvailability::Full],
             },
             // revisit
             Exercise {
@@ -162,6 +171,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
+                availability: vec![ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("head-bend-to-the-side".to_string()),
@@ -178,6 +188,7 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 40,
                 active: true,
+                availability: vec![ExerciseAvailability::Full],
             },
             Exercise {
                 id: SessionId("elbow-to-knee".to_string()),
@@ -194,36 +205,41 @@ impl SessionRepository {
                 ].iter().map(|s| s.to_string()).collect(),
                 duration_s: 30,
                 active: true,
+                availability: vec![ExerciseAvailability::Full],
             },
         ];
 
         SessionRepository {
             exercises: initial_sessions,
-            picked_sessions: HashSet::new(), // Initialize with an empty set
+            picked_sessions: HashSet::new(),
         }
     }
 
-    // This method ensures that all sessions are picked once before repeating
-    pub fn pick_random_session(&mut self) -> Option<&Exercise> {
-        // If all sessions have been picked, reset the picked list
-        if self.picked_sessions.len() == self.exercises.len() {
+    pub fn pick_random_session(&mut self, exercise_availability: &ExerciseAvailability) -> Option<&Exercise> {
+        let all_available_sessions: Vec<usize> = self.exercises
+            .iter()
+            .enumerate()
+            .filter_map(|(i, exercise)| {
+                if exercise.active && exercise.availability.contains(exercise_availability) {
+                    Some(i)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if all_available_sessions.iter().all(|&i| self.picked_sessions.contains(&i)) {
             self.picked_sessions.clear();
         }
 
-        // Filter active sessions that haven't been picked
-        let mut rng = rand::thread_rng();
-        let available_sessions: Vec<(usize, &Exercise)> = self
-            .exercises
-            .iter()
-            .enumerate()
-            .filter(|(i, s)| s.active && !self.picked_sessions.contains(i))
+        let not_picked_indices: Vec<usize> = all_available_sessions
+            .into_iter()
+            .filter(|i| !self.picked_sessions.contains(i))
             .collect();
 
-        // Randomly choose one of the available sessions
-        if let Some((index, session)) = available_sessions.into_iter().choose(&mut rng) {
-            // Add the index of the picked session to the picked_sessions set
+        if let Some(index) = not_picked_indices.into_iter().choose(&mut rand::thread_rng()) {
             self.picked_sessions.insert(index);
-            Some(session)
+            Some(&self.exercises[index])
         } else {
             None
         }
