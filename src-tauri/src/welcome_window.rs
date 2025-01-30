@@ -12,11 +12,9 @@ pub fn show(app: &AppHandle, device_id: &DeviceId) -> Result<(), anyhow::Error> 
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/welcome".into()),
     )
-        .title("Welcome to Motion Minute")
+        .title("Welcome to Drink Now!")
         .center()
         .transparent(true)
-        // TODO: DO NOT COMMIT
-        .always_on_top(false)
         .focused(true)
         .decorations(false)
         .resizable(false)

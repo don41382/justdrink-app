@@ -18,7 +18,7 @@ where
             WINDOW_LABEL,
             tauri::WebviewUrl::App("/dashboard".into()),
         )
-            .title("Motion Minute - Actionbar")
+            .title("Drink Now! - Dashboard")
             .center()
             .transparent(true)
             .decorations(false)

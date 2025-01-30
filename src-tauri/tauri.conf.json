@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-schema-generator/schemas/config.schema.json",
-  "productName": "Motion Minute",
+  "productName": "Drink Now!",
   "version": "1.1.31",
-  "identifier": "com.rocketsolutions.motionminute",
+  "identifier": "com.rocketsolutions.drinknow",
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdEMjUyRTFFNDE2RkRBNDEKUldSQjJtOUJIaTRsZlpJcFpEYTRrT0ZLTHRpZldqWkdLNHRqWHJvNDdCUnhsUVdPcUNtM0xud08K",
       "endpoints": [
-        "https://motionminute.app/app/v1/updater/latest.json"
+        "https://drinknow.app/app/v1/updater/latest.json"
       ],
       "dangerousInsecureTransportProtocol": true
     }
@@ -54,7 +54,7 @@
     ],
     "copyright": "2024 - Rocket Solutions SL",
     "publisher": "Rocket Solutions SL",
-    "longDescription": "Motion Minute is your personal reminder to take regular, healthy breaks while working at your desk, boosting wellness and productivity.",
+    "longDescription": "Drink Now! is your immerse reminder to take regular, healthy sips at your desk, boosting wellness and productivity.",
     "resources": [
       "videos/*",
       "audio/*",

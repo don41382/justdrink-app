@@ -62,9 +62,9 @@
         </div>
 
         <div class="flex-none pt-8 mb-4">
-            <div class="flex">
-                <img alt="Motion Minute" class="size-8" src="{data.iconPath}">
-                <p class="text-xl ml-2">Motion Minute</p>
+            <div class="flex items-center">
+                <img alt="Drink Now!" class="size-8" src="{data.iconPath}">
+                <p class="text-xl ml-2 text-gray-700">Drink Now!</p>
             </div>
         </div>
 

@@ -36,7 +36,7 @@ use crate::session_repository::SessionRepository;
 use crate::alert::Alert;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
-use tauri::{App, AppHandle, Manager, RunEvent, WindowEvent};
+use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::{MacosLauncher};
 use tauri_plugin_log::Target;
@@ -48,7 +48,7 @@ fn update_settings(app_handle: AppHandle, settings: model::settings::SettingsUse
     settings_window::set_settings(&app_handle, settings, true).unwrap_or_else(|err| {
         app_handle.alert(
             "Failed to update settings",
-            "Motion minute is unable to update settings.",
+            "Drink Now! is unable to update settings.",
             Some(err),
             false,
         );
@@ -106,7 +106,7 @@ pub fn run() {
             info!("open dashboard - only on windows");
             #[cfg(target_os = "windows")]
             {
-                info!("instance of motion minute already open");
+                info!("instance of Drink Now! already open");
                 show_dashboard(_app);
             }
         }))
@@ -120,7 +120,7 @@ pub fn run() {
             Some(vec!["--quiet"]),
         ))
         .plugin(
-            tauri_plugin_aptabase::Builder::new("A-EU-5037339452")
+            tauri_plugin_aptabase::Builder::new("A-EU-1597927502")
                 .with_panic_hook(Box::new(|client, info, msg| {
                     info!("panic detection");
                     let location = info
@@ -142,7 +142,7 @@ pub fn run() {
                     Target::new(tauri_plugin_log::TargetKind::Stdout),
                     Target::new(tauri_plugin_log::TargetKind::Webview),
                     Target::new(tauri_plugin_log::TargetKind::LogDir {
-                        file_name: Some("motion-minutes".to_string()),
+                        file_name: Some("drinknow".to_string()),
                     }),
                 ])
                 .level_for(
@@ -223,12 +223,12 @@ pub fn run() {
         .run(|app, event| match event {
             #[cfg(target_os = "macos")]
             RunEvent::Reopen { .. } => {
-                info!("Reopen Motion Minute - Show Dashboard");
+                info!("Reopen Drink Now - Show Dashboard");
                 // called only on macos
                 show_dashboard(app);
             }
             RunEvent::ExitRequested { .. } => {
-                info!("Closing Motion Minute. Stop timer.");
+                info!("Closing Drink Now! Stop timer.");
                 app.track_event("app_quit", None);
                 let timer = app.state::<CountdownTimerState>();
                 timer.stop();

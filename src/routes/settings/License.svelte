@@ -97,17 +97,17 @@
         {#if app.license_info.status === 'Full'}
             <div class="flex-col">
                 <p class="text-mm-green font-normal accent-mm-green">You purchased the full version.</p>
-                <p class="text-gray-700 font-thin mb-4">Thank you for supporting Motion Minute.</p>
+                <p class="text-gray-700 font-thin mb-4">Thank you for supporting Drink Now!.</p>
             </div>
         {:else}
             {#if app.license_info.status === 'Paid'}
                 <div class="flex-col">
                     <p class="text-mm-green font-normal accent-mm-green">Your license is active.</p>
-                    <p class="text-gray-700 font-thin mb-4">Thank you for supporting Motion Minute.</p>
+                    <p class="text-gray-700 font-thin mb-4">Thank you for supporting Drink Now!</p>
                 </div>
             {:else}
                 <p class="text-gray-700 mb-4">
-                    Enter the license key you received in your email after purchasing Motion Minute to activate it on
+                    Enter the license key you received in your email after purchasing Drink Now! to activate it on
                     this
                     device:
                 </p>
@@ -135,7 +135,7 @@
                     </button>
                     <button class="text-white rounded-lg px-4 py-2 bg-primary hover:bg-primary/50"
                             on:click={async () => registerLicense()}>
-                        Activate Motion Minute
+                        Activate Drink Now!
                     </button>
                 {/if}
             </div>

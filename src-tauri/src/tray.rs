@@ -203,14 +203,9 @@ pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> ta
 }
 
 fn tray_icon(app: &AppHandle<Wry>) -> tauri::Result<Image<'_>> {
-    if cfg!(target_os = "macos") {
-        let image = Image::from_path(app.path().resolve("icons/128x128-tray-light.png", BaseDirectory::Resource)?)?;
-        Ok(image)
-    } else {
-        let image =
-            app
-                .default_window_icon()
-                .ok_or_else(|| tauri::Error::Anyhow(anyhow!("tray icon is missing")))?;
-        Ok(image.clone())
-    }
+    let image =
+        app
+            .default_window_icon()
+            .ok_or_else(|| tauri::Error::Anyhow(anyhow!("tray icon is missing")))?;
+    Ok(image.clone())
 }

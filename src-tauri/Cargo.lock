@@ -1099,6 +1099,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "drinknow"
+version = "0.1.4"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "cocoa",
+ "log",
+ "machine-uid",
+ "mouse_position",
+ "objc",
+ "objc_exception",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "sha2",
+ "specta",
+ "specta-typescript",
+ "specta-util",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-aptabase",
+ "tauri-plugin-autostart",
+ "tauri-plugin-fs",
+ "tauri-plugin-global-shortcut",
+ "tauri-plugin-http",
+ "tauri-plugin-log",
+ "tauri-plugin-os",
+ "tauri-plugin-process",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-store",
+ "tauri-plugin-updater",
+ "tauri-specta",
+ "timer",
+ "urlencoding",
+ "user-idle",
+ "webbrowser",
+ "winapi",
+ "window-vibrancy 0.5.2 (git+https://github.com/tauri-apps/window-vibrancy)",
+]
+
+[[package]]
 name = "dtoa"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2502,47 +2543,6 @@ dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "motion-minute"
-version = "0.1.4"
-dependencies = [
- "anyhow",
- "chrono",
- "cocoa",
- "log",
- "machine-uid",
- "mouse_position",
- "objc",
- "objc_exception",
- "rand 0.8.5",
- "serde",
- "serde_json",
- "sha2",
- "specta",
- "specta-typescript",
- "specta-util",
- "tauri",
- "tauri-build",
- "tauri-plugin-aptabase",
- "tauri-plugin-autostart",
- "tauri-plugin-fs",
- "tauri-plugin-global-shortcut",
- "tauri-plugin-http",
- "tauri-plugin-log",
- "tauri-plugin-os",
- "tauri-plugin-process",
- "tauri-plugin-single-instance",
- "tauri-plugin-store",
- "tauri-plugin-updater",
- "tauri-specta",
- "timer",
- "urlencoding",
- "user-idle",
- "webbrowser",
- "winapi",
- "window-vibrancy 0.5.2 (git+https://github.com/tauri-apps/window-vibrancy)",
 ]
 
 [[package]]

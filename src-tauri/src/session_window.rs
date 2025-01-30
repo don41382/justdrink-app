@@ -8,7 +8,7 @@ use tauri::ActivationPolicy;
 use crate::alert::Alert;
 use crate::model::session::{ExerciseAvailability, SessionDetail};
 use crate::model::settings::SettingsTabs;
-use crate::{countdown_timer, feedback_window, fullscreen, model, session_window, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, SubscriptionManagerState, TrackingState};
+use crate::{countdown_timer, feedback_window, fullscreen, model, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, SubscriptionManagerState, TrackingState};
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 
@@ -98,7 +98,7 @@ pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
         info!("start session window: create new window");
         let window =
             WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App("/session".into()))
-                .title("Motion Minute Session")
+                .title("Drink Now!")
                 .transparent(true)
                 .visible(false)
                 .always_on_top(true)

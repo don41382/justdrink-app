@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    motionminute_app_lib::run()
+    drinknow_app_lib::run()
 }

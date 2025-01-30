@@ -14,7 +14,7 @@
   ],
   "remote": {
     "urls": [
-      "https://*.motionminute.app",
+      "https://*.drinknow.app",
       "https://*.tauri.app",
       "https://api.mixpanel.com",
       "https://eu.aptabase.com"

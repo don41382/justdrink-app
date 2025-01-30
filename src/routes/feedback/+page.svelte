@@ -38,7 +38,7 @@
     <div class="flex justify-between items-center space-x-3 mb-6">
         <div class="flex items-center space-x-2 mr-16 select-none">
             <img alt="mm" class="w-8 h-8" data-tauri-drag-region src="{data.iconPath}">
-            <p class="text-xl font-semibold text-left whitespace-nowrap" data-tauri-drag-region>Motion Minute</p>
+            <p class="text-xl font-semibold text-left whitespace-nowrap" data-tauri-drag-region>Drink Now!</p>
         </div>
         <div class="flex space-x-2 justify-end">
             <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-mm-green-100 hover:text-white p-1"

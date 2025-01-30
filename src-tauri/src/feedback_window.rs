@@ -23,7 +23,7 @@ where
             WINDOW_LABEL,
             tauri::WebviewUrl::App("/feedback".into()),
         )
-            .title("Motion Minute - Actionbar")
+            .title("Drink Now! Feedback")
             .center()
             .transparent(true)
             .decorations(false)
@@ -75,7 +75,7 @@ impl FeedbackSender {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Type)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum FeedbackRate {
     UNKNOWN,
     BAD,

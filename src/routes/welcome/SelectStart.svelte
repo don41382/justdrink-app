@@ -11,7 +11,7 @@
         </div>
         <div>
             <h2 class="text-2xl">Welcome to</h2>
-            <h1 class="text-4xl text-secondary text-left mb-2">Motion Minute</h1>
+            <h1 class="text-4xl text-secondary text-left mb-2">Drink Now!</h1>
             <p class="text-neutral-600">
                 Let's quickly setup your motion sessions in the next steps.
             </p>

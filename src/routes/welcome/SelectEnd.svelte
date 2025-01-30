@@ -38,9 +38,9 @@
                 bind:checked={consent}
                 class="size-4 mr-2 rounded border-neutral-300 text-neutral-600 focus:ring-neutral-500" id="consent"
                 type="checkbox">
-        <label class="text-sm text-neutral-600" for="consent">I agree to receive emails from Motion Minute and
+        <label class="text-sm text-neutral-600" for="consent">I agree to receive emails from Drink Now! and
             understand I can unsubscribe anytime. See our
-            <a class="underline cursor-pointer" onclick={() => openUrl("https://www.motionminute.app/privacy?utm_source=app&utm_medium=consent")}>Privacy
+            <a class="underline cursor-pointer" onclick={() => openUrl("https://drinknow.app/privacy?utm_source=app&utm_medium=consent")}>Privacy
                 Details</a>
             for details.
         </label>

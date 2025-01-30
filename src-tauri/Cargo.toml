@@ -1,18 +1,18 @@
 [package]
-name = "motion-minute"
+name = "drinknow"
 version = "0.1.4"
-description = "Motion Minute is your personal reminder to take regular, healthy breaks while working at your desk, boosting wellness and productivity."
+description = "Drink Now! is your immerse reminder to take regular, healthy sips at your desk, boosting wellness and productivity."
 authors = ["Felix Eckhardt"]
 edition = "2021"
-default-run = "motion-minute"
+default-run = "drinknow"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "motion-minute"
+name = "drinknow"
 
 [lib]
-name = "motionminute_app_lib"
+name = "drinknow_app_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

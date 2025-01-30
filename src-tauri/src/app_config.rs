@@ -1,5 +1,3 @@
-use log::info;
-
 pub struct AppConfig {
     url: String,
 }
@@ -7,14 +5,12 @@ pub struct AppConfig {
 impl AppConfig {
     pub fn build() -> Self {
         if cfg!(feature = "local") {
-            info!("local config");
             AppConfig {
                 url: "http://localhost:8080".to_string()
             }
         } else {
-            info!("remote config");
             AppConfig {
-                url: "https://motionminute.app".to_string()
+                url: "https://drinknow.app".to_string()
             }
         }
     }
