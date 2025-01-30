@@ -75,7 +75,7 @@ impl FeedbackSender {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Type)]
 pub enum FeedbackRate {
     UNKNOWN,
     BAD,

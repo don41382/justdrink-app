@@ -1,7 +1,6 @@
 mod alert;
 mod countdown_timer;
 mod detect_idling;
-mod detect_mouse_state;
 mod idle;
 mod model;
 mod pretty_time;
@@ -15,7 +14,6 @@ mod license_manager;
 mod session_window;
 mod settings_system;
 mod settings_window;
-mod start_soon_window;
 mod updater_window;
 mod welcome_window;
 mod feedback_window;
@@ -190,7 +188,6 @@ pub fn run() {
             }
 
             session_window::init(app.app_handle());
-            start_soon_window::init(app.app_handle())?;
             detect_idling::init(app.app_handle())?;
 
             tray::create_tray(app.handle())?;

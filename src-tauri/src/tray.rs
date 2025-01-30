@@ -12,7 +12,6 @@ use tauri::{
     AppHandle, Manager, Wry,
 };
 use tauri::image::Image;
-use tauri::path::BaseDirectory;
 use tauri_specta::Event;
 
 const TRAY_ID: &'static str = "tray";
