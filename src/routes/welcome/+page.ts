@@ -1,22 +1,21 @@
 import type {PageLoad} from './$types';
 import {loadAppIcon, loadImage} from "../../app";
 
-export type PainTypeImages = { upperBackImage: string, lowerBackImage: string, wristImage: string, stress: string }
+export type GenderImages = { male: string, female: string, other: string }
 
 /** @type {import('./$types').PageLoad} */
 export const load: PageLoad = async (): Promise<{
     iconPath: string,
     welcomePath: string,
-    painTypeImages: PainTypeImages
+    genderImages: GenderImages
 }> => {
     return {
         iconPath: await loadAppIcon(),
-        welcomePath: await loadImage("welcome/mm-welcome.png"),
-        painTypeImages: {
-            upperBackImage: await loadImage("welcome/upper.png"),
-            lowerBackImage: await loadImage("welcome/lower.png"),
-            wristImage: await loadImage("welcome/wrist.png"),
-            stress: await loadImage("welcome/stress.png")
+        welcomePath: await loadImage("welcome/dn-water-glass.png"),
+        genderImages: {
+            male: await loadImage("welcome/gender/male.png"),
+            female: await loadImage("welcome/gender/female.png"),
+            other: await loadImage("welcome/gender/other.png"),
         },
     };
 };

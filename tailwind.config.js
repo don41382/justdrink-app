@@ -9,9 +9,9 @@ export default {
             colors: {
                 transparent: 'transparent',
                 current: 'currentColor',
-                primary: '#550370',
-                secondary: '#cc006e',
-                accent: '#ff9edb',
+                primary: '#FFB703',
+                secondary: '#8ECAE6',
+                accent: '#023047',
                 'mm-blue': {
                     DEFAULT: '#53666D',
                     50: '#B3C0C5',
@@ -38,35 +38,7 @@ export default {
                     800: '#070A08',
                     900: '#000000',
                     950: '#000000'
-                },
-                'mm-orange': {
-                    DEFAULT: '#E38300',
-                    50: '#FFD59C',
-                    100: '#FFCC87',
-                    200: '#FFBB5E',
-                    300: '#FFAA36',
-                    400: '#FF990D',
-                    500: '#E38300',
-                    600: '#AB6300',
-                    700: '#734200',
-                    800: '#3B2200',
-                    900: '#030200',
-                    950: '#000000'
-                },
-                'mm-pink': {
-                    DEFAULT: '#8B5C5D',
-                    50: '#D9C6C6',
-                    100: '#D1B9BA',
-                    200: '#C1A1A1',
-                    300: '#B08889',
-                    400: '#A07071',
-                    500: '#8B5C5D',
-                    600: '#694646',
-                    700: '#472F30',
-                    800: '#261919',
-                    900: '#040303',
-                    950: '#000000'
-                },
+                }
             },
         },
     }, plugins: [],
