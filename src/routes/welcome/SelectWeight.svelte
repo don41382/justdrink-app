@@ -1,16 +1,17 @@
 <script lang="ts">
-    import {getMeasureSystem, getWeightSystem, WeightSystem} from "./WeightSystem";
-    import type {MeasureSystem} from "./MeasureSystem";
-    import {info} from "@tauri-apps/plugin-log";
+    import {MeasureSystem} from "./MeasureSystem";
     import {limitNumber} from "./LimitNumber";
+    import {WeightConverter} from "./WeightConverter.js";
 
     let {weightInKg = $bindable(70), measureSystem = $bindable()}: { weightInKg: number, measureSystem: MeasureSystem } = $props()
 
-    let selectWeight: WeightSystem = $state(getWeightSystem(measureSystem));
+    function toWeightName(measureSystem: MeasureSystem) {
+        switch (measureSystem) {
+            case MeasureSystem.Metric: return "kg"
+            case MeasureSystem.Imperial: return "lbs"
+        }
+    }
 
-    $effect(() => {
-        measureSystem = getMeasureSystem(selectWeight)
-    })
 </script>
 
 <div class="flex flex-col w-full h-full">
@@ -21,16 +22,16 @@
     <div class="flex flex-1 justify-center items-center">
         <div class="flex h-16 text-2xl items-center rounded-xl bg-secondary/20 pl-3 outline-1 -outline-offset-1 outline-gray-300">
             <input
-                    bind:value={() =>  (weightInKg === 0) ? "" : weightInKg, (v) => {weightInKg = limitNumber(v, 999)}}
-                    class="block grow {(weightInKg > 99) ? 'w-12' : 'w-8'} bg-transparent pl-1 text-primary placeholder:text-gray-400 focus:outline-none"
+                    bind:value={() =>  (weightInKg === 0) ? "" : WeightConverter.from(weightInKg, measureSystem), (v) => {weightInKg = WeightConverter.to(limitNumber(v, 4), measureSystem)}}
+                    class="block grow {(WeightConverter.from(weightInKg, measureSystem) > 99) ? 'w-12' : 'w-8'} bg-transparent pl-1 text-primary placeholder:text-gray-400 focus:outline-none"
                     id="weight"
                     max="999" min="20" name="weight">
             <div class="grid shrink-0 grid-cols-1 focus-within:relative">
-                <select aria-label="Weight" bind:value={selectWeight}
-                        class="col-start-1 row-start-1 w-full appearance-none rounded-xl py-1.5 pr-7 pl-3 text-primary/50 bg-transparent"
+                <select aria-label="Weight" bind:value={measureSystem}
+                        class="col-start-1 row-start-1 w-full appearance-none rounded-xl py-1.5 pr-7 pl-3 text-primary/50 bg-transparent focus:outline-none"
                         id="weightSystem" name="weightSystem">
-                    {#each Object.values(WeightSystem) as weight }
-                        <option value={weight}>{weight}</option>
+                    {#each [MeasureSystem.Metric, MeasureSystem.Imperial] as weight }
+                        <option value={weight}>{toWeightName(weight)}</option>
                     {/each}
                 </select>
                 <svg aria-hidden="true"

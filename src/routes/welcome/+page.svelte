@@ -6,12 +6,12 @@
     import {commands} from "../../bindings";
     import {type Time, times} from "./Time";
     import {info} from "@tauri-apps/plugin-log";
-    import type {Pain} from "./Pain";
     import SelectGender from "./SelectGender.svelte";
     import {GenderType} from "./Gender";
     import SelectWeight from "./SelectWeight.svelte";
     import SelectDrinkAmountPerDay from "./SelectDrinkAmountPerDay.svelte";
-    import {getMeasureSystem, MeasureSystem} from "./MeasureSystem";
+    import {MeasureSystem} from "./MeasureSystem";
+    import {CalculatedDrinkAmount} from "./CalculatedDrinkAmount";
 
     let {data} = $props();
 
@@ -22,18 +22,22 @@
     let email: string | null = $state(null);
     let consent: boolean = $state(true);
     let selectedDuration: Time = $state(times[1]);
-    let selectedPains: Pain[] = $state([]);
 
-    let measureSystem = $state(getMeasureSystem());
+    let measureSystem = $state(MeasureSystem.getMeasureSystem());
     let weightInKg = $state(70)
     let gender: GenderType = $state(GenderType.Female)
+    let drinkAmount: number = $state(Number.NaN)
+
+    $effect(() => {
+        drinkAmount = CalculatedDrinkAmount.calc(gender, weightInKg)
+    })
 
     function next() {
         const currentIndex = steps.indexOf(currentStep);
         if (currentIndex < steps.length - 1) {
             currentStep = steps[currentIndex + 1];
         } else if (steps[currentIndex] ==  "Finish") {
-            info(`start first session, email: ${email}, consent: ${consent}, selected-pains: ${selectedPains.map(p => p.id)}`)
+            info(`start first session, email: ${email}, consent: ${consent}`)
             enable()
             commands.startFirstSession(
                 selectedDuration.minutes,
@@ -81,9 +85,9 @@
             {:else if currentStep === "GenderType"}
                 <SelectGender bind:selectedGender={gender} genderImages={data.genderImages} />
             {:else if currentStep === "Weight"}
-                <SelectWeight bind:measureSystem={measureSystem} weightInKg={weightInKg}/>
+                <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg}/>
             {:else if currentStep === "DrinkAmount"}
-                <SelectDrinkAmountPerDay bind:measureSystem={measureSystem} liquidInMl={2000}/>
+                <SelectDrinkAmountPerDay calculatedDrinkAmount={CalculatedDrinkAmount.calc(gender, weightInKg)} drinkAmount={drinkAmount} min={drinkAmount - 500} max={drinkAmount + 500} />
             {:else if currentStep === "Finish"}
                 <SelectEnd bind:email={email} bind:consent={consent} />
             {/if}
