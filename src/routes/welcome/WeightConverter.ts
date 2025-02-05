@@ -32,7 +32,7 @@ export class WeightConverter {
     static toWeightName(measureSystem: MeasureSystem) {
         switch (measureSystem) {
             case MeasureSystem.Metric: return "kg"
-            case MeasureSystem.Imperial: return "lbs"
+            case MeasureSystem.Imperial: return "lb"
         }
     }
 
