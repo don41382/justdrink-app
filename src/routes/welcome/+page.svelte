@@ -34,6 +34,10 @@
     let drinkAmount: number | undefined = $state()
     let selectedSipSize: SipSize.Size = $state(SipSize.Size.bigSip)
 
+    function roundToNearestFive(num: number): number {
+        return Math.round(num / 5) * 5;
+    }
+
     $effect(() => {
         if (!weightInKg) {
             weightInKg = WeightConverter.defaultWeightByGender(gender ?? defaultGender)
@@ -98,7 +102,7 @@
             {:else if currentStep === "DrinkAmount"}
                 <SelectDrinkAmountPerDay bind:drinkAmount={drinkAmount} min={drinkAmount - 500} max={drinkAmount + 500} />
             {:else if currentStep === "SipSize"}
-                <SelectSipSize sipImages={data.sipImages} bind:selectedSipSize={selectedSipSize} drinkBreakMin={(8*60)/(drinkAmount/SipSize.getMlForSize(selectedSipSize))} measureSystem={measureSystem} />
+                <SelectSipSize sipImages={data.sipImages} bind:selectedSipSize={selectedSipSize} drinkBreakMin={roundToNearestFive((8*60)/(drinkAmount/SipSize.getMlForSize(selectedSipSize)))} measureSystem={measureSystem} />
             {:else if currentStep === "Finish"}
                 <SelectEnd bind:email={email} bind:consent={consent} />
             {/if}

@@ -37,7 +37,7 @@
             case MeasureSystem.Imperial: return ranges[idx].imperial
         }
     }
-
+    
     let min = $derived(WeightConverter.from(getMetric(0), measureSystem))
     let max = $derived(WeightConverter.from(getMetric(ranges.length-1), measureSystem))
 
