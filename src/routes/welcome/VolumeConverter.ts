@@ -24,3 +24,10 @@ export class VolumeConverter {
         return Number((system === MeasureSystem.Metric ? value : value * this.ML_TO_OZ).toFixed());
     }
 }
+
+export function toVolumeName(measureSystem: MeasureSystem) {
+    switch (measureSystem) {
+        case MeasureSystem.Metric: return "ml"
+        case MeasureSystem.Imperial: return "fl oz"
+    }
+}

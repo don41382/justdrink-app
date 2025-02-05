@@ -1,24 +1,16 @@
 <script lang="ts">
     import {MeasureSystem} from "./MeasureSystem";
     import {limitNumber} from "./LimitNumber";
-    import {VolumeConverter} from "./VolumeConverter";
+    import {toVolumeName, VolumeConverter} from "./VolumeConverter";
 
-    let {drinkAmount = $bindable(), calculatedDrinkAmount, measureSystem = $bindable(), min, max}: { drinkAmount: number, calculatedDrinkAmount: number, measureSystem: MeasureSystem, min: number, max: number } = $props()
-
-    function toVolumeName(measureSystem: MeasureSystem) {
-        switch (measureSystem) {
-            case MeasureSystem.Metric: return "ml"
-            case MeasureSystem.Imperial: return "fl oz"
-        }
-    }
-
+    let {drinkAmount = $bindable(), measureSystem = $bindable(), min, max}: { drinkAmount: number, measureSystem: MeasureSystem, min: number, max: number } = $props()
 
 </script>
 
 <div class="flex flex-col w-full h-full">
-    <h1 class="flex-none text-4xl text-primary text-left mb-2">Your drinking result</h1>
+    <h1 class="flex-none text-4xl text-primary text-left mb-2">How much you should drink</h1>
     <p class="text-secondary/80">
-        Based on your age, you should drink between {VolumeConverter.to(min, measureSystem).toFixed(0).toLocaleString()} - {VolumeConverter.to(max, measureSystem).toFixed(0).toLocaleString()} {toVolumeName(measureSystem)}  per day.
+        Based on your age, you should drink between {VolumeConverter.to(min, measureSystem).toFixed(0).toLocaleString()} - {VolumeConverter.to(max, measureSystem).toFixed(0).toLocaleString()} {toVolumeName(measureSystem)}  per day. You can adjusted, if you like.
     </p>
     <div class="flex grow justify-center">
     <div class="flex flex-col justify-center items-center">

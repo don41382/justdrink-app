@@ -2,10 +2,12 @@
 
     import {GenderType} from "./Gender";
     import type {GenderImages} from "./+page";
+    import {WeightConverter} from "./WeightConverter";
 
-    let { selectedGender = $bindable(), genderImages } : { selectedGender: GenderType, genderImages: GenderImages} = $props();
+    let { selectedGender = $bindable(), weightInKg = $bindable(), genderImages } : { selectedGender: GenderType | undefined, weightInKg: number | undefined, genderImages: GenderImages} = $props();
 
     function select(gender: GenderType) {
+        weightInKg = WeightConverter.defaultWeightByGender(gender)
         selectedGender = gender
     }
 
@@ -15,6 +17,10 @@
             case GenderType.Female: return genderImages.female
             case GenderType.Other: return genderImages.other
         }
+    }
+
+    if (!selectedGender) {
+        selectedGender = GenderType.Female
     }
 
 </script>

@@ -12,24 +12,33 @@
     import SelectDrinkAmountPerDay from "./SelectDrinkAmountPerDay.svelte";
     import {MeasureSystem} from "./MeasureSystem";
     import {CalculatedDrinkAmount} from "./CalculatedDrinkAmount";
+    import SelectSipSize from "./SelectSipSize.svelte";
+    import {SipSize} from "./SipSize";
+    import {WeightConverter} from "./WeightConverter";
 
     let {data} = $props();
 
-    type WelcomeStep = "Start" | "GenderType" | "Weight" | "DrinkAmount" | "Finish"
-    let steps: WelcomeStep[] = ["Start", "GenderType", "Weight", "DrinkAmount", "Finish"];
+    type WelcomeStep = "Start" | "GenderType" | "Weight" | "DrinkAmount" | "SipSize" | "Finish"
+    let steps: WelcomeStep[] = ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Finish"];
     let currentStep: WelcomeStep = $state("Start")
+
+    let defaultGender = GenderType.Female
 
     let email: string | null = $state(null);
     let consent: boolean = $state(true);
     let selectedDuration: Time = $state(times[1]);
 
     let measureSystem = $state(MeasureSystem.getMeasureSystem());
-    let weightInKg = $state(70)
-    let gender: GenderType = $state(GenderType.Female)
-    let drinkAmount: number = $state(Number.NaN)
+    let gender: GenderType | undefined = $state()
+    let weightInKg: number | undefined = $state()
+    let drinkAmount: number | undefined = $state()
+    let selectedSipSize: SipSize.Size = $state(SipSize.Size.bigSip)
 
     $effect(() => {
-        drinkAmount = CalculatedDrinkAmount.calc(gender, weightInKg)
+        if (!weightInKg) {
+            weightInKg = WeightConverter.defaultWeightByGender(gender ?? defaultGender)
+        }
+        drinkAmount = CalculatedDrinkAmount.calc(gender ?? defaultGender, weightInKg)
     })
 
     function next() {
@@ -83,11 +92,13 @@
             {#if currentStep === "Start"}
                 <SelectStart welcomePath={data.welcomePath}/>
             {:else if currentStep === "GenderType"}
-                <SelectGender bind:selectedGender={gender} genderImages={data.genderImages} />
+                <SelectGender bind:selectedGender={gender} bind:weightInKg={weightInKg} genderImages={data.genderImages} />
             {:else if currentStep === "Weight"}
                 <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg}/>
             {:else if currentStep === "DrinkAmount"}
-                <SelectDrinkAmountPerDay calculatedDrinkAmount={CalculatedDrinkAmount.calc(gender, weightInKg)} drinkAmount={drinkAmount} min={drinkAmount - 500} max={drinkAmount + 500} />
+                <SelectDrinkAmountPerDay bind:drinkAmount={drinkAmount} min={drinkAmount - 500} max={drinkAmount + 500} />
+            {:else if currentStep === "SipSize"}
+                <SelectSipSize sipImages={data.sipImages} bind:selectedSipSize={selectedSipSize} drinkBreakMin={(8*60)/(drinkAmount/SipSize.getMlForSize(selectedSipSize))} measureSystem={measureSystem} />
             {:else if currentStep === "Finish"}
                 <SelectEnd bind:email={email} bind:consent={consent} />
             {/if}
@@ -101,7 +112,7 @@
             {/if}
             <button class="bg-primary hover:bg-primary/50 text-black py-2 rounded-md px-8 ml-auto" onclick={next}>
                 {#if currentStep === "Finish"}
-                    Start your first session
+                    Finish
                 {:else}
                     Next
                 {/if}

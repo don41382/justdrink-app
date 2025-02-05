@@ -13,7 +13,7 @@
             <h2 class="text-2xl text-secondary">Welcome to</h2>
             <h1 class="text-4xl text-primary text-left mb-2">Drink Now!</h1>
             <p class="text-white/80">
-                Let's find out what the perfect amount, which amount you should drink every day.
+                Discover the ideal daily water intake tailored just for you.
             </p>
         </div>
     </div>

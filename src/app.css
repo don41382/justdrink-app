@@ -72,6 +72,32 @@
     animation: gradient-animation 18s ease infinite;
 }
 
+
+.range-lg::-webkit-slider-thumb {
+    @apply w-6 h-6 bg-primary rounded-full appearance-none border border-blue-700;
+}
+
+.range-lg::-moz-range-thumb {
+    @apply w-6 h-6 bg-primary rounded-full border border-blue-700;
+}
+
+/* Active & Focus states */
+.range-lg:focus::-webkit-slider-thumb {
+    @apply bg-primary;
+}
+
+.range-lg:focus::-moz-range-thumb {
+    @apply bg-primary;
+}
+
+.range-lg:hover::-webkit-slider-thumb {
+    @apply bg-primary;
+}
+
+.range-lg:hover::-moz-range-thumb {
+    @apply bg-primary;
+}
+
 @keyframes gradient-animation {
     0% {
         background-position: 0% 50%;

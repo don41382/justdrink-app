@@ -1,4 +1,5 @@
 import {MeasureSystem} from "./MeasureSystem";
+import {GenderType} from "./Gender";
 
 export class WeightConverter {
     private static readonly KG_TO_LBS = 2.20462;
@@ -27,4 +28,20 @@ export class WeightConverter {
             ? value
             : value * this.KG_TO_LBS).toFixed(0));
     }
+
+    static toWeightName(measureSystem: MeasureSystem) {
+        switch (measureSystem) {
+            case MeasureSystem.Metric: return "kg"
+            case MeasureSystem.Imperial: return "lbs"
+        }
+    }
+
+    static defaultWeightByGender(gender: GenderType): number {
+        switch (gender) {
+            case GenderType.Male: return 75
+            case GenderType.Female: return 65
+            case GenderType.Other: return 70
+        }
+    }
+
 }
