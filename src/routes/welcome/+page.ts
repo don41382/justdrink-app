@@ -2,8 +2,8 @@ import type {PageLoad} from './$types';
 import {loadAppIcon, loadImage} from "../../app";
 
 export type GenderImages = { male: string, female: string, other: string }
-
 export type SipImages = { full: string, half: string, sip3: string, sip2: string, sip1: string }
+export type ReminderImages = { woman: string, man: string }
 
 /** @type {import('./$types').PageLoad} */
 export const load: PageLoad = async (): Promise<{
@@ -11,6 +11,7 @@ export const load: PageLoad = async (): Promise<{
     welcomePath: string,
     genderImages: GenderImages,
     sipImages: SipImages,
+    reminderImages: ReminderImages
 }> => {
     return {
         iconPath: await loadAppIcon(),
@@ -26,6 +27,10 @@ export const load: PageLoad = async (): Promise<{
             sip3: await loadImage("welcome/cups/sip3.png"),
             sip2: await loadImage("welcome/cups/sip2.png"),
             sip1: await loadImage("welcome/cups/sip1.png"),
+        },
+        reminderImages: {
+            man: await loadImage("welcome/reminder/man.png"),
+            woman: await loadImage("welcome/reminder/woman.png"),
         }
     };
 };

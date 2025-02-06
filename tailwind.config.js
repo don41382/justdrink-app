@@ -11,6 +11,7 @@ export default {
                 current: 'currentColor',
                 primary: '#FFB703',
                 secondary: '#8ECAE6',
+                highlight: '#FB8500',
                 accent: '#023047',
                 'mm-blue': {
                     DEFAULT: '#53666D',

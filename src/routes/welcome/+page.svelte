@@ -15,11 +15,12 @@
     import SelectSipSize from "./SelectSipSize.svelte";
     import {SipSize} from "./SipSize";
     import {WeightConverter} from "./WeightConverter";
+    import SelectReminder from "./SelectReminder.svelte";
 
     let {data} = $props();
 
-    type WelcomeStep = "Start" | "GenderType" | "Weight" | "DrinkAmount" | "SipSize" | "Finish"
-    let steps: WelcomeStep[] = ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Finish"];
+    type WelcomeStep = "Start" | "GenderType" | "Weight" | "DrinkAmount" | "SipSize" | "Reminder" | "Finish"
+    let steps: WelcomeStep[] = ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Finish"];
     let currentStep: WelcomeStep = $state("Start")
 
     let defaultGender = GenderType.Female
@@ -33,6 +34,8 @@
     let weightInKg: number | undefined = $state()
     let drinkAmount: number | undefined = $state()
     let selectedSipSize: SipSize.Size = $state(SipSize.Size.bigSip)
+
+    let reminderGender: GenderType = $state(GenderType.Male)
 
     function roundToNearestFive(num: number): number {
         return Math.round(num / 5) * 5;
@@ -103,6 +106,8 @@
                 <SelectDrinkAmountPerDay bind:drinkAmount={drinkAmount} min={drinkAmount - 500} max={drinkAmount + 500} />
             {:else if currentStep === "SipSize"}
                 <SelectSipSize sipImages={data.sipImages} bind:selectedSipSize={selectedSipSize} drinkBreakMin={roundToNearestFive((8*60)/(drinkAmount/SipSize.getMlForSize(selectedSipSize)))} measureSystem={measureSystem} />
+            {:else if currentStep === "Reminder"}
+                <SelectReminder selectedGender={reminderGender} reminderImages={data.reminderImages}/>
             {:else if currentStep === "Finish"}
                 <SelectEnd bind:email={email} bind:consent={consent} />
             {/if}

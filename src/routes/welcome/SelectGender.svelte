@@ -1,6 +1,6 @@
 <script lang="ts">
 
-    import {GenderType} from "./Gender";
+    import {GenderType, imagePath} from "./Gender";
     import type {GenderImages} from "./+page";
     import {WeightConverter} from "./WeightConverter";
 
@@ -9,14 +9,6 @@
     function select(gender: GenderType) {
         weightInKg = WeightConverter.defaultWeightByGender(gender)
         selectedGender = gender
-    }
-
-    function imagePath(gender: GenderType) {
-        switch (gender) {
-            case GenderType.Male: return genderImages.male
-            case GenderType.Female: return genderImages.female
-            case GenderType.Other: return genderImages.other
-        }
     }
 
     if (!selectedGender) {
@@ -31,13 +23,19 @@
         <p class="text-secondary/80">
             Choose the gender that best represents you.
         </p>
-        <div class="flex space-x-2 justify-center mt-8">
+        <div class="flex space-x-2 justify-center items-stretch mt-8">
             {#each Object.values(GenderType) as gender}
                 <button
                         onclick={() => select(gender)}
-                        class="group flex-col cursor-pointer shadow-sm rounded-xl items-center w-36
+                        class="group flex cursor-pointer shadow-sm rounded-xl items-center justify-center w-36
                                {(selectedGender === gender) ? 'bg-primary' : 'bg-primary/10 hover:bg-primary/50'}">
-                    <img class="rounded-xl" alt="{gender}" src="{imagePath(gender)}"/>
+                    {#if gender === GenderType.Other}
+                        <p class="flex font-medium {(gender === selectedGender) ? 'text-accent' : 'text-secondary'}">
+                            Other
+                        </p>
+                    {:else}
+                        <img class="rounded-xl" alt="{gender}" src="{imagePath(gender, genderImages)}"/>
+                    {/if}
                 </button>
             {/each}
         </div>
