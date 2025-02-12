@@ -115,7 +115,7 @@ jobs:
           updaterJsonKeepUniversal: true
           releaseCommitish: ${{ github.ref_name }}
           owner: "don41382"
-          repo: "drinknow-app--releases"
+          repo: "drinknow-app-releases"
           args: ${{ matrix.args }}
 
       - name: bundle & build for app-store mac
