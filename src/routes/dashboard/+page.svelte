@@ -15,7 +15,7 @@
 
     let ready = $state(false);
 
-    let countdown: {time: string | undefined, pause: boolean} = $state({
+    let countdown: { time: string | undefined, pause: boolean } = $state({
         time: undefined,
         pause: false
     });
@@ -113,7 +113,7 @@
     }
 
     async function startSession() {
-        await commands.startSession();
+        await commands.startSession(null);
     }
 
     async function toggleTimer() {
@@ -124,20 +124,20 @@
 </script>
 
 <AutoSize
-        class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing"
+        class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-accent px-8 py-8 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing"
         data-tauri-drag-region ready={ready}>
     <!-- Header with Icon and Title -->
-    <div class="flex items-center space-x-3">
-        <div class="flex items-center space-x-2 mr-16 select-none">
+    <div class="flex items-center space-x-3" data-tauri-drag-region>
+        <div class="flex items-center space-x-2 mr-16 select-none" data-tauri-drag-region>
             <img alt="mm" class="w-8 h-8" data-tauri-drag-region src="{iconPath}">
-            <p class="text-xl font-semibold text-left whitespace-nowrap" data-tauri-drag-region>Drink Now!</p>
+            <p class="text-xl text-primary font-light text-left whitespace-nowrap" data-tauri-drag-region>Drink Now!</p>
         </div>
         <div class="flex space-x-2 justify-end">
-            <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-mm-green-100 hover:text-white p-1"
+            <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1"
                     onclick={async () => { await openSettings()}}>
                 <Icon class="size-6" icon="mdi-light:settings"/>
             </button>
-            <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-mm-green-100 hover:text-white p-1"
+            <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1"
                     onclick={async () => { await close() }}>
                 <Icon class="size-6" icon="iconoir:xmark"/>
             </button>
@@ -145,13 +145,13 @@
         </div>
     </div>
     <!-- Timer Section -->
-    <div class="flex flex-col w-full text-center bg-mm-blue-50/20 rounded-lg cursor-default">
+    <div class="flex flex-col w-full text-center text-black bg-gray-200 rounded-2xl cursor-default">
         <div class="p-6">
-            <div class="text-2xl font-light">next motion in</div>
-            <div class="text-6xl font-bold">{countdown.time}</div>
+            <div class="text-2xl font-light text-accent">next reminder in</div>
+            <div class="text-6xl font-bold text-black">{countdown.time}</div>
         </div>
         <div class="w-full border-b-2 border-white/70"></div>
-        <div class="flex items-stretch w-full rounded-b-2xl">
+        <div class="flex items-stretc w-full rounded-b-2xl">
             <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-600 hover:text-white p-6 rounded-bl-2xl"
                     onclick={async () => await toggleTimer()}>
                 {#if countdown.pause}
@@ -166,7 +166,7 @@
             <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-primary hover:text-white p-6 rounded-br-2xl"
                     onclick={async () => { await startSession() }}>
                 <Icon class="w-8 h-8" icon="hugeicons:workout-warm-up"/>
-                <span class="text-lg font-light tracking-wide">Start Now</span>
+                <span class="text-lg font-light tracking-wide">Drink</span>
             </button>
         </div>
     </div>

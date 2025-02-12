@@ -51,7 +51,7 @@
     <div class="flex flex-col flex-1 w-full justify-center items-center">
         <div class="flex h-16 text-2xl items-center rounded-xl bg-secondary/20 pl-3 outline-1 -outline-offset-1 outline-gray-300">
             <input
-                    bind:value={() =>  (weightInKg === 0) ? "" : WeightConverter.to(weightInKg, measureSystem), (v) => {weightInKg = WeightConverter.to(limitNumber(v, 4), measureSystem)}}
+                    bind:value={() =>  (weightInKg === 0) ? "" : WeightConverter.to(weightInKg, measureSystem), (v) => {weightInKg = WeightConverter.to(limitNumber(String(v), 4), measureSystem)}}
                     class="block grow {(WeightConverter.to(weightInKg, measureSystem) > 99) ? 'w-12' : 'w-8'} bg-transparent pl-1 text-primary placeholder:text-gray-400 focus:outline-none"
                     id="weight" name="weight">
             <div class="grid shrink-0 grid-cols-1 focus-within:relative">

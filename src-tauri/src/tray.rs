@@ -12,6 +12,7 @@ use tauri::{
     AppHandle, Manager, Wry,
 };
 use tauri::image::Image;
+use tauri::path::BaseDirectory;
 use tauri_specta::Event;
 
 const TRAY_ID: &'static str = "tray";
@@ -33,10 +34,10 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
             &PredefinedMenuItem::separator(main_app)?,
             &Submenu::with_items(
                 main_app,
-                "Session",
+                "Drink",
                 true,
                 &[
-                    &MenuItem::with_id(main_app, "start", "Start now ...", true, None::<&str>)?,
+                    &MenuItem::with_id(main_app, "start", "Now!", true, None::<&str>)?,
                     &menu_timer_control,
                 ],
             )?,
@@ -107,7 +108,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                 });
             }
             "start" => {
-                session_window::start(app.app_handle()).unwrap_or_else(|e| {
+                session_window::start(app.app_handle(), None).unwrap_or_else(|e| {
                     app.alert(
                         "Error while starting the session",
                         "I am sorry, we are unable to start the session.",
@@ -202,9 +203,6 @@ pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> ta
 }
 
 fn tray_icon(app: &AppHandle<Wry>) -> tauri::Result<Image<'_>> {
-    let image =
-        app
-            .default_window_icon()
-            .ok_or_else(|| tauri::Error::Anyhow(anyhow!("tray icon is missing")))?;
-    Ok(image.clone())
+    let image = Image::from_path(app.path().resolve("icons/drinknow-glass-512.png", BaseDirectory::Resource)?)?;
+    Ok(image)
 }

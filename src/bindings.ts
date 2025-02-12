@@ -28,8 +28,8 @@ async feedbackWindowSendFeedback(feedback: string, rating: FeedbackRate) : Promi
 async updateSettings(settings: SettingsUserDetails) : Promise<null> {
     return await TAURI_INVOKE("update_settings", { settings });
 },
-async startSession() : Promise<null> {
-    return await TAURI_INVOKE("start_session");
+async startSession(drinkSettings: SessionStartEvent | null) : Promise<null> {
+    return await TAURI_INVOKE("start_session", { drinkSettings });
 },
 async startFirstSession(nextBreakDurationMinutes: number, email: string | null, consent: boolean, enableOnStartup: boolean) : Promise<Result<null, string>> {
     try {
@@ -39,12 +39,9 @@ async startFirstSession(nextBreakDurationMinutes: number, email: string | null, 
     else return { status: "error", error: e  as any };
 }
 },
-async loadSessionDetails() : Promise<SessionDetail | null> {
-    return await TAURI_INVOKE("load_session_details");
-},
-async endSession(reason: SessionEndingReason) : Promise<Result<null, string>> {
+async endSession() : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("end_session", { reason }) };
+    return { status: "ok", data: await TAURI_INVOKE("end_session") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -82,7 +79,6 @@ async getALicense() : Promise<null> {
 export const events = __makeEvents__<{
 countdownEvent: CountdownEvent,
 licenseResult: LicenseResult,
-sessionEndingReason: SessionEndingReason,
 sessionStartEvent: SessionStartEvent,
 settings: Settings,
 settingsUserDetails: SettingsUserDetails,
@@ -90,7 +86,6 @@ timerStatus: TimerStatus
 }>({
 countdownEvent: "countdown-event",
 licenseResult: "license-result",
-sessionEndingReason: "session-ending-reason",
 sessionStartEvent: "session-start-event",
 settings: "settings",
 settingsUserDetails: "settings-user-details",
@@ -106,21 +101,18 @@ timerStatus: "timer-status"
 export type AppDetails = { version: string; license_info: LicenseInfo }
 export type ChangeTime = { Add: number } | { Remove: number }
 export type CountdownEvent = { status: TimerStatus }
-export type Exercise = { id: SessionId; title: string; description: string; advices: string[]; duration_s: number; active: boolean; availability: ExerciseAvailability[] }
-export type ExerciseAvailability = "Trial" | "Full"
+export type DrinkCharacter = "YoungWoman" | "YoungMan"
 export type FeedbackRate = "UNKNOWN" | "BAD" | "OK" | "AWESOME"
 export type LicenseInfo = { status: LicenseInfoStatus; license_key: string | null; message: string | null }
 export type LicenseInfoStatus = "Trial" | "Paid" | "Full" | "Invalid"
 export type LicenseResult = { status: LicenseResultStatus; error: string | null }
 export type LicenseResultStatus = "Success" | "Error"
 export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"
-export type SessionDetail = { exercise: Exercise; license_info: LicenseInfo }
-export type SessionEndingReason = "EndOfTime" | "UserEscape" | "Error"
-export type SessionId = string
-export type SessionStartEvent = { details: SessionDetail }
+export type SessionStartEvent = { selected_drink_character: DrinkCharacter; sip_size: SipSize }
 export type Settings = { app: AppDetails; user: SettingsUserDetails; selected_tab: SettingsTabs }
 export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
 export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean; consent: boolean; beta_version?: boolean; enable_idle_detection?: boolean }
+export type SipSize = "BigSip" | "HalfCup" | "FullCup"
 export type TimerStatus = { NotStarted: number } | { Active: number } | { Paused: [PauseOrigin, number] } | "Finished"
 
 /** tauri-specta globals **/

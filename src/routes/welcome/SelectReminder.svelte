@@ -1,23 +1,28 @@
 <script lang="ts">
 
-    import {GenderType} from "./Gender";
     import type {ReminderImages} from "./+page";
-    import {commands} from "../../bindings";
+    import {commands, type DrinkCharacter, type SipSize} from "../../bindings";
+    import {DrinkCharacters} from "../DrinkCharacters";
 
-    let {selectedGender, reminderImages}: { selectedGender: GenderType, reminderImages: ReminderImages } = $props()
+    let {selectedDrinkCharacter = $bindable(), sipSize, reminderImages}: {
+        selectedDrinkCharacter: undefined | DrinkCharacter,
+        sipSize: SipSize,
+        reminderImages: ReminderImages
+    } = $props()
 
-    function select(gender: GenderType) {
-        commands.startSession()
-        selectedGender = gender
+    function select(character: DrinkCharacter) {
+        selectedDrinkCharacter = character
+        commands.startSession({
+            sip_size: sipSize,
+            selected_drink_character: character
+        })
     }
 
-    function imagePath(gender: GenderType): string {
-        switch (gender) {
-            case GenderType.Female:
+    function imagePath(character: DrinkCharacter): string {
+        switch (character) {
+            case "YoungWoman":
                 return reminderImages.woman
-            case GenderType.Male:
-                return reminderImages.man
-            default:
+            case "YoungMan":
                 return reminderImages.man
         }
     }
@@ -25,24 +30,18 @@
 </script>
 
 <div class="flex flex-col w-full h-full">
-    <h1 class="flex-none text-4xl text-primary text-left mb-2">Personalize your reminder</h1>
+    <h1 class="flex-none text-4xl text-primary text-left mb-2">Test your reminder</h1>
     <p class="text-secondary/80">
-        Try your personal reminder.
+        Test and select your personalized drink reminder.
     </p>
     <div class="flex flex-col grow items-center justify-center">
         <div class="flex space-x-2 justify-center items-stretch">
-            {#each [GenderType.Male, GenderType.Female] as gender}
+            {#each DrinkCharacters.all as character}
                 <button
-                        onclick={() => select(gender)}
+                        onclick={() => select(character)}
                         class="group flex cursor-pointer shadow-sm rounded-xl items-center justify-center w-36
-                               {(selectedGender === gender) ? 'bg-primary' : 'bg-primary/10 hover:bg-primary/50'}">
-                    {#if gender === GenderType.Other}
-                        <p class="flex font-medium {(gender === selectedGender) ? 'text-accent' : 'text-secondary'}">
-                            Other
-                        </p>
-                    {:else}
-                        <img class="rounded-xl" alt="{gender}" src="{imagePath(gender)}"/>
-                    {/if}
+                               {(selectedDrinkCharacter === character) ? 'bg-primary' : 'bg-primary/10 hover:bg-primary/50'}">
+                    <img class="rounded-xl" alt="{character}" src="{imagePath(character)}"/>
                 </button>
             {/each}
         </div>

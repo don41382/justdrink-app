@@ -1,4 +1,3 @@
-use crate::model::session::SessionEndingReason;
 use crate::{license_manager, LicenseManagerState, SettingsDetailsState};
 use log::{info, warn};
 use serde_json::{json, Value};
@@ -23,7 +22,6 @@ pub enum Event {
     FirstSession,
     StartSession,
     SetTimer(u32),
-    EndSession(SessionEndingReason),
 }
 
 impl Event {
@@ -33,11 +31,6 @@ impl Event {
             Event::FirstSession => String::from("first_session"),
             Event::StartSession => String::from("start_session"),
             Event::SetTimer(minutes) => String::from(format!("set_timer_{}", minutes)),
-            Event::EndSession(end) => match end {
-                SessionEndingReason::EndOfTime => String::from("session_end_time"),
-                SessionEndingReason::UserEscape => String::from("session_end_user_escape"),
-                SessionEndingReason::Error => String::from("session_error"),
-            },
         }
     }
 }

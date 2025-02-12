@@ -14,8 +14,8 @@
     let settings = $state(data.settings)
 
     const params = new URLSearchParams(window.location.search);
-
     let currentPage: SettingsTabs = $state(toSettingsTab(params.get("settings_tab")));
+
     let ready = $state(false);
 
     type Page = {

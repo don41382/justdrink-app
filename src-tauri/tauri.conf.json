@@ -57,7 +57,7 @@
     "longDescription": "Drink Now! is your immerse reminder to take regular, healthy sips at your desk, boosting wellness and productivity.",
     "resources": [
       "videos/*",
-      "audio/*",
+      "audio/**/*",
       "icons/*",
       "icons/welcome/**/*"
     ]

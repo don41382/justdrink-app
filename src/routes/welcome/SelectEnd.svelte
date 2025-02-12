@@ -40,8 +40,11 @@
                 type="checkbox">
         <label class="text-sm text-secondary/50" for="consent">I agree to receive emails from Drink Now! and
             understand I can unsubscribe anytime. See our
-            <a class="underline cursor-pointer" onclick={() => openUrl("https://drinknow.app/privacy?utm_source=app&utm_medium=consent")}>Privacy
-                Details</a>
+            <button
+                    class="underline cursor-pointer"
+                    onclick={() => openUrl("https://drinknow.app/privacy?utm_source=app&utm_medium=consent")}>Privacy
+                Details
+            </button>
             for details.
         </label>
     </div>

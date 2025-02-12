@@ -4,12 +4,10 @@ mod detect_idling;
 mod idle;
 mod model;
 mod pretty_time;
-mod session_repository;
 mod tracking;
 mod tray;
 
 mod dashboard_window;
-mod fullscreen;
 mod license_manager;
 mod session_window;
 mod settings_system;
@@ -20,16 +18,15 @@ mod feedback_window;
 mod subscription_manager;
 mod app_config;
 
+#[cfg(target_os = "macos")]
+use tauri::ActivationPolicy;
 use log::{info, warn};
 use serde_json::json;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
-#[cfg(target_os = "macos")]
-use tauri::ActivationPolicy;
 
 use crate::countdown_timer::CountdownTimer;
-use crate::session_repository::SessionRepository;
 
 use crate::alert::Alert;
 use crate::settings_system::SettingsSystem;
@@ -59,7 +56,6 @@ type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
 type SettingsSystemState = Mutex<SettingsSystem>;
 type CountdownTimerState = CountdownTimer;
 type TrackingState = Tracking;
-type SessionRepositoryState = Mutex<SessionRepository>;
 type LicenseManagerState = Mutex<license_manager::LicenseManager>;
 type SubscriptionManagerState = subscription_manager::SubscriptionManager;
 
@@ -75,7 +71,6 @@ pub fn run() {
             update_settings,
             session_window::start_session,
             session_window::start_first_session,
-            session_window::load_session_details,
             session_window::end_session,
             settings_window::open_settings,
             settings_window::load_settings,
@@ -88,7 +83,6 @@ pub fn run() {
         ],
         collect_events![
             model::event::SessionStartEvent,
-            model::session::SessionEndingReason,
             model::settings::Settings,
             model::settings::SettingsUserDetails,
             license_manager::LicenseResult,
@@ -153,12 +147,14 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(builder.invoke_handler())
-        .manage::<SessionRepositoryState>(Mutex::new(SessionRepository::new()))
         .setup(move |app| {
             app.track_event("app_started", None);
             builder.mount_events(app.app_handle());
             let device_id = model::device::DeviceId::lookup()?;
             info!("application start, device id: {}", &device_id.get_hash_hex_id());
+
+            #[cfg(target_os = "macos")]
+            app.app_handle().set_activation_policy(ActivationPolicy::Accessory).expect("should allow to start app as accessory");
 
             app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(&device_id)));
             app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
@@ -201,14 +197,15 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| match event {
-            WindowEvent::CloseRequested { .. } => {
+            WindowEvent::CloseRequested { api, .. } => {
                 #[cfg(target_os = "macos")]
                 window
                     .app_handle()
                     .set_activation_policy(ActivationPolicy::Accessory)
                     .unwrap();
 
-                window.destroy().unwrap();
+                window.hide().unwrap();
+                api.prevent_close();
             }
             WindowEvent::ScaleFactorChanged { .. } => {}
             WindowEvent::DragDrop(_) => {}

@@ -1,21 +1,16 @@
 use log::{info};
-use std::thread;
-use std::thread::spawn;
-
-#[cfg(target_os = "macos")]
-use tauri::ActivationPolicy;
-
+use std::thread::{spawn};
+use anyhow::Error;
 use crate::alert::Alert;
-use crate::model::session::{ExerciseAvailability, SessionDetail};
 use crate::model::settings::SettingsTabs;
-use crate::{countdown_timer, feedback_window, fullscreen, model, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SessionRepositoryState, SettingsSystemState, SubscriptionManagerState, TrackingState};
+use crate::{countdown_timer, feedback_window, model, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SettingsSystemState, SubscriptionManagerState, TrackingState};
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 
-#[cfg(target_os = "windows")]
-use window_vibrancy::apply_acrylic;
 use crate::feedback_window::{FeedbackDisplay};
-use crate::license_manager::{LicenseStatus, ValidTypes};
+use crate::license_manager::{LicenseStatus};
+use crate::model::event::{SessionStartEvent};
+use crate::model::session::{DrinkCharacter, SipSize};
 
 const WINDOW_LABEL: &'static str = "session";
 
@@ -25,7 +20,7 @@ pub fn init(app: &AppHandle<Wry>) -> EventId {
         if status.payload.status == countdown_timer::TimerStatus::Finished {
             let app_handle_start = app_handle.clone();
             app_handle.run_on_main_thread(move || {
-                start(&app_handle_start.app_handle()).unwrap();
+                start(&app_handle_start.app_handle(), None).unwrap();
             }).unwrap();
         }
     })
@@ -34,9 +29,9 @@ pub fn init(app: &AppHandle<Wry>) -> EventId {
 // hack is required, if you remove async and run_mon_main_thread, it hangs on Windows machines
 #[specta::specta]
 #[tauri::command]
-pub async fn start_session(app: AppHandle) -> () {
+pub fn start_session(app: AppHandle, drink_settings: Option<SessionStartEvent>) -> () {
     app.clone().run_on_main_thread(move || {
-        start(&app).unwrap_or_else(|err| {
+        start(&app, drink_settings).unwrap_or_else(|err| {
             app.alert(
                 "Can't start session",
                 "There was an error while trying to start the session.",
@@ -48,14 +43,7 @@ pub async fn start_session(app: AppHandle) -> () {
     }).expect("start_session running thread");
 }
 
-pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
-    info!("Start session on thread: {}",
-        thread::current()
-            .name()
-            .unwrap_or("Unnamed Thread")
-            .to_string()
-    );
-
+pub fn start(app: &AppHandle<Wry>, drink_settings: Option<SessionStartEvent>) -> Result<(), anyhow::Error> {
     let license_manager = app.state::<LicenseManagerState>();
     if license_manager
         .try_lock()
@@ -83,49 +71,43 @@ pub fn start(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
         app.state::<TrackingState>()
             .send_tracking(tracking::Event::StartSession);
 
-        info!("start session window: check window exists");
+        // TODO: read from saved setting, if character is not explicitly named
+        let drink_settings = drink_settings.unwrap_or_else(|| SessionStartEvent {
+            sip_size: SipSize::BigSip,
+            selected_drink_character: DrinkCharacter::YoungWoman,
+        });
+
         if let Some(_window) = app.get_webview_window(WINDOW_LABEL) {
-            info!("start session window: window already exists");
-            return Ok(());
+            info!("start session window: send event");
+            drink_settings.emit(app.app_handle())?;
+        } else {
+            new_session_window(app, drink_settings)?;
         }
-
-        #[cfg(target_os = "macos")]
-        app.app_handle()
-            .set_activation_policy(ActivationPolicy::Regular)?;
-
-        fullscreen::enforce_full_screen(true);
-
-        info!("start session window: create new window");
-        let window =
-            WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App("/session".into()))
-                .title("Drink Now!")
-                .transparent(true)
-                .visible(false)
-                .always_on_top(true)
-                .decorations(false)
-                .maximized(true)
-                .skip_taskbar(true)
-                .resizable(false);
-
-        #[cfg(target_os = "windows")]
-        info!("start session window: fullscreen");
-        #[cfg(target_os = "windows")]
-        let window = window.fullscreen(true);
-
-        info!("start session window: build");
-        let window = window.build()?;
-
-        #[cfg(target_os = "windows")]
-        apply_acrylic(&window, Some((18, 18, 18, 125)))
-            .expect("Unsupported platform! 'apply_blur' is only supported on Windows");
-
-
-        info!("start session window: show window");
-        window.show()?;
     } else {
         settings_window::show(app, SettingsTabs::License)?
     }
 
+    Ok(())
+}
+
+fn new_session_window(app: &AppHandle, drink_settings: SessionStartEvent) -> Result<(), Error> {
+    info!("start session window: create new window");
+    let window =
+        WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App(format!("/session?character={:?}&sip_size={:?}", drink_settings.selected_drink_character, drink_settings.sip_size).into()))
+            .title("Drink Now!")
+            .transparent(true)
+            .visible(true)
+            .always_on_top(true)
+            .decorations(false)
+            .maximized(true)
+            .skip_taskbar(false)
+            .accept_first_mouse(true)
+            .focused(false)
+            .resizable(false);
+
+    info!("start session window: build");
+    let window = window.build()?;
+    window.set_ignore_cursor_events(true)?;
     Ok(())
 }
 
@@ -198,7 +180,7 @@ fn start_first_session_(
             subscription_manager.subscribe(email.clone(), consent).unwrap_or_else(|err| {
                 app_handle.alert("Unable to subscribe", format!("Sorry, we were not able to subscribe the user {:?}.", email.clone()).as_str(), Some(err), true);
             });
-            start(&app_handle)?;
+            start(&app_handle, None)?;
         }
         LicenseStatus::Expired(_) => {
             settings_window::show(app_handle, SettingsTabs::License)?
@@ -211,62 +193,6 @@ fn start_first_session_(
     Ok(())
 }
 
-
-#[specta::specta]
-#[tauri::command]
-pub fn load_session_details(
-    app: AppHandle,
-    session_repository: State<SessionRepositoryState>,
-    license_manager: State<LicenseManagerState>,
-) -> Option<model::session::SessionDetail> {
-    info!("load session details");
-
-    let status = license_manager
-        .lock()
-        .expect("license manager is locked")
-        .get_status(app.app_handle(), false);
-
-    let mut repo = session_repository.lock().unwrap();
-
-    match repo.pick_random_session(&status.to_availability()) {
-        None => {
-            app.alert(
-                "Session is missing",
-                "There is no session available",
-                None,
-                false,
-            );
-            None
-        }
-        Some(exercise) => {
-            Some(SessionDetail {
-                exercise: exercise.clone(),
-                license_info: status.to_license_info(),
-            })
-        }
-    }
-}
-
-impl LicenseStatus {
-    fn to_availability(&self) -> ExerciseAvailability {
-        match &self {
-            LicenseStatus::Valid(license) => {
-                match license {
-                    ValidTypes::Trial(_) => {
-                        ExerciseAvailability::Trial
-                    }
-                    ValidTypes::Paid(_) => {
-                        ExerciseAvailability::Full
-                    }
-                    ValidTypes::Full => {
-                        ExerciseAvailability::Full
-                    }
-                }
-            }
-            _ => ExerciseAvailability::Trial
-        }
-    }
-}
 
 pub(crate) fn days_between(
     start: chrono::DateTime<chrono::Utc>,
@@ -283,11 +209,8 @@ pub async fn end_session(
     window: Window,
     timer: State<'_, CountdownTimerState>,
     settings_system: State<'_, SettingsSystemState>,
-    reason: model::session::SessionEndingReason,
-    tracking: State<'_, TrackingState>,
 ) -> Result<(), String> {
     timer.restart();
-    tracking.send_tracking(crate::tracking::Event::EndSession(reason));
 
     window.close().map_err(|err| format!("window can't be closed: {}", err))?;
 

@@ -36,7 +36,7 @@
         </label>
         <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
             <div class="flex justify-between items-center">
-                <span class="text-gray-700">Next Motion</span>
+                <span class="text-gray-700">Drink Reminder</span>
                 <select bind:value={next_break_duration_minutes}
                         class="p-2 border rounded-l shadow-sm text-right text-black w-24"
                         on:change={submit}>

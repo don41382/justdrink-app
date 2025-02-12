@@ -14,27 +14,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
-#          - runs-on: "self-hosted-macos"
-#            os: macos
-#            self-hosted: true
-#            arch: aarch64
-#            args: "--target universal-apple-darwin"
-#            enable: true
-#            appstore: false
-#          - runs-on: "self-hosted-macos"
-#            os: macos
-#            self-hosted: true
-#            arch: aarch64
-#            args: "--target universal-apple-darwin"
-#            enable: true
-#            appstore: true
-#          - runs-on: "self-hosted-windows"
-#            os: windows
-#            self-hosted: true
-#            arch: x64-windows
-#            args: "--target x86_64-pc-windows-msvc"
-#            enabled: true
-#            appstore: false
+          - runs-on: "self-hosted-macos"
+            os: macos
+            self-hosted: true
+            arch: aarch64
+            args: "--target universal-apple-darwin"
+            enable: true
+            appstore: false
+          - runs-on: "self-hosted-macos"
+            os: macos
+            self-hosted: true
+            arch: aarch64
+            args: "--target universal-apple-darwin"
+            enable: true
+            appstore: true
+          - runs-on: "self-hosted-windows"
+            os: windows
+            self-hosted: true
+            arch: x64-windows
+            args: "--target x86_64-pc-windows-msvc"
+            enabled: true
+            appstore: false
     env:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -68,12 +68,6 @@ jobs:
 
       - name: install frontend dependencies
         run: pnpm install
-
-      - name: Create videos directory and download videos
-        run: |
-          curl https://storage.googleapis.com/motion-minute-download/videos/${{ matrix.os }}.zip -o videos.zip
-          tar -xf videos.zip -C src-tauri/videos
-          rm videos.zip # clean up the zip file
 
       - name: install signtool (windows)
         if: matrix.os == 'windows'
@@ -121,7 +115,7 @@ jobs:
           updaterJsonKeepUniversal: true
           releaseCommitish: ${{ github.ref_name }}
           owner: "don41382"
-          repo: "motion-minute-app-releases"
+          repo: "drinknow-app--releases"
           args: ${{ matrix.args }}
 
       - name: bundle & build for app-store mac

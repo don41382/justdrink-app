@@ -16,7 +16,7 @@
     <div class="flex flex-col justify-center items-center">
         <div class="flex w-fit h-16 text-2xl items-center rounded-xl bg-secondary/20 px-3 outline-1 -outline-offset-1 outline-gray-300">
             <input
-                    bind:value={() =>  (drinkAmount === 0) ? "" : VolumeConverter.to(drinkAmount, measureSystem), (v) => {drinkAmount = VolumeConverter.from(limitNumber(v, 4), measureSystem)}}
+                    bind:value={() =>  (drinkAmount === 0) ? "" : VolumeConverter.to(drinkAmount, measureSystem), (v) => {drinkAmount = VolumeConverter.from(limitNumber(String(v), 4), measureSystem)}}
                     class="block w-16 grow bg-transparent pl-1 text-primary placeholder:text-gray-400 focus:outline-none no-spin"
                     id="ml"
                     name="ml">

@@ -1,14 +1,9 @@
-use crate::model::session::SessionDetail;
 use serde::{Deserialize, Serialize};
 use specta::Type;
-
-#[derive(Serialize, Deserialize, Debug, Clone, Type, tauri_specta::Event)]
-pub enum EventType {
-    SessionStart,
-    Settings,
-}
+use crate::model::session::{DrinkCharacter, SipSize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, tauri_specta::Event)]
 pub struct SessionStartEvent {
-    pub(crate) details: SessionDetail,
+    pub(crate) selected_drink_character: DrinkCharacter,
+    pub(crate) sip_size: SipSize,
 }
