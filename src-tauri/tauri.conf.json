@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-schema-generator/schemas/config.schema.json",
-  "productName": "Drink Now!",
+  "productName": "Drink Now",
   "version": "0.0.1",
   "identifier": "com.rocketsolutions.drinknow",
   "plugins": {
