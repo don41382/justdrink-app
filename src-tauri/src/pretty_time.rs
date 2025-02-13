@@ -8,9 +8,7 @@ impl PrettyTime for Duration {
     fn to_pretty_time(&self) -> String {
         let total_seconds = self.as_secs();
 
-        if total_seconds < 60 {
-            format!("{}s", total_seconds)
-        } else if total_seconds < 3600 {
+        if total_seconds < 3600 {
             let minutes = total_seconds / 60;
             format!("{}m", minutes)
         } else {
