@@ -165,7 +165,7 @@
             <div class="border-l-2 border-white/70"></div>
             <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-primary hover:text-white p-6 rounded-br-2xl"
                     onclick={async () => { await startSession() }}>
-                <Icon class="w-8 h-8" icon="material-symbols:glass-cup-outline-rounded"/>
+                <Icon class="w-8 h-8" icon="iconoir:glass-empty"/>
                 <span class="text-lg font-light tracking-wide whitespace-nowrap">Drink Now</span>
             </button>
         </div>
