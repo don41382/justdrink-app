@@ -25,7 +25,7 @@
     };
 
     const pages: Page[] = [
-        {name: 'Session', label: 'Session', icon: 'mdi-light:settings'},
+        {name: 'Session', label: 'Reminder', icon: 'mdi-light:settings'},
         {name: 'Tracking', label: 'User Tracking', icon: 'material-symbols-light:timeline'},
         {name: 'License', label: 'License', icon: 'material-symbols-light:license-outline'},
         {name: 'About', label: 'About', icon: 'material-symbols-light:info-outline'}

@@ -28,7 +28,7 @@
 </script>
 
 <div class="flex-col space-y-6">
-    <h2 class="text-lg font-semibold text-gray-900">Next Session</h2>
+    <h2 class="text-lg font-semibold text-gray-900">Next Reminder</h2>
     <div class="space-y-2">
         <label class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
             <span class="text-gray-700">Active</span>
@@ -45,7 +45,7 @@
                     {/each}
                 </select>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Time until the next motion</p>
+            <p class="text-gray-500 text-sm mt-1">Time until your next sip</p>
         </label>
     </div>
     <h2 class="text-lg font-semibold text-gray-900">Advanced Settings</h2>
