@@ -90,6 +90,7 @@ pub fn start(app: &AppHandle<Wry>, drink_settings: Option<SessionStartEvent>) ->
     Ok(())
 }
 
+
 fn new_session_window(app: &AppHandle, drink_settings: SessionStartEvent) -> Result<(), Error> {
     info!("start session window: create new window");
     let window =
@@ -108,6 +109,10 @@ fn new_session_window(app: &AppHandle, drink_settings: SessionStartEvent) -> Res
     info!("start session window: build");
     let window = window.build()?;
     window.set_ignore_cursor_events(true)?;
+
+    #[cfg(target_os = "windows")]
+    window.set_fullscreen(true)?;
+
     Ok(())
 }
 

@@ -25,6 +25,7 @@
 
     onMount(async () => {
         await initScene()
+        await getCurrentWindow().setIgnoreCursorEvents(true);
         await getCurrentWindow().show()
         clearTimeout(endListener)
         sessionListener = await events.sessionStartEvent.listen(async (event) => {
@@ -68,7 +69,7 @@
 
 
 <div aria-pressed="true"
-     class="{visible ? 'fade-in' : 'not-ready'} bg-accent/20 h-screen flex flex-col justify-between items-center overflow-hidden cursor-default">
+     class="{visible ? 'fade-in' : 'not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default">
     <CharacterDrinkPlayer bind:this={audioPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}
                           selectedDrinkCharacter={selectedDrinkCharacter} sipSize={sipSize}/>
     <div class="absolute right-20 bottom-20">
