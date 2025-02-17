@@ -24,12 +24,16 @@
 
 
     onMount(async () => {
-        sessionListener = await events.sessionStartEvent.listen(async (event) => {
-            await info("start session")
+        sessionListener = await events.sessionStartEvent.listen(async ({payload}) => {
+            await info(`start session - character: ${payload.selected_drink_character} - sip_size: ${payload.sip_size}`)
+            selectedDrinkCharacter = payload.selected_drink_character
+            sipSize = payload.sip_size
+            cleanup()
             await getCurrentWindow().show()
-            selectedDrinkCharacter = event.payload.selected_drink_character
-            sipSize = event.payload.sip_size
-            await initScene()
+            await getCurrentWindow().setFocus()
+            visible = true
+            await audioPlayer.play()
+            await videoPlayer.play()
         })
     })
 
@@ -46,14 +50,6 @@
         }, 3000)
     }
 
-    async function initScene() {
-        await info("init scene")
-        cleanup()
-        await audioPlayer.play()
-        await videoPlayer.play()
-        visible = true
-    }
-
     onDestroy(() => {
         cleanup()
         clearTimeout(endListenerTimer);
@@ -65,17 +61,16 @@
 </script>
 
 
-{#if selectedDrinkCharacter && sipSize}
-    <div aria-pressed="true"
-         class="{visible ? 'fade-in' : 'not-ready'}  bg-accent/20 flex flex-col justify-between items-center overflow-hidden cursor-default">
+<div aria-pressed="true"
+     class="bg-accent/20 flex flex-col justify-between items-center overflow-hidden cursor-default">
+    {#if selectedDrinkCharacter}
         <CharacterDrinkPlayer bind:this={audioPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}
-                              selectedDrinkCharacter={selectedDrinkCharacter} sipSize={sipSize}/>
-
-        <div class="absolute right-20 bottom-20">
-            <VideoPlayer bind:this={videoPlayer} video={data.video}/>
-        </div>
+                              selectedDrinkCharacter={selectedDrinkCharacter}/>
+    {/if}
+    <div class="absolute right-20 bottom-20">
+        <VideoPlayer bind:this={videoPlayer} video={data.video}/>
     </div>
-{/if}
+</div>
 
 <style>
     .fade-in {

@@ -115,7 +115,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                 });
             }
             "start" => {
-                session_window::start(app.app_handle(), None).unwrap_or_else(|e| {
+                session_window::show_session(app.app_handle(), None).unwrap_or_else(|e| {
                     app.alert(
                         "Error while starting the session",
                         "I am sorry, we are unable to start the session.",

@@ -26,7 +26,7 @@ pub fn init(app: &AppHandle<Wry>) -> Result<EventId, anyhow::Error> {
             let app_handle_start = app_handle.clone();
             app_handle
                 .run_on_main_thread(move || {
-                    start(&app_handle_start.app_handle(), None).unwrap();
+                    show_session(&app_handle_start.app_handle(), None).unwrap();
                 })
                 .unwrap();
         }
@@ -36,11 +36,11 @@ pub fn init(app: &AppHandle<Wry>) -> Result<EventId, anyhow::Error> {
 
 #[specta::specta]
 #[tauri::command]
-pub async fn start_session(
+pub fn start_session(
     app: AppHandle,
     drink_settings: Option<SessionStartEvent>,
 ) -> Result<(), ()> {
-    start(&app, drink_settings).unwrap_or_else(|err| {
+    show_session(&app, drink_settings).unwrap_or_else(|err| {
         app.alert(
             "Can't start session",
             "There was an error while trying to start the session.",
@@ -52,7 +52,7 @@ pub async fn start_session(
     Ok(())
 }
 
-pub fn start(
+pub fn show_session(
     app: &AppHandle<Wry>,
     drink_settings: Option<SessionStartEvent>,
 ) -> Result<(), anyhow::Error> {
@@ -202,7 +202,7 @@ fn start_first_session_(
                         true,
                     );
                 });
-            start(&app_handle, None)?;
+            show_session(&app_handle, None)?;
         }
         LicenseStatus::Expired(_) => settings_window::show(app_handle, SettingsTabs::License)?,
         LicenseStatus::Invalid(_) => settings_window::show(app_handle, SettingsTabs::License)?,

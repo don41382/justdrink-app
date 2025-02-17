@@ -3,10 +3,9 @@
     import type {DrinkCharacter, SipSize} from "../../bindings";
     import {info} from "@tauri-apps/plugin-log";
 
-    let {drinkAudio, selectedDrinkCharacter, sipSize, lastPlay}: {
+    let {drinkAudio, selectedDrinkCharacter, lastPlay}: {
         drinkAudio: DrinkAudio,
         selectedDrinkCharacter: DrinkCharacter,
-        sipSize: SipSize,
         lastPlay: () => void
     } = $props();
 
