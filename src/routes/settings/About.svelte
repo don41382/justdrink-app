@@ -23,7 +23,7 @@
         <div class="flex space-x-2 items-center mb-4">
             <img alt="mm" class="h-16 w-16" src="{icon_path}">
             <div>
-                <p class="text-2xl font-normal">Drink Now!</p>
+                <p class="text-2xl font-normal text-primary">Drink Now!</p>
                 <p class="text-m font-extralight">v{app.version}</p>
             </div>
         </div>

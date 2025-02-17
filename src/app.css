@@ -38,7 +38,7 @@
     appearance: none;
     width: 2.5rem;
     height: 1.25rem;
-    background-color: #b3b0fd;
+    background-color: #023047;
     border-radius: 9999px;
     position: relative;
     cursor: pointer;
@@ -47,7 +47,7 @@
 }
 
 .toggle-checkbox:checked {
-    background-color: #cc006e;
+    background-color: #FFB703;
 }
 
 .toggle-checkbox:checked::before {

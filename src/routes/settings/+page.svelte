@@ -65,7 +65,7 @@
                     {#each pages as page}
                         <li>
                             <button
-                                    class="flex w-full items-center {currentPage === page.name ? 'text-white bg-primary' : 'text-black'} rounded-lg py-2 px-4 cursor-pointer"
+                                    class="flex w-full items-center {currentPage === page.name ? 'text-white bg-accent' : 'text-black'} rounded-lg py-2 px-4 cursor-pointer"
                                     onclick={() => currentPage = page.name}>
                                 <Icon class="mr-2" icon={page.icon} height="24" width="24"/>
                                 <span>{page.label}</span>
