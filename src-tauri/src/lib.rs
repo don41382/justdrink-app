@@ -7,24 +7,24 @@ mod pretty_time;
 mod tracking;
 mod tray;
 
+mod app_config;
 mod dashboard_window;
+mod feedback_window;
 mod license_manager;
 mod session_window;
 mod settings_system;
 mod settings_window;
+mod subscription_manager;
 mod updater_window;
 mod welcome_window;
-mod feedback_window;
-mod subscription_manager;
-mod app_config;
 
-#[cfg(target_os = "macos")]
-use tauri::ActivationPolicy;
 use log::{info, warn};
 use serde_json::json;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
+#[cfg(target_os = "macos")]
+use tauri::ActivationPolicy;
 
 use crate::countdown_timer::CountdownTimer;
 
@@ -33,7 +33,7 @@ use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
 use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
-use tauri_plugin_autostart::{MacosLauncher};
+use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
 
@@ -90,7 +90,7 @@ pub fn run() {
             countdown_timer::TimerStatus,
         ],
     )
-        .unwrap();
+    .unwrap();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
@@ -151,14 +151,23 @@ pub fn run() {
             app.track_event("app_started", None);
             builder.mount_events(app.app_handle());
             let device_id = model::device::DeviceId::lookup()?;
-            info!("application start, device id: {}", &device_id.get_hash_hex_id());
+            info!(
+                "application start, device id: {}",
+                &device_id.get_hash_hex_id()
+            );
 
             #[cfg(target_os = "macos")]
-            app.app_handle().set_activation_policy(ActivationPolicy::Accessory).expect("should allow to start app as accessory");
+            app.app_handle()
+                .set_activation_policy(ActivationPolicy::Accessory)
+                .expect("should allow to start app as accessory");
 
-            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(&device_id)));
+            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(
+                &device_id,
+            )));
             app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
-            app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(device_id.clone()));
+            app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(
+                device_id.clone(),
+            ));
 
             app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
             app.manage::<SettingsDetailsState>(Mutex::new(
@@ -183,7 +192,7 @@ pub fn run() {
                 }
             }
 
-            session_window::init(app.app_handle());
+            session_window::init(app.app_handle())?;
             detect_idling::init(app.app_handle())?;
 
             tray::create_tray(app.handle())?;

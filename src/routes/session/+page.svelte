@@ -1,7 +1,7 @@
 <script lang="ts">
     import {info} from '@tauri-apps/plugin-log';
     import {
-        commands, events, type SipSize,
+        commands, type DrinkCharacter, events, type SipSize,
     } from '../../bindings';
     import {onDestroy, onMount} from 'svelte';
     import type {UnlistenFn} from "@tauri-apps/api/event";
@@ -13,21 +13,17 @@
 
     let {data} = $props()
     let countdownInterval: number | undefined = $state(undefined);
-    let selectedDrinkCharacter = $state(data.selectedDrinkCharacter)
-    let sipSize: SipSize = $state(data.sipSize)
+    let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
+    let sipSize: SipSize | undefined = $state(undefined)
     let sessionListener: UnlistenFn | undefined = $state(undefined);
-    let endListener: number | undefined = $state(undefined);
     let visible: boolean = $state(false)
+    let endListenerTimer: number;
 
     let audioPlayer: CharacterDrinkPlayer;
     let videoPlayer: VideoPlayer;
 
 
     onMount(async () => {
-        await initScene()
-        await getCurrentWindow().setIgnoreCursorEvents(true);
-        await getCurrentWindow().show()
-        clearTimeout(endListener)
         sessionListener = await events.sessionStartEvent.listen(async (event) => {
             await info("start session")
             await getCurrentWindow().show()
@@ -45,7 +41,7 @@
 
     function lastPlay() {
         visible = false
-        endListener = setTimeout(() => {
+        endListenerTimer = setTimeout(() => {
             commands.endSession()
         }, 3000)
     }
@@ -60,6 +56,7 @@
 
     onDestroy(() => {
         cleanup()
+        clearTimeout(endListenerTimer);
         if (sessionListener) {
             sessionListener()
         }
@@ -68,14 +65,17 @@
 </script>
 
 
-<div aria-pressed="true"
-     class="{visible ? 'fade-in' : 'not-ready'} bg-transparent h-screen flex flex-col justify-between items-center overflow-hidden cursor-default">
-    <CharacterDrinkPlayer bind:this={audioPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}
-                          selectedDrinkCharacter={selectedDrinkCharacter} sipSize={sipSize}/>
-    <div class="absolute right-20 bottom-20">
-        <VideoPlayer bind:this={videoPlayer} video={data.video}/>
+{#if selectedDrinkCharacter && sipSize}
+    <div aria-pressed="true"
+         class="{visible ? 'fade-in' : 'not-ready'}  bg-accent/20 flex flex-col justify-between items-center overflow-hidden cursor-default">
+        <CharacterDrinkPlayer bind:this={audioPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}
+                              selectedDrinkCharacter={selectedDrinkCharacter} sipSize={sipSize}/>
+
+        <div class="absolute right-20 bottom-20">
+            <VideoPlayer bind:this={videoPlayer} video={data.video}/>
+        </div>
     </div>
-</div>
+{/if}
 
 <style>
     .fade-in {

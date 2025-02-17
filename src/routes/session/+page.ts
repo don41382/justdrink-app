@@ -4,7 +4,6 @@ import * as tauri_path from "@tauri-apps/api/path";
 import {convertFileSrc} from "@tauri-apps/api/core";
 import type {DrinkCharacter, SipSize} from "../../bindings";
 import {DrinkCharacters} from "../DrinkCharacters";
-import type {Size} from "@tauri-apps/api/dpi";
 
 export interface DrinkAudio {
     personas: Record<DrinkCharacter, AudioPersona>,
@@ -71,8 +70,6 @@ function linkAudio(resourceDir: string): DrinkAudio {
 export const load: PageLoad = async () => {
     const resourceDir = await tauri_path.resourceDir();
     const params = new URLSearchParams(window.location.search);
-    let drinkCharacter: DrinkCharacter = toCharacter(params.get("character"));
-    let sipSize: SipSize = toSipSize(params.get("sip_size"))
 
     return {
         iconPath: await loadAppIcon(),
@@ -80,8 +77,6 @@ export const load: PageLoad = async () => {
         video: {
             mov: convertFileSrc(`${resourceDir}/videos/full.mov`),
             webm: convertFileSrc(`${resourceDir}/videos/full.webm`),
-        },
-        selectedDrinkCharacter: drinkCharacter,
-        sipSize: sipSize
+        }
     };
 };
