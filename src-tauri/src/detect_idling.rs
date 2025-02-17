@@ -38,7 +38,10 @@ where
                     None
                 };
 
-                if s.as_ref().map(|s| s.active && s.enable_idle_detection).unwrap_or(false) {
+                if s.as_ref()
+                    .map(|s| s.active && s.enable_idle_detection)
+                    .unwrap_or(false)
+                {
                     match mode {
                         Mode::Pause => {
                             if sleep_prevented_by.is_none() && idle.as_seconds() < 60 {

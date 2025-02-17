@@ -1,11 +1,11 @@
+use crate::license_manager::{LicenseStatus, ValidTypes};
+use crate::model::device::DeviceId;
 use crate::{license_manager, LicenseManagerState, SettingsDetailsState};
 use log::{info, warn};
 use serde_json::{json, Value};
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest::blocking::{Client, ClientBuilder};
-use crate::license_manager::{LicenseStatus, ValidTypes};
-use crate::model::device::DeviceId;
 
 pub(crate) struct Tracking {
     client: Client,
@@ -120,22 +120,12 @@ trait LicenseConverter {
 impl LicenseConverter for license_manager::LicenseStatus {
     fn to_license_status_name(&self) -> String {
         match self {
-            LicenseStatus::Valid(types) => {
-                match types {
-                    ValidTypes::Trial(_) => {
-                        "trial".to_string()
-                    }
-                    ValidTypes::Paid(_) => {
-                        "paid".to_string()
-                    }
-                    ValidTypes::Full => {
-                        "full".to_string()
-                    }
-                }
-            }
-            LicenseStatus::Expired(_) => {
-                "expired".to_string()
-            }
+            LicenseStatus::Valid(types) => match types {
+                ValidTypes::Trial(_) => "trial".to_string(),
+                ValidTypes::Paid(_) => "paid".to_string(),
+                ValidTypes::Full => "full".to_string(),
+            },
+            LicenseStatus::Expired(_) => "expired".to_string(),
             LicenseStatus::Invalid(reason) => {
                 format!("invalid_{}", reason)
             }

@@ -1,6 +1,6 @@
+use crate::model::session::{DrinkCharacter, SipSize};
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use crate::model::session::{DrinkCharacter, SipSize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, tauri_specta::Event)]
 pub struct SessionStartEvent {

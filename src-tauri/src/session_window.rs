@@ -1,34 +1,45 @@
-use log::{info};
-use std::thread::{spawn};
-use anyhow::Error;
 use crate::alert::Alert;
 use crate::model::settings::SettingsTabs;
-use crate::{countdown_timer, feedback_window, model, settings_window, tracking, updater_window, CountdownTimerState, LicenseManagerState, SettingsSystemState, SubscriptionManagerState, TrackingState};
+use crate::{
+    countdown_timer, feedback_window, model, settings_window, tracking, updater_window,
+    CountdownTimerState, LicenseManagerState, SettingsSystemState, SubscriptionManagerState,
+    TrackingState,
+};
+use anyhow::Error;
+use core::clone::Clone;
+use log::info;
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
 use tauri_specta::Event;
 
-use crate::feedback_window::{FeedbackDisplay};
-use crate::license_manager::{LicenseStatus};
-use crate::model::event::{SessionStartEvent};
+use crate::feedback_window::FeedbackDisplay;
+use crate::license_manager::LicenseStatus;
+use crate::model::event::SessionStartEvent;
 use crate::model::session::{DrinkCharacter, SipSize};
 
 const WINDOW_LABEL: &'static str = "session";
 
-pub fn init(app: &AppHandle<Wry>) -> EventId {
+pub fn init(app: &AppHandle<Wry>) -> Result<EventId, anyhow::Error> {
     let app_handle = app.clone();
-    countdown_timer::CountdownEvent::listen(app, move |status| {
+    build_session_window(app)?;
+    let id = countdown_timer::CountdownEvent::listen(app, move |status| {
         if status.payload.status == countdown_timer::TimerStatus::Finished {
             let app_handle_start = app_handle.clone();
-            app_handle.run_on_main_thread(move || {
-                start(&app_handle_start.app_handle(), None).unwrap();
-            }).unwrap();
+            app_handle
+                .run_on_main_thread(move || {
+                    start(&app_handle_start.app_handle(), None).unwrap();
+                })
+                .unwrap();
         }
-    })
+    });
+    Ok(id)
 }
 
 #[specta::specta]
 #[tauri::command]
-pub async fn start_session(app: AppHandle, drink_settings: Option<SessionStartEvent>) -> Result<(), ()> {
+pub async fn start_session(
+    app: AppHandle,
+    drink_settings: Option<SessionStartEvent>,
+) -> Result<(), ()> {
     start(&app, drink_settings).unwrap_or_else(|err| {
         app.alert(
             "Can't start session",
@@ -41,7 +52,10 @@ pub async fn start_session(app: AppHandle, drink_settings: Option<SessionStartEv
     Ok(())
 }
 
-pub fn start(app: &AppHandle<Wry>, drink_settings: Option<SessionStartEvent>) -> Result<(), anyhow::Error> {
+pub fn start(
+    app: &AppHandle<Wry>,
+    drink_settings: Option<SessionStartEvent>,
+) -> Result<(), anyhow::Error> {
     let license_manager = app.state::<LicenseManagerState>();
     if license_manager
         .try_lock()
@@ -63,7 +77,6 @@ pub fn start(app: &AppHandle<Wry>, drink_settings: Option<SessionStartEvent>) ->
             settings_system.increase_session_count(&app);
         }
 
-
         // send tracking event
         info!("start session window: send tracking");
         app.state::<TrackingState>()
@@ -79,7 +92,7 @@ pub fn start(app: &AppHandle<Wry>, drink_settings: Option<SessionStartEvent>) ->
             info!("start session window: send event");
             drink_settings.emit(app.app_handle())?;
         } else {
-            new_session_window(app, drink_settings)?;
+            app.alert("Session Window Missing", "I am sorry, this should not happen. Please contact Rocket Solutions", None, false);
         }
     } else {
         settings_window::show(app, SettingsTabs::License)?
@@ -88,14 +101,13 @@ pub fn start(app: &AppHandle<Wry>, drink_settings: Option<SessionStartEvent>) ->
     Ok(())
 }
 
-
-fn new_session_window(app: &AppHandle, drink_settings: SessionStartEvent) -> Result<(), Error> {
+fn build_session_window(app: &AppHandle) -> Result<(), Error> {
     info!("start session window: create new window");
     let window =
-        WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App(format!("/session?character={:?}&sip_size={:?}", drink_settings.selected_drink_character, drink_settings.sip_size).into()))
-            .title("Drink Now!")
+        WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App("/session".into()))
+            .title("Drink Now! Session")
             .transparent(true)
-            .visible(true)
+            .visible(false)
             .always_on_top(true)
             .decorations(false)
             .maximized(true)
@@ -107,9 +119,6 @@ fn new_session_window(app: &AppHandle, drink_settings: SessionStartEvent) -> Res
     info!("start session window: build");
     let window = window.build()?;
     window.set_ignore_cursor_events(true)?;
-
-    #[cfg(target_os = "windows")]
-    window.set_fullscreen(true)?;
 
     Ok(())
 }
@@ -124,25 +133,22 @@ pub async fn start_first_session(
     consent: bool,
     enable_on_startup: bool,
 ) -> Result<(), String> {
-    spawn(move || {
-        info!("starting first session");
-        match start_first_session_(
-            &app_handle.app_handle(),
-            welcome_window,
-            next_break_duration_minutes,
-            email,
-            consent,
-            enable_on_startup,
-        ) {
-            Ok(_) => {}
-            Err(error) => app_handle.alert(
-                "Not able to start first session",
-                format!("{:?}", error).as_str(),
-                Some(error),
-                false,
-            ),
-        }
-    });
+    match start_first_session_(
+        &app_handle.app_handle(),
+        welcome_window,
+        next_break_duration_minutes,
+        email,
+        consent,
+        enable_on_startup,
+    ) {
+        Ok(_) => {}
+        Err(error) => app_handle.alert(
+            "Not able to start first session",
+            format!("{:?}", error).as_str(),
+            Some(error),
+            false,
+        ),
+    }
     Ok(())
 }
 
@@ -155,7 +161,9 @@ fn start_first_session_(
     enable_on_startup: bool,
 ) -> Result<(), anyhow::Error> {
     let subscription_manager = app_handle.state::<SubscriptionManagerState>();
-    app_handle.state::<TrackingState>().send_tracking(tracking::Event::FirstSession);
+    app_handle
+        .state::<TrackingState>()
+        .send_tracking(tracking::Event::FirstSession);
     settings_window::set_settings(
         &app_handle,
         model::settings::SettingsUserDetails {
@@ -170,32 +178,38 @@ fn start_first_session_(
         true,
     )?;
 
-    let status = app_handle.state::<LicenseManagerState>()
+    let status = app_handle
+        .state::<LicenseManagerState>()
         .lock()
         .expect("require license manager")
         .get_status(app_handle.app_handle(), false);
-
 
     welcome_window.hide()?;
 
     match status {
         LicenseStatus::Valid(_) => {
-            subscription_manager.subscribe(email.clone(), consent).unwrap_or_else(|err| {
-                app_handle.alert("Unable to subscribe", format!("Sorry, we were not able to subscribe the user {:?}.", email.clone()).as_str(), Some(err), true);
-            });
+            subscription_manager
+                .subscribe(email.clone(), consent)
+                .unwrap_or_else(|err| {
+                    app_handle.alert(
+                        "Unable to subscribe",
+                        format!(
+                            "Sorry, we were not able to subscribe the user {:?}.",
+                            email.clone()
+                        )
+                        .as_str(),
+                        Some(err),
+                        true,
+                    );
+                });
             start(&app_handle, None)?;
         }
-        LicenseStatus::Expired(_) => {
-            settings_window::show(app_handle, SettingsTabs::License)?
-        }
-        LicenseStatus::Invalid(_) => {
-            settings_window::show(app_handle, SettingsTabs::License)?
-        }
+        LicenseStatus::Expired(_) => settings_window::show(app_handle, SettingsTabs::License)?,
+        LicenseStatus::Invalid(_) => settings_window::show(app_handle, SettingsTabs::License)?,
     }
 
     Ok(())
 }
-
 
 pub(crate) fn days_between(
     start: chrono::DateTime<chrono::Utc>,
@@ -215,16 +229,18 @@ pub async fn end_session(
 ) -> Result<(), String> {
     timer.restart();
 
-    window.close().map_err(|err| format!("window can't be closed: {}", err))?;
+    window
+        .hide()
+        .map_err(|err| format!("window can't be closed: {}", err))?;
 
     let ask_for_feedback = {
-        let ss = settings_system.lock().expect("settings_system should not be locked");
+        let ss = settings_system
+            .lock()
+            .expect("settings_system should not be locked");
         ss.should_show_feedback()
     };
 
-    let updater_visible =
-        updater_window::show_if_update_available(&app, false, false)
-            .await;
+    let updater_visible = updater_window::show_if_update_available(&app, false, false).await;
 
     if ask_for_feedback && !updater_visible {
         feedback_window::show(&app).expect("unable to show feedback window");

@@ -14,7 +14,14 @@ impl DeviceId {
     }
 
     pub fn get_hash_hex_id(&self) -> String {
-        let app_store_postfix = if cfg!(feature = "fullversion") { "-app-store" } else { "" };
-        format!("{:x}{app_store_postfix}", Sha256::digest(self.id.as_bytes()))
+        let app_store_postfix = if cfg!(feature = "fullversion") {
+            "-app-store"
+        } else {
+            ""
+        };
+        format!(
+            "{:x}{app_store_postfix}",
+            Sha256::digest(self.id.as_bytes())
+        )
     }
 }

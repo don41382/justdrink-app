@@ -1,6 +1,6 @@
-use std::env;
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
 use crate::{countdown_timer, CountdownTimerState};
+use std::env;
 use tauri::{AppHandle, Manager, Runtime};
 
 pub(crate) const WINDOW_LABEL: &'static str = "dashboard";
@@ -18,16 +18,16 @@ where
             WINDOW_LABEL,
             tauri::WebviewUrl::App("/dashboard".into()),
         )
-            .title("Drink Now! - Dashboard")
-            .center()
-            .transparent(true)
-            .decorations(false)
-            .shadow(true)
-            .resizable(false)
-            .skip_taskbar(false)
-            .inner_size(1024.0, 768.0)
-            .visible(false)
-            .build()?;
+        .title("Drink Now! - Dashboard")
+        .center()
+        .transparent(true)
+        .decorations(false)
+        .shadow(true)
+        .resizable(false)
+        .skip_taskbar(false)
+        .inner_size(1024.0, 768.0)
+        .visible(false)
+        .build()?;
     }
 
     Ok(())

@@ -105,7 +105,7 @@ pub fn alert_log_client_error(app: AppHandle, title: String, message: String, er
         title.as_str(),
         message.as_str(),
         Some(anyhow::Error::msg(error)),
-        false
+        false,
     );
 }
 

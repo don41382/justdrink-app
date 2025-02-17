@@ -5,14 +5,14 @@ use crate::pretty_time::PrettyTime;
 use crate::{dashboard_window, feedback_window, session_window, settings_window, updater_window};
 use anyhow::anyhow;
 use std::time::Duration;
+use tauri::image::Image;
 use tauri::menu::{IconMenuItem, PredefinedMenuItem, Submenu};
+use tauri::path::BaseDirectory;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
     AppHandle, Manager, Wry,
 };
-use tauri::image::Image;
-use tauri::path::BaseDirectory;
 use tauri_specta::Event;
 
 const TRAY_ID: &'static str = "tray";
@@ -81,9 +81,16 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
             "Resume"
         };
 
-        menu_timer_control.set_text(timer_control_text).unwrap_or_else(|err | {
-            app_handle.alert("Can't set timer in tray", "Unable to update tray", Some(anyhow::anyhow!(err)), true);
-        });
+        menu_timer_control
+            .set_text(timer_control_text)
+            .unwrap_or_else(|err| {
+                app_handle.alert(
+                    "Can't set timer in tray",
+                    "Unable to update tray",
+                    Some(anyhow::anyhow!(err)),
+                    true,
+                );
+            });
 
         menu_status
             .set_text(format!("Dashboard ({})", event.payload.status.to_text()))
@@ -155,7 +162,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                         false,
                     );
                 });
-            },
+            }
             "feedback" => {
                 feedback_window::show(app).unwrap_or_else(|e| {
                     app.alert(
@@ -203,6 +210,9 @@ pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> ta
 }
 
 fn tray_icon(app: &AppHandle<Wry>) -> tauri::Result<Image<'_>> {
-    let image = Image::from_path(app.path().resolve("icons/drinknow-glass-512.png", BaseDirectory::Resource)?)?;
+    let image = Image::from_path(
+        app.path()
+            .resolve("icons/drinknow-glass-512.png", BaseDirectory::Resource)?,
+    )?;
     Ok(image)
 }

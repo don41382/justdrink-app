@@ -1,8 +1,8 @@
+use crate::app_config::AppConfig;
+use crate::model::device::DeviceId;
 use crate::{tracking, TrackingState};
 use log::warn;
 use tauri::{AppHandle, Manager};
-use crate::app_config::AppConfig;
-use crate::model::device::DeviceId;
 
 const WINDOW_LABEL: &str = "welcome";
 
@@ -12,16 +12,16 @@ pub fn show(app: &AppHandle, device_id: &DeviceId) -> Result<(), anyhow::Error> 
         WINDOW_LABEL,
         tauri::WebviewUrl::App("/welcome".into()),
     )
-        .title("Welcome to Drink Now!")
-        .center()
-        .transparent(true)
-        .focused(true)
-        .decorations(false)
-        .resizable(false)
-        .shadow(true)
-        .always_on_top(true)
-        .visible(false)
-        .build()?;
+    .title("Welcome to Drink Now!")
+    .center()
+    .transparent(true)
+    .focused(true)
+    .decorations(false)
+    .resizable(false)
+    .shadow(true)
+    .always_on_top(true)
+    .visible(false)
+    .build()?;
 
     app.state::<TrackingState>()
         .send_tracking(tracking::Event::Install);

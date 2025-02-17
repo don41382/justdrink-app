@@ -1,8 +1,7 @@
 use crate::alert::Alert;
 use crate::model::settings::{SettingsTabs, SettingsUserDetails};
 use crate::{
-    model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState,
-    TrackingState,
+    model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState, TrackingState,
 };
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -55,14 +54,21 @@ pub fn load_settings(
     info!("load settings data");
     let version = app_handle.app_handle().config().version.clone();
     let license_manager = app_handle.state::<LicenseManagerState>();
-    let license_status = license_manager.lock().unwrap().get_status(&app_handle.app_handle(), false);
+    let license_status = license_manager
+        .lock()
+        .unwrap()
+        .get_status(&app_handle.app_handle(), false);
     info!("load settings data - done");
     model::settings::Settings {
         app: model::settings::AppDetails {
             version: version.unwrap_or("unknown".to_string()),
             license_info: license_status.to_license_info(),
         },
-        user: settings.lock().expect("settings to be unlocked").clone().unwrap_or(DEFAULT_SESSION),
+        user: settings
+            .lock()
+            .expect("settings to be unlocked")
+            .clone()
+            .unwrap_or(DEFAULT_SESSION),
         selected_tab: SettingsTabs::Session,
     }
 }
@@ -101,7 +107,7 @@ fn write_settings(
         version: version.unwrap_or("0.0.0".to_string()),
         details: settings_details.clone(),
     })
-        .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
+    .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
 
     store.set("data".to_string(), json_data);
     store.save()?;
@@ -177,19 +183,19 @@ where
         WINDOW_LABEL,
         tauri::WebviewUrl::App(format!("/settings?settings_tab={:?}", selected_tab).into()),
     )
-        .title("Settings")
-        .center()
-        .visible(false)
-        .inner_size(1024.0, 768.0)
-        .always_on_top(true)
-        .transparent(true)
-        .decorations(true)
-        .skip_taskbar(false)
-        .shadow(true)
-        .minimizable(false)
-        .maximizable(false)
-        .resizable(false)
-        .build()?;
+    .title("Settings")
+    .center()
+    .visible(false)
+    .inner_size(1024.0, 768.0)
+    .always_on_top(true)
+    .transparent(true)
+    .decorations(true)
+    .skip_taskbar(false)
+    .shadow(true)
+    .minimizable(false)
+    .maximizable(false)
+    .resizable(false)
+    .build()?;
 
     info!("start with new settings - done");
     Ok(())

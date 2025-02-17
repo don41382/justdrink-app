@@ -36,9 +36,8 @@ impl SettingsSystem {
         R: Runtime,
     {
         self.settings.feedback_provided = true;
-        self.write_settings(app).unwrap_or_else(|err| {
-            error!("unable to write system settings {}", err)
-        })
+        self.write_settings(app)
+            .unwrap_or_else(|err| error!("unable to write system settings {}", err))
     }
 
     pub fn increase_session_count<R>(&mut self, app: &AppHandle<R>) -> ()
@@ -46,9 +45,8 @@ impl SettingsSystem {
         R: Runtime,
     {
         self.settings.session_count += 1;
-        self.write_settings(app).unwrap_or_else(|err| {
-            error!("unable to write system settings {}", err)
-        })
+        self.write_settings(app)
+            .unwrap_or_else(|err| error!("unable to write system settings {}", err))
     }
 
     pub fn set_last_check_date<R>(&mut self, app: &AppHandle<R>) -> Result<(), Error>

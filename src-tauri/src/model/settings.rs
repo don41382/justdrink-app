@@ -47,7 +47,6 @@ fn default_disable_beta_version() -> bool {
     false
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SettingsSystemDetails {
     #[serde(default = "default_session_count")]
@@ -57,5 +56,9 @@ pub struct SettingsSystemDetails {
     pub(crate) last_update_check_date: DateTime<Utc>,
 }
 
-fn default_session_count() -> u32 { 0 }
-fn default_feedback_provided() -> bool { false }
+fn default_session_count() -> u32 {
+    0
+}
+fn default_feedback_provided() -> bool {
+    false
+}

@@ -6,11 +6,11 @@ impl AppConfig {
     pub fn build() -> Self {
         if cfg!(feature = "local") {
             AppConfig {
-                url: "http://drinknow.test:8080".to_string()
+                url: "http://drinknow.test:8080".to_string(),
             }
         } else {
             AppConfig {
-                url: "https://drinknow.app".to_string()
+                url: "https://drinknow.app".to_string(),
             }
         }
     }
