@@ -1,5 +1,5 @@
 import type {PageLoad} from './$types';
-import {loadAppIcon} from "../../app";
+import {loadAppIcon, loadImage} from "../../app";
 import * as tauri_path from "@tauri-apps/api/path";
 import {convertFileSrc} from "@tauri-apps/api/core";
 import type {DrinkCharacter, SipSize} from "../../bindings";
@@ -69,7 +69,6 @@ function linkAudio(resourceDir: string): DrinkAudio {
 
 export const load: PageLoad = async () => {
     const resourceDir = await tauri_path.resourceDir();
-    const params = new URLSearchParams(window.location.search);
 
     return {
         iconPath: await loadAppIcon(),
@@ -77,6 +76,7 @@ export const load: PageLoad = async () => {
         video: {
             mov: convertFileSrc(`${resourceDir}/videos/full.mov`),
             webm: convertFileSrc(`${resourceDir}/videos/full.webm`),
-        }
+        },
+        backgroundImage: await loadImage("session/background01.jpg")
     };
 };

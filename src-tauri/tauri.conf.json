@@ -59,6 +59,7 @@
       "videos/*",
       "audio/**/*",
       "icons/*",
+      "icons/session/**/*",
       "icons/welcome/**/*"
     ]
   }
