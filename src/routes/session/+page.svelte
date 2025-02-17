@@ -17,10 +17,11 @@
     let sipSize: SipSize | undefined = $state(undefined)
     let sessionListener: UnlistenFn | undefined = $state(undefined);
     let visible: boolean = $state(false)
+
     let endListenerTimer: number;
 
-    let audioPlayer: CharacterDrinkPlayer;
-    let videoPlayer: VideoPlayer;
+    let drinkPlayer: CharacterDrinkPlayer | undefined = $state(undefined);
+    let videoPlayer: VideoPlayer | undefined = $state(undefined);
 
 
     onMount(async () => {
@@ -32,8 +33,8 @@
             await getCurrentWindow().show()
             await getCurrentWindow().setFocus()
             visible = true
-            await audioPlayer.play()
-            await videoPlayer.play()
+            await drinkPlayer?.play();
+            await videoPlayer?.play()
         })
     })
 
@@ -62,9 +63,9 @@
 
 
 <div aria-pressed="true"
-     class="bg-accent/20 flex flex-col justify-between items-center overflow-hidden cursor-default">
+     class="{visible ? 'fade-in' : 'not-ready'} bg-accent/20 opacity-80 h-screen w-screen flex flex-col justify-between items-center overflow-hidden cursor-default">
     {#if selectedDrinkCharacter}
-        <CharacterDrinkPlayer bind:this={audioPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}
+        <CharacterDrinkPlayer bind:this={drinkPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}
                               selectedDrinkCharacter={selectedDrinkCharacter}/>
     {/if}
     <div class="absolute right-20 bottom-20">
