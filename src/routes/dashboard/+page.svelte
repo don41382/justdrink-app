@@ -124,13 +124,13 @@
 </script>
 
 <AutoSize
-        class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-white px-8 py-8 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing"
+        class="flex flex-col items-center space-y-6 w-fit h-full max-w-md bg-accent px-8 py-8 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing"
         data-tauri-drag-region ready={ready}>
     <!-- Header with Icon and Title -->
     <div class="flex items-center space-x-3" data-tauri-drag-region>
         <div class="flex items-center space-x-2 mr-16 select-none" data-tauri-drag-region>
             <img alt="mm" class="w-8 h-8" data-tauri-drag-region src="{iconPath}">
-            <p class="text-xl text-primary/ font-light text-left whitespace-nowrap" data-tauri-drag-region>Drink Now!</p>
+            <p class="text-xl text-primary/ font-light text-left whitespace-nowrap text-primary" data-tauri-drag-region>Drink Now!</p>
         </div>
         <div class="flex space-x-2 justify-end">
             <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1"
@@ -145,14 +145,14 @@
         </div>
     </div>
     <!-- Timer Section -->
-    <div class="flex flex-col w-full text-center text-black bg-gray-200 rounded-2xl cursor-default">
+    <div class="flex flex-col w-full text-center text-black bg-gray-200/80 rounded-2xl cursor-default">
         <div class="p-6">
             <div class="text-2xl font-light text-accent">next reminder in</div>
             <div class="text-6xl font-bold text-black">{countdown.time}</div>
         </div>
         <div class="w-full border-b-2 border-white/70"></div>
         <div class="flex items-stretc w-full rounded-b-2xl">
-            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-600 hover:text-white p-6 rounded-bl-2xl"
+            <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-primary hover:text-white p-6 rounded-bl-2xl"
                     onclick={async () => await toggleTimer()}>
                 {#if countdown.pause}
                     <Icon class="w-8 h-8" icon="iconoir:play"/>

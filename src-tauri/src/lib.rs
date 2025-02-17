@@ -1,7 +1,6 @@
 mod alert;
 mod countdown_timer;
 mod detect_idling;
-mod idle;
 mod model;
 mod pretty_time;
 mod tracking;

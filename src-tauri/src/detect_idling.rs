@@ -1,5 +1,4 @@
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
-use crate::idle;
 use crate::{CountdownTimerState, SettingsDetailsState};
 use log::{debug, warn};
 use std::thread::sleep;
@@ -7,7 +6,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use user_idle::UserIdle;
 
-const SLEEP_PREVENTION_PAUSE_THRESHOLD_SECS: u32 = 120;
+const IDLE_DURATION: u64 = 60;
 
 pub enum Mode {
     Pause,
@@ -27,11 +26,6 @@ where
             let idle = UserIdle::get_time().unwrap();
 
             if let Ok(s) = settings.try_lock() {
-                let sleep_prevented_by = idle::sleep_is_prevented_by_apps().unwrap_or_else(|e| {
-                    warn!("can't run audio check: ${:?}", e);
-                    None
-                });
-
                 let timer_duration = if let TimerStatus::Active(duration) = timer.timer_status() {
                     Some(duration)
                 } else {
@@ -44,7 +38,7 @@ where
                 {
                     match mode {
                         Mode::Pause => {
-                            if sleep_prevented_by.is_none() && idle.as_seconds() < 60 {
+                            if idle.as_seconds() < IDLE_DURATION {
                                 debug!("switch to working");
                                 if matches!(
                                     timer.timer_status(),
@@ -57,20 +51,10 @@ where
                             }
                         }
                         Mode::Working => {
-                            if idle.as_seconds() > 60 {
+                            if idle.as_seconds() > IDLE_DURATION {
                                 debug!("switch to pause");
                                 timer.pause(PauseOrigin::Idle);
                                 mode = Mode::Pause;
-                            }
-                            // Pause the timer only if sleep is prevented and timer duration < X minutes
-                            else if let Some(app_name) = sleep_prevented_by {
-                                if timer_duration
-                                    .map_or(false, |d| d < SLEEP_PREVENTION_PAUSE_THRESHOLD_SECS)
-                                {
-                                    debug!("switch to pause due to sleep prevention and timer duration {} seconds", SLEEP_PREVENTION_PAUSE_THRESHOLD_SECS);
-                                    timer.pause(PauseOrigin::PreventSleep(app_name));
-                                    mode = Mode::Pause;
-                                }
                             }
                         }
                     }
