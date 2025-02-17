@@ -28,8 +28,13 @@ async feedbackWindowSendFeedback(feedback: string, rating: FeedbackRate) : Promi
 async updateSettings(settings: SettingsUserDetails) : Promise<null> {
     return await TAURI_INVOKE("update_settings", { settings });
 },
-async startSession(drinkSettings: SessionStartEvent | null) : Promise<null> {
-    return await TAURI_INVOKE("start_session", { drinkSettings });
+async startSession(drinkSettings: SessionStartEvent | null) : Promise<Result<null, null>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("start_session", { drinkSettings }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 async startFirstSession(nextBreakDurationMinutes: number, email: string | null, consent: boolean, enableOnStartup: boolean) : Promise<Result<null, string>> {
     try {
