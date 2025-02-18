@@ -44,9 +44,9 @@ async startFirstSession(nextBreakDurationMinutes: number, email: string | null, 
     else return { status: "error", error: e  as any };
 }
 },
-async endSession() : Promise<Result<null, string>> {
+async endSession(demoMode: boolean) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("end_session") };
+    return { status: "ok", data: await TAURI_INVOKE("end_session", { demoMode }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -113,7 +113,7 @@ export type LicenseInfoStatus = "Trial" | "Paid" | "Full" | "Invalid"
 export type LicenseResult = { status: LicenseResultStatus; error: string | null }
 export type LicenseResultStatus = "Success" | "Error"
 export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"
-export type SessionStartEvent = { selected_drink_character: DrinkCharacter; sip_size: SipSize }
+export type SessionStartEvent = { selected_drink_character: DrinkCharacter; sip_size: SipSize; demo_mode: boolean }
 export type Settings = { app: AppDetails; user: SettingsUserDetails; selected_tab: SettingsTabs }
 export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
 export type SettingsUserDetails = { next_break_duration_minutes: number; active: boolean; allow_tracking: boolean; enable_on_startup: boolean; consent: boolean; beta_version?: boolean; enable_idle_detection?: boolean }

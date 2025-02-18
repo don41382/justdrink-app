@@ -31,6 +31,7 @@
     let gender: GenderType | undefined = $state()
     let weightInKg: number = $state(WeightConverter.defaultWeightByGender(defaultGender))
     let drinkAmount: number = $state(0)
+    let drinkAmountBasedOnGender: number = $state(0)
     let selectedSipSize: SipSize = $state("BigSip")
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
     let drinkBreakMin = $derived(roundToNearestFive((12*60)/(drinkAmount/Sip.getMlForSize(selectedSipSize))))
@@ -41,6 +42,7 @@
 
     $effect(() => {
         drinkAmount = CalculatedDrinkAmount.calc(gender ?? defaultGender, weightInKg)
+        drinkAmountBasedOnGender = CalculatedDrinkAmount.calc(gender ?? defaultGender, weightInKg)
     })
 
     function next() {
@@ -107,7 +109,7 @@
             <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg}/>
         {:else if currentStep === "DrinkAmount"}
             <SelectDrinkAmountPerDay bind:drinkAmount={drinkAmount} measureSystem={measureSystem}
-                                     min={drinkAmount - 500} max={drinkAmount + 500}/>
+                                     min={drinkAmountBasedOnGender - 500} max={drinkAmountBasedOnGender + 500}/>
         {:else if currentStep === "SipSize"}
             <SelectSipSize sipImages={data.sipImages} bind:selectedSipSize={selectedSipSize}
                            drinkBreakMin={drinkBreakMin}

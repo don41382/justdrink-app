@@ -7,13 +7,14 @@
     import type {UnlistenFn} from "@tauri-apps/api/event";
     import CharacterDrinkPlayer from "./CharacterDrinkPlayer.svelte";
     import VideoPlayer from "./VideoPlayer.svelte";
-    import {getCurrentWindow} from "@tauri-apps/api/window";
+    import {getAllWindows, getCurrentWindow} from "@tauri-apps/api/window";
 
     info("Initialized Session Window")
 
     let {data} = $props()
     let countdownInterval: number | undefined = $state(undefined);
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
+    let demoMode: boolean = $state(false)
     let sipSize: SipSize | undefined = $state(undefined)
     let sessionListener: UnlistenFn | undefined = $state(undefined);
     let visible: boolean = $state(false)
@@ -23,6 +24,12 @@
     let drinkPlayer: CharacterDrinkPlayer | undefined = $state(undefined);
     let videoPlayer: VideoPlayer | undefined = $state(undefined);
 
+    async function welcomeToFront() {
+        let welcome = (await getAllWindows()).find((window) => window.label === "welcome")
+        if (welcome) {
+            await welcome.setFocus()
+        }
+    }
 
     onMount(async () => {
         sessionListener = await events.sessionStartEvent.listen(async ({payload}) => {
@@ -30,9 +37,10 @@
             await info(`start session - character: ${payload.selected_drink_character} - sip_size: ${payload.sip_size}`)
             selectedDrinkCharacter = payload.selected_drink_character
             sipSize = payload.sip_size
+            demoMode = payload.demo_mode
             cleanup()
             await getCurrentWindow().show()
-            await getCurrentWindow().setFocus()
+            await welcomeToFront()
             visible = true
             await drinkPlayer?.play();
             await videoPlayer?.play()
@@ -49,7 +57,7 @@
     function lastPlay() {
         visible = false
         endListenerTimer = setTimeout(() => {
-            commands.endSession()
+            commands.endSession(demoMode)
         }, 5000)
     }
 

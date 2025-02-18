@@ -6,4 +6,5 @@ use specta::Type;
 pub struct SessionStartEvent {
     pub(crate) selected_drink_character: DrinkCharacter,
     pub(crate) sip_size: SipSize,
+    pub(crate) demo_mode: bool
 }

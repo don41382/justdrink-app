@@ -19,7 +19,7 @@ pub fn show(app: &AppHandle, device_id: &DeviceId) -> Result<(), anyhow::Error> 
     .decorations(false)
     .resizable(false)
     .shadow(true)
-    .always_on_top(true)
+    .skip_taskbar(false)
     .visible(false)
     .build()?;
 

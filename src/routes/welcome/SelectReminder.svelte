@@ -14,7 +14,8 @@
         selectedDrinkCharacter = character
         commands.startSession({
             sip_size: sipSize,
-            selected_drink_character: character
+            selected_drink_character: character,
+            demo_mode: true
         })
     }
 

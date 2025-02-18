@@ -146,6 +146,7 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(builder.invoke_handler())
+        .enable_macos_default_menu(false)
         .setup(move |app| {
             app.track_event("app_started", None);
             builder.mount_events(app.app_handle());
@@ -154,11 +155,6 @@ pub fn run() {
                 "application start, device id: {}",
                 &device_id.get_hash_hex_id()
             );
-
-            #[cfg(target_os = "macos")]
-            app.app_handle()
-                .set_activation_policy(ActivationPolicy::Accessory)
-                .expect("should allow to start app as accessory");
 
             app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(
                 &device_id,
@@ -183,6 +179,10 @@ pub fn run() {
                     if dashboard_window::should_show_dashboard() {
                         show_dashboard(app.app_handle());
                     }
+                    #[cfg(target_os = "macos")]
+                    app.app_handle()
+                        .set_activation_policy(ActivationPolicy::Accessory)
+                        .expect("should allow to start app as accessory");
                 }
                 Err(err) => {
                     warn!("could not load settings: {}", err);

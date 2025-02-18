@@ -1,6 +1,6 @@
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
 use crate::{CountdownTimerState, SettingsDetailsState};
-use log::{debug, warn};
+use log::{debug};
 use std::thread::sleep;
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
@@ -26,7 +26,7 @@ where
             let idle = UserIdle::get_time().unwrap();
 
             if let Ok(s) = settings.try_lock() {
-                let timer_duration = if let TimerStatus::Active(duration) = timer.timer_status() {
+                let _timer_duration = if let TimerStatus::Active(duration) = timer.timer_status() {
                     Some(duration)
                 } else {
                     None
