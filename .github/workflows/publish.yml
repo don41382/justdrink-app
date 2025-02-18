@@ -14,13 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-#          - runs-on: "self-hosted-macos"
-#            os: macos
-#            self-hosted: true
-#            arch: aarch64
-#            args: "--target universal-apple-darwin"
-#            enable: true
-#            appstore: false
+          - runs-on: "self-hosted-macos"
+            os: macos
+            self-hosted: true
+            arch: aarch64
+            args: "--target universal-apple-darwin"
+            enable: true
+            appstore: false
 #          - runs-on: "self-hosted-macos"
 #            os: macos
 #            self-hosted: true

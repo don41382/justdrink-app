@@ -77,6 +77,6 @@ export const load: PageLoad = async () => {
             mov: convertFileSrc(`${resourceDir}/videos/full.mov`),
             webm: convertFileSrc(`${resourceDir}/videos/full.webm`),
         },
-        backgroundImage: await loadImage("session/background01.jpg")
+        backgroundImage: await loadImage("session/background01.png")
     };
 };
