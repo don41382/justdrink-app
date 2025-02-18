@@ -1,8 +1,12 @@
+use crate::alert::Alert;
 use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
-use crate::{tracking, TrackingState};
+use crate::model::settings::SettingsUserDetails;
+use crate::{model, settings_window, tracking, TrackingState};
 use log::warn;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Window};
+#[cfg(target_os = "macos")]
+use tauri::ActivationPolicy;
 
 const WINDOW_LABEL: &str = "welcome";
 
@@ -28,6 +32,29 @@ pub fn show(app: &AppHandle, device_id: &DeviceId) -> Result<(), anyhow::Error> 
     open_thank_you(device_id);
 
     Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn welcome_finish(app: AppHandle, welcome_window: Window, settings: SettingsUserDetails) {
+    // hide welcome
+    welcome_window
+        .hide()
+        .expect("welcome window should be visible");
+    // switch to Accessory mode
+    #[cfg(target_os = "macos")]
+    app.app_handle()
+        .set_activation_policy(ActivationPolicy::Accessory)
+        .expect("should allow to start app as accessory");
+    // save settings
+    settings_window::set_settings(app.app_handle(), settings, true)
+        .unwrap_or_else(|err|
+            app.alert(
+                "Error while saving",
+                "I am sorry, I am unable to save your settings. Please contact Rocket Solutions for support.",
+                      Some(err),
+                false)
+        );
 }
 
 pub fn open_thank_you(device_id: &DeviceId) {

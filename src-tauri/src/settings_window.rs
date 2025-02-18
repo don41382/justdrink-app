@@ -15,16 +15,6 @@ pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
 const STORE_NAME: &str = "mm-config.json";
 
-const DEFAULT_SESSION: SettingsUserDetails = SettingsUserDetails {
-    next_break_duration_minutes: 60,
-    active: true,
-    allow_tracking: true,
-    enable_on_startup: true,
-    enable_idle_detection: true,
-    consent: false,
-    beta_version: false,
-};
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct UserSettingsStore {
     version: String,
@@ -50,7 +40,7 @@ pub async fn open_settings(app_handle: AppHandle) -> () {
 pub fn load_settings(
     app_handle: AppHandle,
     settings: State<'_, SettingsDetailsState>,
-) -> model::settings::Settings {
+) -> Result<model::settings::Settings, String> {
     info!("load settings data");
     let version = app_handle.app_handle().config().version.clone();
     let license_manager = app_handle.state::<LicenseManagerState>();
@@ -59,18 +49,22 @@ pub fn load_settings(
         .unwrap()
         .get_status(&app_handle.app_handle(), false);
     info!("load settings data - done");
-    model::settings::Settings {
+
+    let user_settings = settings
+        .lock()
+        .expect("settings to be unlocked")
+        .clone()
+        .ok_or_else(|| "no settings set".to_string())?;
+
+    let res = model::settings::Settings {
         app: model::settings::AppDetails {
             version: version.unwrap_or("unknown".to_string()),
             license_info: license_status.to_license_info(),
         },
-        user: settings
-            .lock()
-            .expect("settings to be unlocked")
-            .clone()
-            .unwrap_or(DEFAULT_SESSION),
+        user: user_settings,
         selected_tab: SettingsTabs::Session,
-    }
+    };
+    Ok(res)
 }
 
 #[specta::specta]

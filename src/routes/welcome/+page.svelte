@@ -3,7 +3,7 @@
     import SelectEnd from "./SelectEnd.svelte";
     import SelectStart from "./SelectStart.svelte";
     import {enable} from "@tauri-apps/plugin-autostart";
-    import {commands, type DrinkCharacter, type SipSize} from "../../bindings";
+    import {commands, type DrinkCharacter, type SettingsUserDetails, type SipSize} from "../../bindings";
     import {info} from "@tauri-apps/plugin-log";
     import SelectGender from "./SelectGender.svelte";
     import {GenderType} from "./Gender";
@@ -15,6 +15,7 @@
     import {WeightConverter} from "./WeightConverter";
     import SelectReminder from "./SelectReminder.svelte";
     import {Sip} from "./SipSize";
+    import {DrinkCharacters} from "../DrinkCharacters";
 
     let {data} = $props();
 
@@ -23,6 +24,7 @@
     let currentStep: WelcomeStep = $state("Start")
 
     let defaultGender = GenderType.Female
+    let defaultDrinkCharacter: DrinkCharacter = "YoungMan"
 
     let email: string | null = $state(null);
     let consent: boolean = $state(true);
@@ -34,7 +36,7 @@
     let drinkAmountBasedOnGender: number = $state(0)
     let selectedSipSize: SipSize = $state("BigSip")
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
-    let drinkBreakMin = $derived(roundToNearestFive((12*60)/(drinkAmount/Sip.getMlForSize(selectedSipSize))))
+    let drinkBreakMin = $derived(roundToNearestFive((12 * 60) / (drinkAmount / Sip.getMlForSize(selectedSipSize))))
 
     function roundToNearestFive(num: number): number {
         return Math.round(num / 5) * 5;
@@ -52,11 +54,20 @@
         } else if (steps[currentIndex] == "Finish") {
             info(`start first session, email: ${email}, consent: ${consent}`)
             enable()
-            commands.startFirstSession(
-                drinkBreakMin,
-                email,
-                consent,
-                true
+            commands.welcomeFinish(
+                {
+                    next_break_duration_minutes: drinkBreakMin,
+                    active: true,
+                    character: selectedDrinkCharacter ?? defaultDrinkCharacter,
+                    consent: consent,
+                    sip_size: selectedSipSize,
+                    drink_amount_ml: drinkAmount,
+                    // this should not be rewritten
+                    enable_on_startup: true,
+                    beta_version: false,
+                    allow_tracking: true,
+                    enable_idle_detection: true
+                }
             )
         }
     }
@@ -128,7 +139,8 @@
                 Back
             </button>
         {/if}
-        <button class="bg-primary hover:bg-primary/50 text-black py-2 rounded-md px-8 ml-auto disabled:bg-primary/50" disabled={!canStepNext()} onclick={next}>
+        <button class="bg-primary hover:bg-primary/50 text-black py-2 rounded-md px-8 ml-auto disabled:bg-primary/50"
+                disabled={!canStepNext()} onclick={next}>
             {#if currentStep === "Finish"}
                 Finish
             {:else}

@@ -73,32 +73,8 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
         ],
     )?;
 
-    let app_handle = main_app.clone();
-    CountdownEvent::listen(main_app.app_handle(), move |event| {
-        let timer_control_text = if event.payload.status.is_running() {
-            "Pause"
-        } else {
-            "Resume"
-        };
-
-        menu_timer_control
-            .set_text(timer_control_text)
-            .unwrap_or_else(|err| {
-                app_handle.alert(
-                    "Can't set timer in tray",
-                    "Unable to update tray",
-                    Some(anyhow::anyhow!(err)),
-                    true,
-                );
-            });
-
-        menu_status
-            .set_text(format!("Dashboard ({})", event.payload.status.to_text()))
-            .unwrap()
-    });
-
     let tray_icon = tray_icon(main_app.app_handle())?;
-    let _ = TrayIconBuilder::with_id(TRAY_ID)
+    let tray = TrayIconBuilder::with_id(TRAY_ID)
         .icon(tray_icon)
         .icon_as_template(true)
         .menu(&menu)
@@ -179,6 +155,34 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
             _ => {}
         })
         .build(main_app)?;
+
+    tray.set_visible(false).expect("can't set tray to not visible");
+
+    let app_handle = main_app.clone();
+    CountdownEvent::listen(main_app.app_handle(), move |event| {
+        let timer_control_text = if event.payload.status.is_running() {
+            "Pause"
+        } else {
+            "Resume"
+        };
+
+        menu_timer_control
+            .set_text(timer_control_text)
+            .unwrap_or_else(|err| {
+                app_handle.alert(
+                    "Can't set timer in tray",
+                    "Unable to update tray",
+                    Some(anyhow::anyhow!(err)),
+                    true,
+                );
+            });
+
+        menu_status
+            .set_text(format!("Dashboard ({})", event.payload.status.to_text()))
+            .unwrap();
+
+        tray.set_visible(true).expect("it should be possible to set the tray to visible")
+    });
 
     let app_handle_tray_update = main_app.app_handle().clone();
     CountdownEvent::listen(main_app.app_handle(), move |event| {

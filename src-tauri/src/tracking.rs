@@ -19,8 +19,7 @@ pub(crate) struct Tracking {
 #[derive(Debug)]
 pub enum Event {
     Install,
-    FirstSession,
-    StartSession,
+    DrinkReminder,
     SetTimer(u32),
 }
 
@@ -28,8 +27,7 @@ impl Event {
     fn name(&self) -> String {
         match self {
             Event::Install => String::from("install"),
-            Event::FirstSession => String::from("first_session"),
-            Event::StartSession => String::from("start_session"),
+            Event::DrinkReminder => String::from("start_session"),
             Event::SetTimer(minutes) => String::from(format!("set_timer_{}", minutes)),
         }
     }

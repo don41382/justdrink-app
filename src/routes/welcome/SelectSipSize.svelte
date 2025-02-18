@@ -49,7 +49,7 @@
                 <button
                         onclick={() => selectSize(size.type)}
                         class="flex p-4 group flex-col cursor-pointer shadow-sm rounded-xl items-center w-32 {(size.type === selectedSipSize) ? 'bg-primary' : 'bg-primary/10 hover:bg-primary/50'}">
-                    <img fetchpriority="high" class="w-12" alt="{size.text}" src="{imagePath(size.type)}"/>
+                    <img fetchpriority="high" class="w-12 h-14" alt="{size.text}" src="{imagePath(size.type)}"/>
                     <p class="text-lg/6 mt-2 {(size.type === selectedSipSize) ? 'text-accent' : 'text-primary'}">{size.text}</p>
                     <p class="text-sm {(size.type === selectedSipSize) ? 'text-accent/70' : 'text-secondary/40'}">{VolumeConverter.from(size.ml, measureSystem)} {toVolumeName(measureSystem)}</p>
                 </button>

@@ -2,15 +2,13 @@ use crate::alert::Alert;
 use crate::model::settings::SettingsTabs;
 use crate::{
     countdown_timer, feedback_window, model, settings_window, tracking, updater_window,
-    CountdownTimerState, LicenseManagerState, SettingsSystemState, SubscriptionManagerState,
-    TrackingState,
+    CountdownTimerState, LicenseManagerState, SettingsDetailsState, SettingsSystemState,
+    SubscriptionManagerState, TrackingState,
 };
 use anyhow::Error;
 use core::clone::Clone;
 use log::info;
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
-#[cfg(target_os = "macos")]
-use tauri::ActivationPolicy;
 use tauri_specta::Event;
 
 use crate::feedback_window::FeedbackDisplay;
@@ -52,7 +50,7 @@ pub fn start_session(app: AppHandle, drink_settings: Option<SessionStartEvent>) 
 
 pub fn show_session(
     app: &AppHandle<Wry>,
-    drink_settings: Option<SessionStartEvent>
+    overwrite_settings: Option<SessionStartEvent>,
 ) -> Result<(), anyhow::Error> {
     let license_manager = app.state::<LicenseManagerState>();
     if license_manager
@@ -65,7 +63,11 @@ pub fn show_session(
         info!("start session window: stop timer");
         app.state::<CountdownTimerState>().stop();
 
-        if !drink_settings.clone().map(|s| s.demo_mode).unwrap_or_else(|| false) {
+        if !overwrite_settings
+            .clone()
+            .map(|s| s.demo_mode)
+            .unwrap_or_else(|| false)
+        {
             // stop current running timer
             info!("increase session counter");
             {
@@ -80,14 +82,33 @@ pub fn show_session(
         // send tracking event
         info!("start session window: send tracking");
         app.state::<TrackingState>()
-            .send_tracking(tracking::Event::StartSession);
+            .send_tracking(tracking::Event::DrinkReminder);
 
-        // TODO: read from saved setting, if character is not explicitly named
-        let drink_settings = drink_settings.unwrap_or_else(|| SessionStartEvent {
-            sip_size: SipSize::BigSip,
-            selected_drink_character: DrinkCharacter::YoungWoman,
-            demo_mode: false,
-        });
+        let user_settings = {
+            let sds = app.state::<SettingsDetailsState>();
+            let sd = sds.lock().expect("settings details can't be unlocked");
+            sd.clone()
+        };
+
+        let drink_settings: SessionStartEvent = overwrite_settings
+            .or_else(|| {
+                // Attempt to get from user settings if overwrite_settings is None
+                user_settings
+                    .as_ref()
+                    .map(|user_settings| SessionStartEvent {
+                        sip_size: user_settings.sip_size.clone(),
+                        selected_drink_character: user_settings.character.clone(),
+                        demo_mode: false,
+                    })
+            })
+            .unwrap_or_else(|| {
+                // Provide a default SessionStartEvent if both overwrite_settings and user settings are None
+                SessionStartEvent {
+                    sip_size: SipSize::BigSip,
+                    selected_drink_character: DrinkCharacter::YoungWoman,
+                    demo_mode: false,
+                }
+            });
 
         if let Some(_window) = app.get_webview_window(WINDOW_LABEL) {
             info!("start session window: send event");
@@ -125,86 +146,6 @@ fn build_session_window(app: &AppHandle) -> Result<(), Error> {
     info!("start session window: build");
     let window = window.build()?;
     window.set_ignore_cursor_events(true)?;
-
-    Ok(())
-}
-
-#[specta::specta]
-#[tauri::command]
-pub fn start_first_session(
-    app: AppHandle,
-    welcome_window: Window,
-    next_break_duration_minutes: u32,
-    email: Option<String>,
-    consent: bool,
-    enable_on_startup: bool,
-) -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    app.app_handle()
-        .set_activation_policy(ActivationPolicy::Accessory)
-        .expect("should allow to start app as accessory");
-
-    match start_first_session_(
-        &app.app_handle(),
-        welcome_window,
-        next_break_duration_minutes,
-        email,
-        consent,
-        enable_on_startup,
-    ) {
-        Ok(_) => {}
-        Err(error) => app.alert(
-            "Not able to start first session",
-            format!("{:?}", error).as_str(),
-            Some(error),
-            false,
-        ),
-    }
-    Ok(())
-}
-
-fn start_first_session_(
-    app_handle: &AppHandle,
-    welcome_window: Window,
-    next_break_duration_minutes: u32,
-    email: Option<String>,
-    consent: bool,
-    enable_on_startup: bool,
-) -> Result<(), anyhow::Error> {
-    let subscription_manager = app_handle.state::<SubscriptionManagerState>();
-    app_handle
-        .state::<TrackingState>()
-        .send_tracking(tracking::Event::FirstSession);
-    settings_window::set_settings(
-        &app_handle,
-        model::settings::SettingsUserDetails {
-            active: true,
-            next_break_duration_minutes,
-            allow_tracking: true,
-            enable_idle_detection: true,
-            enable_on_startup,
-            consent,
-            beta_version: false,
-        },
-        true,
-    )?;
-
-    welcome_window.hide()?;
-
-    subscription_manager
-        .subscribe(email.clone(), consent)
-        .unwrap_or_else(|err| {
-            app_handle.alert(
-                "Unable to subscribe",
-                format!(
-                    "Sorry, we were not able to subscribe the user {:?}.",
-                    email.clone()
-                )
-                .as_str(),
-                Some(err),
-                true,
-            );
-        });
 
     Ok(())
 }
