@@ -8,7 +8,9 @@ use crate::{
 use anyhow::Error;
 use core::clone::Clone;
 use log::info;
-use tauri::{ActivationPolicy, AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
+use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
+#[cfg(target_os = "macos")]
+use tauri::ActivationPolicy;
 use tauri_specta::Event;
 
 use crate::feedback_window::FeedbackDisplay;
