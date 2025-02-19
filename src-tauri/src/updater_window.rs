@@ -158,5 +158,5 @@ where
 #[specta::specta]
 #[tauri::command]
 pub fn updater_close(window: Window) {
-    window.close().unwrap();
+    window.destroy().expect("updater should be destroyed");
 }
