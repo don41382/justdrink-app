@@ -20,10 +20,8 @@ pub fn show(
     device_id: &DeviceId,
     welcome_mode: WelcomeMode,
 ) -> Result<(), anyhow::Error> {
-    if app.get_webview_window(WINDOW_LABEL)
-        .map(|w| w.is_visible().unwrap_or(false))
-        .unwrap_or(false)
-    {
+    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+        window.set_focus()?;
         return Ok(());
     }
 

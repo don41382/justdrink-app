@@ -1,6 +1,6 @@
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
 use crate::{CountdownTimerState, SettingsManagerState};
-use log::{debug, info};
+use log::{debug};
 use std::thread::sleep;
 use std::time::Duration;
 use tauri::{AppHandle, Manager};

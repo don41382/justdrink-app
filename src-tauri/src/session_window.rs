@@ -53,21 +53,22 @@ pub fn show_session(
     overwrite_settings: Option<SessionStartEvent>,
 ) -> Result<(), anyhow::Error> {
     let license_manager = app.state::<LicenseManagerState>();
+    let demo_mode = overwrite_settings
+        .as_ref()
+        .map(|s| s.demo_mode.clone())
+        .unwrap_or(false);
     if license_manager
         .try_lock()
         .expect("Could not lock license manager")
         .get_status(&app.app_handle(), false)
         .is_active()
+        || demo_mode
     {
         // stop current running timer
         info!("start session window: stop timer");
         app.state::<CountdownTimerState>().stop();
 
-        if !overwrite_settings
-            .clone()
-            .map(|s| s.demo_mode)
-            .unwrap_or_else(|| false)
-        {
+        if !demo_mode {
             // stop current running timer
             info!("increase session counter");
             {
@@ -77,12 +78,12 @@ pub fn show_session(
                     .map_err(|e| anyhow::anyhow!(e.to_string()))?;
                 settings_system.increase_session_count(&app);
             }
-        }
 
-        // send tracking event
-        info!("start session window: send tracking");
-        app.state::<TrackingState>()
-            .send_tracking(tracking::Event::DrinkReminder);
+            // send tracking event
+            info!("start session window: send tracking");
+            app.state::<TrackingState>()
+                .send_tracking(tracking::Event::DrinkReminder);
+        }
 
         let user_settings = app
             .state::<SettingsManagerState>()

@@ -26,8 +26,8 @@
     }
 
     async function welcome_redo() {
-        await getCurrentWindow().hide();
         await commands.welcomeRedo();
+        await getCurrentWindow().destroy();
     }
 
 </script>
