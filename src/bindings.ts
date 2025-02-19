@@ -53,8 +53,8 @@ async updateSettings(settings: SettingsUserDetails) : Promise<null> {
 async openBrowser(url: string, close: boolean) : Promise<null> {
     return await TAURI_INVOKE("open_browser", { url, close });
 },
-async welcomeFinish(settings: SettingsUserDetails) : Promise<void> {
-    await TAURI_INVOKE("welcome_finish", { settings });
+async welcomeFinish(email: string | null, settings: SettingsUserDetails) : Promise<void> {
+    await TAURI_INVOKE("welcome_finish", { email, settings });
 },
 async closeErrorWindow() : Promise<void> {
     await TAURI_INVOKE("close_error_window");

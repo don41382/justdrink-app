@@ -11,10 +11,9 @@ use std::string::ToString;
 use std::time::Duration;
 use tauri::{AppHandle, Manager, Runtime, State, Window};
 use tauri_plugin_store::StoreBuilder;
+use timer::Timer;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
-
-const STORE_NAME: &str = "mm-config.json";
 
 #[specta::specta]
 #[tauri::command]
@@ -65,27 +64,25 @@ pub fn update_settings(
     app_handle: AppHandle,
     settings: model::settings::SettingsUserDetails,
     settings_manager: State<SettingsManagerState>,
+    timer: State<CountdownTimerState>,
 ) -> () {
-    //settings_manager.update_user().unwrap_or_else(|err| {
-    //     app_handle.alert(
-    //         "Failed to update settings",
-    //         "Drink Now! is unable to update settings.",
-    //         Some(err),
-    //         false,
-    //     );
-    //     ()
-    // });
+    if settings.active {
+        timer.start(Duration::from_secs(
+            (settings.next_break_duration_minutes * 60).into(),
+        ));
+    } else {
+        timer.stop();
+    }
 
-    // if time_start {
-    //     // activate new settings
-    //     if settings.active {
-    //         timer.start(Duration::from_secs(
-    //             (settings.next_break_duration_minutes * 60).into(),
-    //         ));
-    //     } else {
-    //         timer.stop();
-    //     }
-    // }
+    settings_manager.update_user(settings).unwrap_or_else(|err| {
+        app_handle.alert(
+            "Failed to update settings",
+            "Drink Now! is unable to update settings.",
+            Some(err),
+            false,
+        );
+        ()
+    });
 }
 
 #[specta::specta]

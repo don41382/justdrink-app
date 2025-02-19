@@ -2,10 +2,12 @@
 
     import {commands} from "../../bindings";
     import {onMount} from "svelte";
+    import {info} from "@tauri-apps/plugin-log";
 
-    let {email = $bindable(), consent = $bindable()}: {
+    let {email = $bindable(), consent = $bindable(), next }: {
         email: string | null,
-        consent: boolean
+        consent: boolean,
+        next: () => void
     } = $props();
 
     let emailInput: HTMLInputElement;
@@ -16,6 +18,12 @@
 
     function openUrl(url: string) {
         commands.openBrowser(url, false);
+    }
+
+    function handleEnter(event: KeyboardEvent) {
+        if (event.key === 'Enter') {
+            next()
+        }
     }
 
 </script>
@@ -31,12 +39,14 @@
         </label>
         <input bind:this={emailInput} bind:value={email}
                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-               id="email" placeholder="Your Email" type="text">
+               id="email"
+               onkeydown={handleEnter} placeholder="Your Email" type="text">
     </div>
     <div class="mb-2 flex items-start cursor-pointer">
         <input
                 bind:checked={consent}
-                class="size-4 mr-2 rounded border-neutral-300 focus:ring-neutral-500" id="consent"
+                class="size-4 mr-2 rounded border-neutral-300 focus:ring-neutral-500"
+                id="consent"
                 type="checkbox">
         <label class="text-sm text-secondary/50" for="consent">I agree to receive emails from Drink Now! and
             understand I can unsubscribe anytime. See our

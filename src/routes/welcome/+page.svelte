@@ -16,6 +16,7 @@
     import SelectReminder from "./SelectReminder.svelte";
     import {Sip} from "./SipSize";
     import {DrinkCharacters} from "../DrinkCharacters";
+    import {sessionTimes} from "../session-times";
 
     let {data} = $props();
 
@@ -36,10 +37,19 @@
     let drinkAmountBasedOnGender: number = $state(0)
     let selectedSipSize: SipSize = $state("BigSip")
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
-    let drinkBreakMin = $derived(roundToNearestFive((12 * 60) / (drinkAmount / Sip.getMlForSize(selectedSipSize))))
+    let drinkBreakMin = $derived(roundToNearestSessionTime((12 * 60) / (drinkAmount / Sip.getMlForSize(selectedSipSize))))
 
-    function roundToNearestFive(num: number): number {
-        return Math.round(num / 5) * 5;
+    function roundToNearestSessionTime(num: number): number {
+        let closest = sessionTimes[0];
+
+        // Iterate through sessionTimes to find the closest number
+        for (const time of sessionTimes) {
+            if (Math.abs(time - num) < Math.abs(closest - num)) {
+                closest = time;
+            }
+        }
+
+        return closest;
     }
 
     $effect(() => {
@@ -55,6 +65,7 @@
             info(`start first session, email: ${email}, consent: ${consent}`)
             enable()
             commands.welcomeFinish(
+                email,
                 {
                     next_break_duration_minutes: drinkBreakMin,
                     character: selectedDrinkCharacter ?? defaultDrinkCharacter,
@@ -128,7 +139,7 @@
             <SelectReminder bind:selectedDrinkCharacter={selectedDrinkCharacter} sipSize={selectedSipSize}
                             reminderImages={data.reminderImages}/>
         {:else if currentStep === "Finish"}
-            <SelectEnd bind:email={email} bind:consent={consent}/>
+            <SelectEnd bind:email={email} bind:consent={consent} next={() => next()}/>
         {/if}
     </div>
 

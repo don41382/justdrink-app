@@ -74,7 +74,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
     )?;
 
     let tray_icon = tray_icon(main_app.app_handle())?;
-    let tray = TrayIconBuilder::with_id(TRAY_ID)
+    let _tray = TrayIconBuilder::with_id(TRAY_ID)
         .icon(tray_icon)
         .icon_as_template(true)
         .menu(&menu)

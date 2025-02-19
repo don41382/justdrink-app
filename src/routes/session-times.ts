@@ -1,4 +1,4 @@
-export const sessionTimes: number[] = [15, 30, 60, 90, 120]
+export const sessionTimes: number[] = [5, 15, 15, 30, 60, 90, 120]
 
 export function formatDuration(duration: number): string {
     if (duration < 120) {

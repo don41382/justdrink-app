@@ -3,11 +3,12 @@ use crate::alert::Alert;
 use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
 use crate::model::settings::SettingsUserDetails;
-use crate::{model, session_window, settings_window, tracking, CountdownTimerState, SettingsManagerState, TrackingState};
+use crate::{model, session_window, settings_window, tracking, CountdownTimerState, SettingsManagerState, SubscriptionManagerState, TrackingState};
 use log::warn;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 use tauri::{AppHandle, Manager, State, Window};
+use crate::subscription_manager::SubscriptionManager;
 
 const WINDOW_LABEL: &str = "welcome";
 
@@ -40,14 +41,20 @@ pub fn show(app: &AppHandle, device_id: &DeviceId) -> Result<(), anyhow::Error> 
 pub fn welcome_finish(
     app: AppHandle,
     welcome_window: Window,
+    email: Option<String>,
     settings: SettingsUserDetails,
     settings_manager: State<SettingsManagerState>,
     timer: State<'_, CountdownTimerState>,
+    subscription_manager: State<SubscriptionManagerState>,
 ) {
     // hide welcome
     welcome_window
         .hide()
         .expect("welcome window should be visible");
+
+    subscription_manager.subscribe(email, settings.consent).unwrap_or_else(|err|
+        app.alert("Can't subscribe", "There was an error while subscribing", Some(err), true)
+    );
 
     // switch to Accessory mode
     #[cfg(target_os = "macos")]
