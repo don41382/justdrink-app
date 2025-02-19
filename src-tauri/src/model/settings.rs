@@ -1,9 +1,9 @@
 use crate::model::license::LicenseInfo;
+use crate::model::session::{DrinkCharacter, SipSize};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri_specta::Event;
-use crate::model::session::{DrinkCharacter, SipSize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub enum SettingsTabs {
@@ -32,23 +32,12 @@ pub struct SettingsUserDetails {
     pub(crate) drink_amount_ml: u32,
     pub(crate) sip_size: SipSize,
     pub(crate) character: DrinkCharacter,
+    pub(crate) consent: bool,
     pub(crate) active: bool,
     pub(crate) allow_tracking: bool,
     pub(crate) enable_on_startup: bool,
-    pub(crate) consent: bool,
-    #[serde(default = "default_disable_beta_version")]
     pub(crate) beta_version: bool,
-
-    #[serde(default = "default_enable_idle_detection")]
     pub(crate) enable_idle_detection: bool,
-}
-
-fn default_enable_idle_detection() -> bool {
-    true
-}
-
-fn default_disable_beta_version() -> bool {
-    false
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -1,5 +1,5 @@
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
-use crate::{CountdownTimerState, SettingsDetailsState};
+use crate::{CountdownTimerState, SettingsManagerState};
 use log::{debug};
 use std::thread::sleep;
 use std::time::Duration;
@@ -22,20 +22,17 @@ where
         let timer = app_handle.state::<CountdownTimerState>();
         let mut mode = Mode::Working;
         loop {
-            let settings = app_handle.app_handle().state::<SettingsDetailsState>();
+            let settings = app_handle.app_handle().state::<SettingsManagerState>();
             let idle = UserIdle::get_time().unwrap();
 
-            if let Ok(s) = settings.try_lock() {
+            if let Some(settings) = settings.get_settings() {
                 let _timer_duration = if let TimerStatus::Active(duration) = timer.timer_status() {
                     Some(duration)
                 } else {
                     None
                 };
 
-                if s.as_ref()
-                    .map(|s| s.active && s.enable_idle_detection)
-                    .unwrap_or(false)
-                {
+                if settings.user.active && settings.user.enable_idle_detection {
                     match mode {
                         Mode::Pause => {
                             if idle.as_seconds() < IDLE_DURATION {

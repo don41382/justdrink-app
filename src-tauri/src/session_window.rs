@@ -2,7 +2,7 @@ use crate::alert::Alert;
 use crate::model::settings::SettingsTabs;
 use crate::{
     countdown_timer, feedback_window, model, settings_window, tracking, updater_window,
-    CountdownTimerState, LicenseManagerState, SettingsDetailsState, SettingsSystemState,
+    CountdownTimerState, LicenseManagerState, SettingsManagerState, SettingsSystemState,
     SubscriptionManagerState, TrackingState,
 };
 use anyhow::Error;
@@ -15,7 +15,7 @@ use crate::feedback_window::FeedbackDisplay;
 use crate::model::event::SessionStartEvent;
 use crate::model::session::{DrinkCharacter, SipSize};
 
-const WINDOW_LABEL: &'static str = "session";
+pub const WINDOW_LABEL: &'static str = "session";
 
 pub fn init(app: &AppHandle<Wry>) -> Result<EventId, anyhow::Error> {
     let app_handle = app.clone();
@@ -84,11 +84,10 @@ pub fn show_session(
         app.state::<TrackingState>()
             .send_tracking(tracking::Event::DrinkReminder);
 
-        let user_settings = {
-            let sds = app.state::<SettingsDetailsState>();
-            let sd = sds.lock().expect("settings details can't be unlocked");
-            sd.clone()
-        };
+        let user_settings = app
+            .state::<SettingsManagerState>()
+            .get_settings()
+            .map(|s| s.user);
 
         let drink_settings: SessionStartEvent = overwrite_settings
             .or_else(|| {
@@ -162,16 +161,14 @@ pub(crate) fn days_between(
 #[tauri::command]
 pub async fn end_session(
     app: AppHandle,
-    window: Window,
     timer: State<'_, CountdownTimerState>,
     settings_system: State<'_, SettingsSystemState>,
     demo_mode: bool,
 ) -> Result<(), String> {
+    info!("end reminder session");
     timer.restart();
 
-    window
-        .hide()
-        .map_err(|err| format!("window can't be closed: {}", err))?;
+    hide_window(&app)?;
 
     if !demo_mode {
         let ask_for_feedback = {
@@ -188,5 +185,14 @@ pub async fn end_session(
         }
     }
 
+    Ok(())
+}
+
+pub fn hide_window(app: &AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+        window
+            .hide()
+            .map_err(|err| format!("window can't be closed: {}", err))?;
+    }
     Ok(())
 }

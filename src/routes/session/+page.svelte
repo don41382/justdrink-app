@@ -61,7 +61,9 @@
         }, 5000)
     }
 
-    onDestroy(() => {
+    onDestroy(async () => {
+        await commands.endSession(demoMode)
+        visible = true
         cleanup()
         clearTimeout(endListenerTimer);
         if (sessionListener) {

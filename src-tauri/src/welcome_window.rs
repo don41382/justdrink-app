@@ -1,12 +1,13 @@
+use std::time::Duration;
 use crate::alert::Alert;
 use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
 use crate::model::settings::SettingsUserDetails;
-use crate::{model, settings_window, tracking, TrackingState};
+use crate::{model, session_window, settings_window, tracking, CountdownTimerState, SettingsManagerState, TrackingState};
 use log::warn;
-use tauri::{AppHandle, Manager, Window};
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
+use tauri::{AppHandle, Manager, State, Window};
 
 const WINDOW_LABEL: &str = "welcome";
 
@@ -36,19 +37,28 @@ pub fn show(app: &AppHandle, device_id: &DeviceId) -> Result<(), anyhow::Error> 
 
 #[specta::specta]
 #[tauri::command]
-pub fn welcome_finish(app: AppHandle, welcome_window: Window, settings: SettingsUserDetails) {
+pub fn welcome_finish(
+    app: AppHandle,
+    welcome_window: Window,
+    settings: SettingsUserDetails,
+    settings_manager: State<SettingsManagerState>,
+    timer: State<'_, CountdownTimerState>,
+) {
     // hide welcome
     welcome_window
         .hide()
         .expect("welcome window should be visible");
+
     // switch to Accessory mode
     #[cfg(target_os = "macos")]
     app.app_handle()
         .set_activation_policy(ActivationPolicy::Accessory)
         .expect("should allow to start app as accessory");
+
+    timer.start(Duration::from_secs((settings.next_break_duration_minutes * 60) as u64));
+
     // save settings
-    settings_window::set_settings(app.app_handle(), settings, true)
-        .unwrap_or_else(|err|
+    settings_manager.update_user(settings).unwrap_or_else(|err|
             app.alert(
                 "Error while saving",
                 "I am sorry, I am unable to save your settings. Please contact Rocket Solutions for support.",

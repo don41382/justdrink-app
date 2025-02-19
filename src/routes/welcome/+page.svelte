@@ -57,16 +57,15 @@
             commands.welcomeFinish(
                 {
                     next_break_duration_minutes: drinkBreakMin,
-                    active: true,
                     character: selectedDrinkCharacter ?? defaultDrinkCharacter,
                     consent: consent,
                     sip_size: selectedSipSize,
                     drink_amount_ml: drinkAmount,
-                    // this should not be rewritten
-                    enable_on_startup: true,
-                    beta_version: false,
+                    active: true,
                     allow_tracking: true,
-                    enable_idle_detection: true
+                    enable_idle_detection: true,
+                    beta_version: false,
+                    enable_on_startup: true
                 }
             )
         }

@@ -156,8 +156,6 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
         })
         .build(main_app)?;
 
-    tray.set_visible(false).expect("can't set tray to not visible");
-
     let app_handle = main_app.clone();
     CountdownEvent::listen(main_app.app_handle(), move |event| {
         let timer_control_text = if event.payload.status.is_running() {
@@ -180,8 +178,6 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
         menu_status
             .set_text(format!("Dashboard ({})", event.payload.status.to_text()))
             .unwrap();
-
-        tray.set_visible(true).expect("it should be possible to set the tray to visible")
     });
 
     let app_handle_tray_update = main_app.app_handle().clone();

@@ -1,6 +1,6 @@
 use crate::license_manager::{LicenseStatus, ValidTypes};
 use crate::model::device::DeviceId;
-use crate::{license_manager, LicenseManagerState, SettingsDetailsState};
+use crate::{license_manager, LicenseManagerState, SettingsManagerState};
 use log::{info, warn};
 use serde_json::{json, Value};
 use std::time::Duration;
@@ -52,19 +52,18 @@ impl Tracking {
     }
 
     pub fn send_tracking(&self, event: Event) {
-        let state = self.app_handle.state::<LicenseManagerState>()
+        let state = self
+            .app_handle
+            .state::<LicenseManagerState>()
             .lock()
             .expect("send tracking requires license manager")
             .get_status(self.app_handle.app_handle(), true);
-        let allow_tracking = {
-            let settings = self.app_handle.state::<SettingsDetailsState>();
-            let result = if let Ok(guard) = settings.try_lock() {
-                guard.as_ref().map(|s| s.allow_tracking).unwrap_or(false)
-            } else {
-                false
-            };
-            result
-        };
+        let allow_tracking = self
+            .app_handle
+            .state::<SettingsManagerState>()
+            .get_settings()
+            .map(|s| s.user.allow_tracking)
+            .unwrap_or(false);
         if allow_tracking {
             info!("send event: {:?}", event);
             let event_data = json!([{

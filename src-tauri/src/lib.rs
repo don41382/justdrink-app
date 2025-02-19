@@ -16,12 +16,14 @@ mod settings_window;
 mod subscription_manager;
 mod updater_window;
 mod welcome_window;
+mod settings_manager;
 
 use log::{info, warn};
 use serde_json::json;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
+use std::time::Duration;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
@@ -35,23 +37,11 @@ use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
-
-#[specta::specta]
-#[tauri::command]
-fn update_settings(app_handle: AppHandle, settings: model::settings::SettingsUserDetails) -> () {
-    settings_window::set_settings(&app_handle, settings, true).unwrap_or_else(|err| {
-        app_handle.alert(
-            "Failed to update settings",
-            "Drink Now! is unable to update settings.",
-            Some(err),
-            false,
-        );
-        ()
-    });
-}
+use crate::settings_manager::SettingsManager;
 
 type FeedbackSenderState = feedback_window::FeedbackSender;
-type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
+// type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
+type SettingsManagerState = SettingsManager;
 type SettingsSystemState = Mutex<SettingsSystem>;
 type CountdownTimerState = CountdownTimer;
 type TrackingState = Tracking;
@@ -67,11 +57,11 @@ pub fn run() {
             dashboard_window::toggle_timer,
             dashboard_window::timer_change,
             feedback_window::feedback_window_send_feedback,
-            update_settings,
             session_window::start_session,
             session_window::end_session,
             settings_window::open_settings,
             settings_window::load_settings,
+            settings_window::update_settings,
             settings_window::open_browser,
             welcome_window::welcome_finish,
             alert::close_error_window,
@@ -164,30 +154,29 @@ pub fn run() {
                 device_id.clone(),
             ));
 
+            let settings_manager = SettingsManager::new(app.app_handle())?;
+
             app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
-            app.manage::<SettingsDetailsState>(Mutex::new(
-                None::<model::settings::SettingsUserDetails>,
-            ));
+            app.manage::<SettingsManagerState>(settings_manager);
             app.manage::<TrackingState>(Tracking::new(&device_id, app.app_handle())?);
             app.manage::<SettingsSystemState>(Mutex::new(settings_system::SettingsSystem::load(
                 app.app_handle(),
             )));
 
-            match settings_window::get_settings(app.app_handle()) {
-                Ok(settings) => {
-                    settings_window::set_settings(app.app_handle(), settings, true)?;
+            match app.state::<SettingsManagerState>().get_settings() {
+                Some(settings) => {
                     if dashboard_window::should_show_dashboard() {
                         show_dashboard(app.app_handle());
                     }
+                    app.state::<CountdownTimerState>().start(Duration::from_secs((settings.user.next_break_duration_minutes * 60) as u64));
                     #[cfg(target_os = "macos")]
                     app.app_handle()
                         .set_activation_policy(ActivationPolicy::Accessory)
                         .expect("should allow to start app as accessory");
                 }
-                Err(err) => {
-                    warn!("could not load settings: {}", err);
+                None => {
+                    warn!("settings are missing, display welcome screen");
                     welcome_window::show(app.app_handle(), &device_id)?;
-                    info!("display welcome screen");
                 }
             }
 

@@ -3,7 +3,7 @@ use log::error;
 use serde_json::json;
 use tauri::{AppHandle, Manager, Runtime};
 
-use crate::SettingsDetailsState;
+use crate::SettingsManagerState;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 use tauri_plugin_aptabase::EventTracker;
@@ -18,10 +18,9 @@ pub trait Alert {
 impl Alert for AppHandle {
     fn alert(&self, title: &str, message: &str, error: Option<anyhow::Error>, silence: bool) -> () {
         let allow_sending_error = self
-            .state::<SettingsDetailsState>()
-            .try_lock()
-            .ok()
-            .and_then(|settings| settings.as_ref().map(|s| s.allow_tracking))
+            .state::<SettingsManagerState>()
+            .get_settings()
+            .map(|s| s.user.allow_tracking)
             .unwrap_or(false);
 
         if let Some(e) = error {

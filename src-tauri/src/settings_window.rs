@@ -1,7 +1,8 @@
 use crate::alert::Alert;
 use crate::model::settings::{SettingsTabs, SettingsUserDetails};
+use crate::settings_manager::UserSettingsStore;
 use crate::{
-    model, tracking, CountdownTimerState, LicenseManagerState, SettingsDetailsState, TrackingState,
+    model, tracking, CountdownTimerState, LicenseManagerState, SettingsManagerState, TrackingState,
 };
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -14,12 +15,6 @@ use tauri_plugin_store::StoreBuilder;
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
 const STORE_NAME: &str = "mm-config.json";
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct UserSettingsStore {
-    version: String,
-    details: SettingsUserDetails,
-}
 
 #[specta::specta]
 #[tauri::command]
@@ -38,33 +33,59 @@ pub async fn open_settings(app_handle: AppHandle) -> () {
 #[specta::specta]
 #[tauri::command]
 pub fn load_settings(
-    app_handle: AppHandle,
-    settings: State<'_, SettingsDetailsState>,
-) -> Result<model::settings::Settings, String> {
+    app: AppHandle,
+    settings: State<'_, SettingsManagerState>,
+) -> model::settings::Settings {
     info!("load settings data");
-    let version = app_handle.app_handle().config().version.clone();
-    let license_manager = app_handle.state::<LicenseManagerState>();
+    let version = app.app_handle().config().version.clone();
+    let license_manager = app.state::<LicenseManagerState>();
     let license_status = license_manager
         .lock()
         .unwrap()
-        .get_status(&app_handle.app_handle(), false);
+        .get_status(&app.app_handle(), false);
     info!("load settings data - done");
 
-    let user_settings = settings
-        .lock()
-        .expect("settings to be unlocked")
-        .clone()
-        .ok_or_else(|| "no settings set".to_string())?;
+    let settings = settings
+        .get_settings()
+        .unwrap_or(UserSettingsStore::default());
 
-    let res = model::settings::Settings {
+    model::settings::Settings {
         app: model::settings::AppDetails {
             version: version.unwrap_or("unknown".to_string()),
             license_info: license_status.to_license_info(),
         },
-        user: user_settings,
+        user: settings.user,
         selected_tab: SettingsTabs::Session,
-    };
-    Ok(res)
+    }
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn update_settings(
+    app_handle: AppHandle,
+    settings: model::settings::SettingsUserDetails,
+    settings_manager: State<SettingsManagerState>,
+) -> () {
+    //settings_manager.update_user().unwrap_or_else(|err| {
+    //     app_handle.alert(
+    //         "Failed to update settings",
+    //         "Drink Now! is unable to update settings.",
+    //         Some(err),
+    //         false,
+    //     );
+    //     ()
+    // });
+
+    // if time_start {
+    //     // activate new settings
+    //     if settings.active {
+    //         timer.start(Duration::from_secs(
+    //             (settings.next_break_duration_minutes * 60).into(),
+    //         ));
+    //     } else {
+    //         timer.stop();
+    //     }
+    // }
 }
 
 #[specta::specta]
@@ -88,80 +109,6 @@ pub fn open_browser(window: Window, app_handle: AppHandle, url: String, close: b
     if close {
         window.close().expect("settings window to close");
     }
-}
-
-fn write_settings(
-    app: &AppHandle,
-    settings_details: &SettingsUserDetails,
-) -> Result<(), anyhow::Error> {
-    let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build()?;
-    let version = app.app_handle().config().version.clone();
-
-    let json_data = serde_json::to_value(UserSettingsStore {
-        version: version.unwrap_or("0.0.0".to_string()),
-        details: settings_details.clone(),
-    })
-    .map_err(|e| tauri_plugin_store::Error::Serialize(Box::new(e)))?;
-
-    store.set("data".to_string(), json_data);
-    store.save()?;
-    Ok(())
-}
-
-fn load_settings_store(app: &AppHandle) -> Result<UserSettingsStore, anyhow::Error> {
-    let path = PathBuf::from(STORE_NAME);
-    info!(
-        "loading settings: {:?}",
-        app.path().app_data_dir()?.join(&path)
-    );
-    let store = StoreBuilder::new(app.app_handle(), STORE_NAME).build()?;
-
-    let data_json = store
-        .get("data".to_string())
-        .ok_or_else(|| anyhow::anyhow!("can't find settings in data"))?;
-
-    let details: UserSettingsStore = serde_json::from_value(data_json.clone())
-        .map_err(|e| tauri_plugin_store::Error::Deserialize(Box::new(e)))?;
-
-    Ok(details)
-}
-
-pub fn set_settings(
-    app: &AppHandle,
-    settings: SettingsUserDetails,
-    time_start: bool,
-) -> Result<(), anyhow::Error> {
-    let timer = app.state::<CountdownTimerState>();
-    {
-        let settings_session = app.state::<SettingsDetailsState>();
-        *settings_session.lock().expect("settings session is locked") = Some(settings.clone());
-    }
-
-    // save settings
-    write_settings(&app, &settings)?;
-
-    // send tracking event
-    app.state::<TrackingState>()
-        .send_tracking(tracking::Event::SetTimer(
-            settings.next_break_duration_minutes,
-        ));
-
-    if time_start {
-        // activate new settings
-        if settings.active {
-            timer.start(Duration::from_secs(
-                (settings.next_break_duration_minutes * 60).into(),
-            ));
-        } else {
-            timer.stop();
-        }
-    }
-    Ok(())
-}
-
-pub fn get_settings(app_handle: &AppHandle) -> Result<SettingsUserDetails, anyhow::Error> {
-    let settings = load_settings_store(app_handle)?;
-    Ok(settings.details)
 }
 
 fn new<R>(

@@ -25,9 +25,6 @@ async feedbackWindowSendFeedback(feedback: string, rating: FeedbackRate) : Promi
     else return { status: "error", error: e  as any };
 }
 },
-async updateSettings(settings: SettingsUserDetails) : Promise<null> {
-    return await TAURI_INVOKE("update_settings", { settings });
-},
 async startSession(drinkSettings: SessionStartEvent | null) : Promise<Result<null, null>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("start_session", { drinkSettings }) };
@@ -47,13 +44,11 @@ async endSession(demoMode: boolean) : Promise<Result<null, string>> {
 async openSettings() : Promise<null> {
     return await TAURI_INVOKE("open_settings");
 },
-async loadSettings() : Promise<Result<Settings, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("load_settings") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async loadSettings() : Promise<Settings> {
+    return await TAURI_INVOKE("load_settings");
+},
+async updateSettings(settings: SettingsUserDetails) : Promise<null> {
+    return await TAURI_INVOKE("update_settings", { settings });
 },
 async openBrowser(url: string, close: boolean) : Promise<null> {
     return await TAURI_INVOKE("open_browser", { url, close });
@@ -116,7 +111,7 @@ export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"
 export type SessionStartEvent = { selected_drink_character: DrinkCharacter; sip_size: SipSize; demo_mode: boolean }
 export type Settings = { app: AppDetails; user: SettingsUserDetails; selected_tab: SettingsTabs }
 export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
-export type SettingsUserDetails = { next_break_duration_minutes: number; drink_amount_ml: number; sip_size: SipSize; character: DrinkCharacter; active: boolean; allow_tracking: boolean; enable_on_startup: boolean; consent: boolean; beta_version?: boolean; enable_idle_detection?: boolean }
+export type SettingsUserDetails = { next_break_duration_minutes: number; drink_amount_ml: number; sip_size: SipSize; character: DrinkCharacter; consent: boolean; active: boolean; allow_tracking: boolean; enable_on_startup: boolean; beta_version: boolean; enable_idle_detection: boolean }
 export type SipSize = "BigSip" | "HalfCup" | "FullCup"
 export type TimerStatus = { NotStarted: number } | { Active: number } | { Paused: [PauseOrigin, number] } | "Finished"
 

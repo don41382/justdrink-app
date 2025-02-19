@@ -1,5 +1,5 @@
 use crate::alert::Alert;
-use crate::{SettingsDetailsState, SettingsSystemState};
+use crate::{SettingsManagerState, SettingsSystemState};
 use anyhow::Error;
 use log::debug;
 use tauri::http::{HeaderMap, HeaderValue};
@@ -97,11 +97,11 @@ where
         .map(|w| w.is_visible().unwrap_or(false))
         .unwrap_or(false);
     if !visible {
-        let pre_release: bool = {
-            let sds = app_handle.state::<SettingsDetailsState>();
-            let sd = sds.lock().expect("settings details can't be unlocked");
-            sd.clone().map(|d| d.beta_version).unwrap_or(false)
-        };
+        let pre_release = app_handle
+            .state::<SettingsManagerState>()
+            .get_settings()
+            .map(|s| s.user.beta_version)
+            .unwrap_or(false);
 
         let _w = tauri::WebviewWindowBuilder::new(
             app_handle,
@@ -128,11 +128,11 @@ async fn is_new_version_available<R>(app: &AppHandle<R>) -> Result<bool, anyhow:
 where
     R: Runtime,
 {
-    let pre_release: bool = {
-        let sds = app.state::<SettingsDetailsState>();
-        let sd = sds.lock().expect("settings details can't be unlocked");
-        sd.clone().map(|d| d.beta_version).unwrap_or(false)
-    };
+    let pre_release: bool = app
+        .state::<SettingsManagerState>()
+        .get_settings()
+        .map(|s| s.user.beta_version)
+        .unwrap_or(false);
 
     let mut headers = HeaderMap::new();
     headers.insert(
