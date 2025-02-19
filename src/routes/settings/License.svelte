@@ -38,7 +38,7 @@
     }
 
 
-    function handleInput(event: InputEvent) {
+    function handleInput(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             licenseCode = formatCode(event.target.value);
         }

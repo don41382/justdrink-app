@@ -21,13 +21,13 @@ jobs:
             args: "--target universal-apple-darwin"
             enable: true
             appstore: false
-#          - runs-on: "self-hosted-macos"
-#            os: macos
-#            self-hosted: true
-#            arch: aarch64
-#            args: "--target universal-apple-darwin"
-#            enable: true
-#            appstore: true
+          #          - runs-on: "self-hosted-macos"
+          #            os: macos
+          #            self-hosted: true
+          #            arch: aarch64
+          #            args: "--target universal-apple-darwin"
+          #            enable: true
+          #            appstore: true
           - runs-on: "self-hosted-windows"
             os: windows
             self-hosted: true
@@ -68,6 +68,9 @@ jobs:
 
       - name: install frontend dependencies
         run: pnpm install
+
+      - name: check svelte / typescript
+        run: pnpm check
 
       - name: install signtool (windows)
         if: matrix.os == 'windows'

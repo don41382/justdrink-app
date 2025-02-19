@@ -34,7 +34,7 @@
 
 </script>
 
-<AutoSize class="flex-col rounded-lg bg-accent w-[400px] p-8">
+<AutoSize class="flex-col rounded-lg bg-accent w-[400px] p-8" ready={true}>
     <div class="flex justify-between items-center space-x-3 mb-6">
         <div class="flex items-center space-x-2 mr-16 select-none">
             <img alt="mm" class="w-8 h-8" data-tauri-drag-region src="{data.iconPath}">
@@ -49,6 +49,7 @@
         </div>
     </div>
     <h2 class="mb-2 font-medium text-secondary">How is your experience so far?</h2>
+    <!-- svelte-ignore a11y_autofocus -->
     <textarea autofocus bind:value={feedback} class="w-full h-24 p-2 mb-1 bg-white/20 text-white placeholder-secondary"
               placeholder="Please give me feedback ..."></textarea>
     <div class="flex items-center space-x-4">

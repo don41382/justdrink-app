@@ -1,10 +1,9 @@
 <script lang="ts">
-    import {info, warn} from "@tauri-apps/plugin-log";
+    import {info} from "@tauri-apps/plugin-log";
     import {commands} from "../../bindings";
     import {relaunch} from "@tauri-apps/plugin-process";
     import AutoSize from "../AutoSize.svelte";
     import type {UpdateState} from "./updateState";
-    import {onMount} from "svelte";
 
     type ProgressStatus = "inactive" | "running" | "finished";
 
@@ -58,7 +57,7 @@
 
 </script>
 
-<AutoSize class="bg-white w-[500px] rounded-lg border-mm-blue-50 border-2 outline-mm-blue p-6">
+<AutoSize class="bg-white w-[500px] rounded-lg border-mm-blue-50 border-2 outline-mm-blue p-6" ready={true}>
     {#if currentState.state === "updateAvailable"}
         <!-- Logo and Update Info -->
         <div class="flex items-start mb-4">
