@@ -1,7 +1,5 @@
-use crate::model::session::{DrinkCharacter, SipSize};
-use crate::model::settings::{
-    AppDetails, Settings, SettingsTabs, SettingsUserDetails
-};
+use crate::model::session::{DrinkCharacter, GenderType, SipSize};
+use crate::model::settings::SettingsUserDetails;
 use anyhow::Result;
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
@@ -24,6 +22,7 @@ impl Default for UserSettingsStore {
             user: SettingsUserDetails {
                 character: DrinkCharacter::YoungMan,
                 sip_size: SipSize::FullCup,
+                gender_type: GenderType::Male,
                 consent: false,
                 next_break_duration_minutes: 15,
                 drink_amount_ml: 3000,

@@ -1,17 +1,13 @@
 use crate::alert::Alert;
-use crate::model::settings::{SettingsTabs, SettingsUserDetails};
+use crate::model::settings::{SettingsTabs};
 use crate::settings_manager::UserSettingsStore;
 use crate::{
-    model, tracking, CountdownTimerState, LicenseManagerState, SettingsManagerState, TrackingState,
+    model, CountdownTimerState, LicenseManagerState, SettingsManagerState
 };
 use log::info;
-use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 use std::string::ToString;
 use std::time::Duration;
 use tauri::{AppHandle, Manager, Runtime, State, Window};
-use tauri_plugin_store::StoreBuilder;
-use timer::Timer;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 

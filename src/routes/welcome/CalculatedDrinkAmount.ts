@@ -1,4 +1,4 @@
-import {GenderType} from "./Gender";
+import type {GenderType} from "../../bindings";
 
 export interface CalculatedDrinkAmount {
     min: number,
@@ -10,11 +10,11 @@ export namespace CalculatedDrinkAmount {
 
     export function calc(gender: GenderType, weightInKg: number) {
         switch (gender) {
-            case GenderType.Male:
+            case "Male":
                 return weightInKg * 35
-            case GenderType.Female:
+            case "Female":
                 return weightInKg * 31
-            case GenderType.Other:
+            case "Other":
                 return weightInKg * 32
         }
     }

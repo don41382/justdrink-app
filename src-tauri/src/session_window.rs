@@ -1,14 +1,14 @@
 use crate::alert::Alert;
 use crate::model::settings::SettingsTabs;
 use crate::{
-    countdown_timer, feedback_window, model, settings_window, tracking, updater_window,
+    countdown_timer, feedback_window, settings_window, tracking, updater_window,
     CountdownTimerState, LicenseManagerState, SettingsManagerState, SettingsSystemState,
-    SubscriptionManagerState, TrackingState,
+    TrackingState,
 };
 use anyhow::Error;
 use core::clone::Clone;
 use log::info;
-use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Window, Wry};
+use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Wry};
 use tauri_specta::Event;
 
 use crate::feedback_window::FeedbackDisplay;

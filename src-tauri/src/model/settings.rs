@@ -1,5 +1,5 @@
 use crate::model::license::LicenseInfo;
-use crate::model::session::{DrinkCharacter, SipSize};
+use crate::model::session::{DrinkCharacter, GenderType, SipSize};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -38,6 +38,7 @@ pub struct SettingsUserDetails {
     pub(crate) drink_amount_ml: u32,
     pub(crate) sip_size: SipSize,
     pub(crate) character: DrinkCharacter,
+    pub(crate) gender_type: GenderType,
     pub(crate) consent: bool,
     pub(crate) active: bool,
     pub(crate) allow_tracking: bool,

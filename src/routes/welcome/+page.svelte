@@ -3,10 +3,15 @@
     import SelectEnd from "./SelectEnd.svelte";
     import SelectStart from "./SelectStart.svelte";
     import {enable} from "@tauri-apps/plugin-autostart";
-    import {commands, type DrinkCharacter, type SettingsUserDetails, type SipSize} from "../../bindings";
+    import {
+        commands,
+        type DrinkCharacter,
+        type GenderType,
+        type SettingsUserDetails,
+        type SipSize
+    } from "../../bindings";
     import {info} from "@tauri-apps/plugin-log";
     import SelectGender from "./SelectGender.svelte";
-    import {GenderType} from "./Gender";
     import SelectWeight from "./SelectWeight.svelte";
     import SelectDrinkAmountPerDay from "./SelectDrinkAmountPerDay.svelte";
     import {MeasureSystem} from "./MeasureSystem";
@@ -34,7 +39,7 @@
     let steps: WelcomeStep[] = getSteps()
     let currentStep: WelcomeStep = $state(steps.at(0) ?? "Start")
 
-    let defaultGender = GenderType.Female
+    let defaultGender: GenderType = "Female"
     let defaultDrinkCharacter: DrinkCharacter = "YoungMan"
 
     let email: string | null = $state(null);
@@ -83,6 +88,7 @@
                             character: selectedDrinkCharacter ?? defaultDrinkCharacter,
                             consent: consent,
                             sip_size: selectedSipSize,
+                            gender_type: gender ?? defaultGender,
                             drink_amount_ml: drinkAmount,
                             active: true,
                             allow_tracking: true,

@@ -1,15 +1,15 @@
 import type {GenderImages} from "./+page";
+import type {GenderType} from "../../bindings";
 
-export enum GenderType {
-    Male = "Male",
-    Female = "Female",
-    Other = "Other"
-}
+export let allGender: GenderType[] = ["Male", "Female", "Other"]
 
 export function imagePath(gender: GenderType, genderImages: GenderImages) {
     switch (gender) {
-        case GenderType.Male: return genderImages.male
-        case GenderType.Female: return genderImages.female
-        case GenderType.Other: return genderImages.other
+        case "Male":
+            return genderImages.male
+        case "Female":
+            return genderImages.female
+        case "Other":
+            return genderImages.other
     }
 }

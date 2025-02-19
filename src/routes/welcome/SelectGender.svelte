@@ -1,8 +1,9 @@
 <script lang="ts">
 
-    import {GenderType, imagePath} from "./Gender";
     import type {GenderImages} from "./+page";
     import {WeightConverter} from "./WeightConverter";
+    import type {GenderType} from "../../bindings";
+    import {allGender, imagePath} from "./Gender";
 
     let { selectedGender = $bindable(), weightInKg = $bindable(), genderImages } : { selectedGender: GenderType | undefined, weightInKg: number | undefined, genderImages: GenderImages} = $props();
 
@@ -12,7 +13,7 @@
     }
 
     if (!selectedGender) {
-        selectedGender = GenderType.Female
+        selectedGender = "Female"
     }
 
 </script>
@@ -24,12 +25,12 @@
             Choose the gender that best represents you.
         </p>
         <div class="flex space-x-2 justify-center items-stretch mt-8">
-            {#each Object.values(GenderType) as gender}
+            {#each allGender as gender}
                 <button
                         onclick={() => select(gender)}
                         class="group flex cursor-pointer shadow-sm rounded-xl items-center justify-center w-36
                                {(selectedGender === gender) ? 'bg-primary' : 'bg-primary/10 hover:bg-primary/50'}">
-                    {#if gender === GenderType.Other}
+                    {#if gender === "Other"}
                         <p class="flex font-medium {(gender === selectedGender) ? 'text-accent' : 'text-secondary'}">
                             Other
                         </p>

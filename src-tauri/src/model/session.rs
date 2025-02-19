@@ -14,3 +14,11 @@ pub enum SipSize {
     HalfCup,
     FullCup,
 }
+
+
+#[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
+pub enum GenderType {
+    Male,
+    Female,
+    Other
+}

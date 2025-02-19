@@ -1,5 +1,5 @@
 import {MeasureSystem} from "./MeasureSystem";
-import {GenderType} from "./Gender";
+import type {GenderType} from "../../bindings";
 
 export class WeightConverter {
     private static readonly KG_TO_LBS = 2.20462;
@@ -38,9 +38,9 @@ export class WeightConverter {
 
     static defaultWeightByGender(gender: GenderType): number {
         switch (gender) {
-            case GenderType.Male: return 75
-            case GenderType.Female: return 65
-            case GenderType.Other: return 70
+            case "Male": return 75
+            case "Female": return 65
+            case "Other": return 70
         }
     }
 
