@@ -14,6 +14,16 @@
         margin: 0;
         -moz-appearance: textfield !important;
     }
+
+    /* Dropdown select styling */
+    select {
+        @apply p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500;
+    }
+
+    /* Padding for dropdown options */
+    select option {
+        @apply p-4 text-lg;
+    }
 }
 
 @layer utilities {
