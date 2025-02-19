@@ -17,12 +17,12 @@
 
     /* Dropdown select styling */
     select {
-        @apply p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500;
+        @apply p-2 focus:outline-none;
     }
 
     /* Padding for dropdown options */
     select option {
-        @apply p-4 text-lg;
+        @apply p-4;
     }
 }
 

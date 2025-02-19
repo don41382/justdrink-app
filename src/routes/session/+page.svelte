@@ -62,8 +62,8 @@
     }
 
     onDestroy(async () => {
+        visible = false
         await commands.endSession(demoMode)
-        visible = true
         cleanup()
         clearTimeout(endListenerTimer);
         if (sessionListener) {
@@ -78,7 +78,7 @@
      class="{visible ? 'fade-in' : 'not-ready'} bg-accent/20 opacity-80 h-screen w-screen flex flex-col justify-between items-center overflow-hidden cursor-default">
 
     <img alt="Background" class="absolute opacity-10 top-0 left-0 w-full h-full object-cover -z-10"
-         src="{data.backgroundImage}" />
+         src="{data.backgroundImage}"/>
 
     {#if selectedDrinkCharacter}
         <CharacterDrinkPlayer bind:this={drinkPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}

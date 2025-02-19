@@ -25,9 +25,9 @@
         await updateSettings(user);
     }
 
-    async function welcome_redo() {
-        await commands.welcomeRedo();
-        await getCurrentWindow().destroy();
+    function welcome_redo() {
+        commands.welcomeRedo();
+        getCurrentWindow().destroy();
     }
 
 </script>
@@ -54,7 +54,7 @@
             <div class="flex w-full justify-between">
                 <p class="text-gray-500 text-sm mt-1">Time until your next sip</p>
                 <button class="text-gray-500 text-sm underline hover:text-accent mt-1 text-right cursor-pointer"
-                        on:click={async () => await welcome_redo()}>
+                        on:click={welcome_redo}>
                     Reset
                 </button>
             </div>

@@ -174,7 +174,7 @@
     </div>
 
     <div class="flex w-full pb-10">
-        {#if currentStep !== "Start"}
+        {#if currentStep !== steps.at(0)}
             <button class="text-secondary/30 py-2 rounded-md" onclick={back}>
                 Back
             </button>

@@ -27,9 +27,9 @@
                         class="block w-16 grow bg-transparent pl-1 text-primary placeholder:text-gray-400 focus:outline-none no-spin"
                         id="ml"
                         name="ml">
-                <div class="grid shrink-0 grid-cols-1 focus-within:relative">
+                <div class="flex focus-within:relative">
                     <select aria-label="Weight" bind:value={measureSystem}
-                            class="col-end-1 row-end-1 appearance-none rounded-xl {(measureSystem === MeasureSystem.Metric) ? 'w-7' : 'w-10'} text-primary/50 bg-transparent focus:outline-none"
+                            class="col-end-1 row-end-1 appearance-none rounded-xl {(measureSystem === MeasureSystem.Metric) ? 'w-10' : 'w-14'} text-primary/50 bg-transparent focus:outline-none"
                             id="weightSystem" name="weightSystem">
                         {#each [MeasureSystem.Metric, MeasureSystem.Imperial] as system }
                             <option value={system}>{toVolumeName(system)}</option>

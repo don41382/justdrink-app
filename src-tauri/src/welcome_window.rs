@@ -7,7 +7,7 @@ use crate::{
     tracking, CountdownTimerState, SettingsManagerState,
     SubscriptionManagerState, TrackingState,
 };
-use log::warn;
+use log::{info, warn};
 use std::time::Duration;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
@@ -56,6 +56,7 @@ pub fn show(
 #[specta::specta]
 #[tauri::command]
 pub fn welcome_redo(app: AppHandle, tracking: State<TrackingState>) {
+    info!("start welcome redo");
     show(
         app.app_handle(),
         &tracking.device_id(),
