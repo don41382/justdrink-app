@@ -43,7 +43,7 @@
             <p class="text-primary text-4xl">{drinkBreakMin.toFixed(0)} min</p>
         </div>
     </div>
-    <div class="flex grow items-center justify-center">
+    <div class="flex grow items-center justify-center mt-7">
         <div class="flex grow gap-x-2 justify-center">
             {#each Object.values(Sip.sizes) as size}
                 <button

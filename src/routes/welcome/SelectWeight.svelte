@@ -48,7 +48,7 @@
     <p class="text-secondary/80">
         Knowing your weight helps us calculate your optimal hydration needs.
     </p>
-    <div class="flex flex-col flex-1 w-full justify-center items-center">
+    <div class="flex flex-col flex-1 w-full justify-center items-center mt-7">
         <div class="flex h-16 text-2xl items-center rounded-xl bg-secondary/20 pl-3 outline-1 -outline-offset-1 outline-gray-300">
             <input
                     bind:value={() =>  (weightInKg === 0) ? "" : WeightConverter.to(weightInKg, measureSystem), (v) => {weightInKg = WeightConverter.to(limitNumber(String(v), 4), measureSystem)}}

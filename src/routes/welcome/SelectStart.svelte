@@ -9,7 +9,7 @@
         <div class="flex justify-center">
             <img alt="welcome" class="w-96" src={welcomePath}/>
         </div>
-        <div>
+        <div class="mt-7">
             <h2 class="text-2xl text-secondary">Welcome to</h2>
             <h1 class="text-4xl text-primary text-left mb-2">Drink Now!</h1>
             <p class="text-white/80">

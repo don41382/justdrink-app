@@ -5,7 +5,11 @@
     import type {GenderType} from "../../bindings";
     import {allGender, imagePath} from "./Gender";
 
-    let { selectedGender = $bindable(), weightInKg = $bindable(), genderImages } : { selectedGender: GenderType | undefined, weightInKg: number | undefined, genderImages: GenderImages} = $props();
+    let {selectedGender = $bindable(), weightInKg = $bindable(), genderImages}: {
+        selectedGender: GenderType | undefined,
+        weightInKg: number | undefined,
+        genderImages: GenderImages
+    } = $props();
 
     function select(gender: GenderType) {
         weightInKg = WeightConverter.defaultWeightByGender(gender)
@@ -18,13 +22,13 @@
 
 </script>
 
-<div class="flex-col w-full">
-    <div class="flex-none flex-col">
-        <h1 class="text-4xl text-primary text-left mb-2">Your Gender</h1>
-        <p class="text-secondary/80">
-            Choose the gender that best represents you.
-        </p>
-        <div class="flex space-x-2 justify-center items-stretch mt-8">
+<div class="flex flex-col w-full h-full">
+    <h1 class="text-4xl text-primary text-left mb-2">Your Gender</h1>
+    <p class="text-secondary/80">
+        Choose the gender that best represents you.
+    </p>
+    <div class="flex flex-col grow items-center justify-center mt-7">
+        <div class="flex space-x-2 justify-center items-stretch">
             {#each allGender as gender}
                 <button
                         onclick={() => select(gender)}

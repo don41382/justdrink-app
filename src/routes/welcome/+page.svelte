@@ -132,7 +132,7 @@
 
 
 <AutoSize
-        class="flex flex-col bg-accent w-[650px] h-[450px] px-12 justify-center cursor-default rounded-2xl"
+        class="flex flex-col bg-accent min-w-[650px] min-h-[450px] px-12 justify-center cursor-default rounded-2xl"
         ready={true}>
 
     <!-- Progress Bar -->
