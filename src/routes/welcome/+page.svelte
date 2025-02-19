@@ -21,8 +21,18 @@
     let {data} = $props();
 
     type WelcomeStep = "Start" | "GenderType" | "Weight" | "DrinkAmount" | "SipSize" | "Reminder" | "Finish"
-    let steps: WelcomeStep[] = ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Finish"];
-    let currentStep: WelcomeStep = $state("Start")
+
+    function getSteps(): WelcomeStep[] {
+        switch (data.welcomeMode) {
+            case "Complete":
+                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Finish"];
+            case "OnlySipSettings":
+                return ["GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"];
+        }
+    }
+
+    let steps: WelcomeStep[] = getSteps()
+    let currentStep: WelcomeStep = $state(steps.at(0) ?? "Start")
 
     let defaultGender = GenderType.Female
     let defaultDrinkCharacter: DrinkCharacter = "YoungMan"
@@ -61,24 +71,38 @@
         const currentIndex = steps.indexOf(currentStep);
         if (currentIndex < steps.length - 1) {
             currentStep = steps[currentIndex + 1];
-        } else if (steps[currentIndex] == "Finish") {
-            info(`start first session, email: ${email}, consent: ${consent}`)
-            enable()
-            commands.welcomeFinish(
-                email,
-                {
-                    next_break_duration_minutes: drinkBreakMin,
-                    character: selectedDrinkCharacter ?? defaultDrinkCharacter,
-                    consent: consent,
-                    sip_size: selectedSipSize,
-                    drink_amount_ml: drinkAmount,
-                    active: true,
-                    allow_tracking: true,
-                    enable_idle_detection: true,
-                    beta_version: false,
-                    enable_on_startup: true
-                }
-            )
+        } else if (steps[currentIndex] == steps.at(steps.length-1)) {
+            switch (data.welcomeMode) {
+                case "Complete":
+                    info(`start first session, email: ${email}, consent: ${consent}`)
+                    enable()
+                    commands.welcomeFinish(
+                        email,
+                        {
+                            next_break_duration_minutes: drinkBreakMin,
+                            character: selectedDrinkCharacter ?? defaultDrinkCharacter,
+                            consent: consent,
+                            sip_size: selectedSipSize,
+                            drink_amount_ml: drinkAmount,
+                            active: true,
+                            allow_tracking: true,
+                            enable_idle_detection: true,
+                            beta_version: false,
+                            enable_on_startup: true
+                        }
+                    )
+                    break;
+                case "OnlySipSettings":
+                    info(`finish reset`)
+                    commands.welcomeFinishSipSettings(
+                        drinkBreakMin,
+                        drinkAmount,
+                        selectedSipSize,
+                        selectedDrinkCharacter ?? defaultDrinkCharacter,
+                    )
+                    break;
+
+            }
         }
     }
 
@@ -151,7 +175,7 @@
         {/if}
         <button class="bg-primary hover:bg-primary/50 text-black py-2 rounded-md px-8 ml-auto disabled:bg-primary/50"
                 disabled={!canStepNext()} onclick={next}>
-            {#if currentStep === "Finish"}
+            {#if steps[steps.indexOf(currentStep)] === steps.at(steps.length-1)}
                 Finish
             {:else}
                 Next

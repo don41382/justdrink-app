@@ -19,6 +19,7 @@ pub(crate) struct Tracking {
 #[derive(Debug)]
 pub enum Event {
     Install,
+    ResetSettings,
     DrinkReminder,
 }
 
@@ -26,6 +27,7 @@ impl Event {
     fn name(&self) -> String {
         match self {
             Event::Install => String::from("install"),
+            Event::ResetSettings => String::from("reset_settings"),
             Event::DrinkReminder => String::from("start_session"),
         }
     }
@@ -105,6 +107,10 @@ impl Tracking {
         } else {
             Err(anyhow::anyhow!("error sending tracking event: {}", json))
         }
+    }
+
+    pub fn device_id(&self) -> DeviceId {
+        self.machine_id.clone()
     }
 }
 

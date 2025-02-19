@@ -53,6 +53,12 @@ async updateSettings(settings: SettingsUserDetails) : Promise<null> {
 async openBrowser(url: string, close: boolean) : Promise<null> {
     return await TAURI_INVOKE("open_browser", { url, close });
 },
+async welcomeRedo() : Promise<void> {
+    await TAURI_INVOKE("welcome_redo");
+},
+async welcomeFinishSipSettings(nextBreakDurationMinutes: number, drinkAmountMl: number, sipSize: SipSize, character: DrinkCharacter) : Promise<void> {
+    await TAURI_INVOKE("welcome_finish_sip_settings", { nextBreakDurationMinutes, drinkAmountMl, sipSize, character });
+},
 async welcomeFinish(email: string | null, settings: SettingsUserDetails) : Promise<void> {
     await TAURI_INVOKE("welcome_finish", { email, settings });
 },
@@ -82,14 +88,16 @@ licenseResult: LicenseResult,
 sessionStartEvent: SessionStartEvent,
 settings: Settings,
 settingsUserDetails: SettingsUserDetails,
-timerStatus: TimerStatus
+timerStatus: TimerStatus,
+welcomeMode: WelcomeMode
 }>({
 countdownEvent: "countdown-event",
 licenseResult: "license-result",
 sessionStartEvent: "session-start-event",
 settings: "settings",
 settingsUserDetails: "settings-user-details",
-timerStatus: "timer-status"
+timerStatus: "timer-status",
+welcomeMode: "welcome-mode"
 })
 
 /** user-defined constants **/
@@ -114,6 +122,7 @@ export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
 export type SettingsUserDetails = { next_break_duration_minutes: number; drink_amount_ml: number; sip_size: SipSize; character: DrinkCharacter; consent: boolean; active: boolean; allow_tracking: boolean; enable_on_startup: boolean; beta_version: boolean; enable_idle_detection: boolean }
 export type SipSize = "BigSip" | "HalfCup" | "FullCup"
 export type TimerStatus = { NotStarted: number } | { Active: number } | { Paused: [PauseOrigin, number] } | "Finished"
+export type WelcomeMode = "Complete" | "OnlySipSettings"
 
 /** tauri-specta globals **/
 

@@ -5,6 +5,12 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri_specta::Event;
 
+#[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
+pub enum WelcomeMode {
+    Complete,
+    OnlySipSettings
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub enum SettingsTabs {
     Session,

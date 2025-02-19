@@ -11,12 +11,12 @@ mod dashboard_window;
 mod feedback_window;
 mod license_manager;
 mod session_window;
+mod settings_manager;
 mod settings_system;
 mod settings_window;
 mod subscription_manager;
 mod updater_window;
 mod welcome_window;
-mod settings_manager;
 
 use log::{info, warn};
 use serde_json::json;
@@ -30,6 +30,8 @@ use tauri::ActivationPolicy;
 use crate::countdown_timer::CountdownTimer;
 
 use crate::alert::Alert;
+use crate::model::settings::WelcomeMode;
+use crate::settings_manager::SettingsManager;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
 use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
@@ -37,7 +39,6 @@ use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
-use crate::settings_manager::SettingsManager;
 
 type FeedbackSenderState = feedback_window::FeedbackSender;
 // type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
@@ -63,6 +64,8 @@ pub fn run() {
             settings_window::load_settings,
             settings_window::update_settings,
             settings_window::open_browser,
+            welcome_window::welcome_redo,
+            welcome_window::welcome_finish_sip_settings,
             welcome_window::welcome_finish,
             alert::close_error_window,
             updater_window::updater_close,
@@ -73,6 +76,7 @@ pub fn run() {
         collect_events![
             model::event::SessionStartEvent,
             model::settings::Settings,
+            model::settings::WelcomeMode,
             model::settings::SettingsUserDetails,
             license_manager::LicenseResult,
             countdown_timer::CountdownEvent,
@@ -168,7 +172,10 @@ pub fn run() {
                     if dashboard_window::should_show_dashboard() {
                         show_dashboard(app.app_handle());
                     }
-                    app.state::<CountdownTimerState>().start(Duration::from_secs((settings.user.next_break_duration_minutes * 60) as u64));
+                    app.state::<CountdownTimerState>()
+                        .start(Duration::from_secs(
+                            (settings.user.next_break_duration_minutes * 60) as u64,
+                        ));
                     #[cfg(target_os = "macos")]
                     app.app_handle()
                         .set_activation_policy(ActivationPolicy::Accessory)
@@ -176,7 +183,7 @@ pub fn run() {
                 }
                 None => {
                     warn!("settings are missing, display welcome screen");
-                    welcome_window::show(app.app_handle(), &device_id)?;
+                    welcome_window::show(app.app_handle(), &device_id, WelcomeMode::Complete)?;
                 }
             }
 

@@ -1,14 +1,13 @@
 <script lang="ts">
     import {isEnabled, enable, disable} from "@tauri-apps/plugin-autostart";
-    import type {AppDetails, Settings, SettingsUserDetails} from '../../bindings';
+    import {type AppDetails, commands, type Settings, type SettingsUserDetails} from '../../bindings';
     import {formatDuration, sessionTimes} from "../session-times";
-    import {info} from "@tauri-apps/plugin-log";
+    import {error, info} from "@tauri-apps/plugin-log";
+    import {getCurrentWindow} from "@tauri-apps/api/window";
 
     export let user: SettingsUserDetails;
     export let app: AppDetails;
     export let updateSettings: (updatedSettings: SettingsUserDetails) => Promise<void>;
-
-    info(`settings-beta: ${user.beta_version}`)
 
     let next_break_duration_minutes: number = user.next_break_duration_minutes;
 
@@ -25,6 +24,12 @@
         }
         await updateSettings(user);
     }
+
+    async function welcome_redo() {
+        await getCurrentWindow().hide();
+        await commands.welcomeRedo();
+    }
+
 </script>
 
 <div class="flex-col space-y-6">
@@ -35,8 +40,8 @@
             <input bind:checked={user.active} class="toggle-checkbox" on:change={submit} type="checkbox">
         </label>
         <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
-            <div class="flex justify-between items-center">
-                <span class="text-gray-700">Drink Reminder</span>
+            <div class="flex justify-between">
+                <span class="text-gray-700">Next Drink Reminder</span>
                 <select bind:value={next_break_duration_minutes}
                         class="p-2 border rounded-l shadow-sm text-right text-black w-24"
                         on:change={submit}>
@@ -45,7 +50,14 @@
                     {/each}
                 </select>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Time until your next sip</p>
+
+            <div class="flex w-full justify-between">
+                <p class="text-gray-500 text-sm mt-1">Time until your next sip</p>
+                <button class="text-gray-500 text-sm underline hover:text-accent mt-1 text-right cursor-pointer"
+                        on:click={async () => await welcome_redo()}>
+                    Reset
+                </button>
+            </div>
         </label>
     </div>
     <h2 class="text-lg font-semibold text-gray-900">Advanced Settings</h2>
