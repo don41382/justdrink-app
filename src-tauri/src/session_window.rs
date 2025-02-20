@@ -57,12 +57,11 @@ pub fn show_session(
         .as_ref()
         .map(|s| s.demo_mode.clone())
         .unwrap_or(false);
-    if license_manager
+    if demo_mode || license_manager
         .try_lock()
         .expect("Could not lock license manager")
         .get_status(&app.app_handle(), false)
         .is_active()
-        || demo_mode
     {
         // stop current running timer
         info!("start session window: stop timer");

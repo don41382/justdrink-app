@@ -35,6 +35,7 @@
   },
   "bundle": {
     "category": "HealthcareAndFitness",
+    "shortDescription": "Drink Now!",
     "createUpdaterArtifacts": true,
     "windows": {
       "nsis": {
