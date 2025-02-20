@@ -17,7 +17,8 @@
       "https://*.drinknow.app",
       "https://*.tauri.app",
       "https://api.mixpanel.com",
-      "https://eu.aptabase.com"
+      "https://eu.aptabase.com",
+      "http://drinknow.test:8080"
     ]
   },
   "permissions": [
@@ -44,6 +45,7 @@
     "log:allow-log",
     "log:default",
     "fs:default",
+    "fs:allow-open",
     "os:default",
     "os:allow-platform",
     "os:default",
@@ -54,6 +56,29 @@
     "updater:allow-check",
     "updater:allow-download-and-install",
     "updater:allow-download",
-    "updater:allow-install"
+    "updater:allow-install",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "http://drinknow.test:8080"
+        },
+        {
+          "url": "https://drinknow.app"
+        },
+        {
+          "url": "https://js.stripe.com/**/*"
+        },
+        {
+          "url": "https://*.stripe.com/*"
+        },
+        {
+          "url": "https://*.hcaptcha.com/*"
+        },
+        {
+          "url": "https://*.paypal.com/*"
+        }
+      ]
+    }
   ]
 }

@@ -20,17 +20,22 @@
     import {WeightConverter} from "./WeightConverter";
     import SelectReminder from "./SelectReminder.svelte";
     import {Sip} from "./SipSize";
-    import {DrinkCharacters} from "../DrinkCharacters";
     import {sessionTimes} from "../session-times";
+    import SelectPayment from "./SelectPayment.svelte";
+    import {onMount} from "svelte";
+    import type {StripeExpressCheckoutElement, StripePaymentElement} from "@stripe/stripe-js";
+    import {fetchAndInitStripe} from "./StripePayment";
+
+    ;
 
     let {data} = $props();
 
-    type WelcomeStep = "Start" | "GenderType" | "Weight" | "DrinkAmount" | "SipSize" | "Reminder" | "Finish"
+    type WelcomeStep = "Start" | "GenderType" | "Weight" | "DrinkAmount" | "SipSize" | "Reminder" | "Purchase" | "Finish"
 
     function getSteps(): WelcomeStep[] {
         switch (data.welcomeMode) {
             case "Complete":
-                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Finish"];
+                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Purchase", "Finish"];
             case "OnlySipSettings":
                 return ["GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"];
         }
@@ -54,6 +59,8 @@
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
     let drinkBreakMin = $derived(roundToNearestSessionTime((12 * 60) / (drinkAmount / Sip.getMlForSize(selectedSipSize))))
 
+    let paymentElement: StripeExpressCheckoutElement | undefined = $state(undefined);
+
     function roundToNearestSessionTime(num: number): number {
         let closest = sessionTimes[0];
 
@@ -70,6 +77,11 @@
     $effect(() => {
         drinkAmount = CalculatedDrinkAmount.calc(gender ?? defaultGender, weightInKg)
         drinkAmountBasedOnGender = CalculatedDrinkAmount.calc(gender ?? defaultGender, weightInKg)
+    })
+
+    onMount(async () => {
+        await info("mount welcome")
+        // paymentElement = await fetchAndInitStripe()
     })
 
     function next() {
@@ -132,7 +144,7 @@
 
 
 <AutoSize
-        class="flex flex-col bg-accent min-w-[650px] min-h-[450px] px-12 justify-center cursor-default rounded-2xl"
+        class="flex flex-col bg-accent w-[650px] min-h-[450px] px-12 justify-center cursor-default rounded-2xl"
         ready={true}>
 
     <!-- Progress Bar -->
@@ -168,6 +180,8 @@
         {:else if currentStep === "Reminder"}
             <SelectReminder bind:selectedDrinkCharacter={selectedDrinkCharacter} sipSize={selectedSipSize}
                             reminderImages={data.reminderImages}/>
+        {:else if currentStep === "Purchase"}
+            <SelectPayment paymentElement={paymentElement}/>
         {:else if currentStep === "Finish"}
             <SelectEnd bind:email={email} bind:consent={consent} next={() => next()}/>
         {/if}
@@ -179,10 +193,12 @@
                 Back
             </button>
         {/if}
-        <button class="bg-primary hover:bg-primary/50 text-black py-2 rounded-md px-8 ml-auto disabled:bg-primary/50"
+        <button class="{(steps[steps.indexOf(currentStep)] === 'Purchase') ? 'bg-highlight' : 'bg-primary'} hover:{(steps[steps.indexOf(currentStep)] === 'Purchase') ? 'bg-highlight/50' : 'bg-primary/50'} text-black py-2 rounded-md px-8 ml-auto"
                 disabled={!canStepNext()} onclick={next}>
             {#if steps[steps.indexOf(currentStep)] === steps.at(steps.length-1)}
                 Finish
+            {:else if steps[steps.indexOf(currentStep)] === "Purchase"}
+                Try for 2,99 €
             {:else}
                 Next
             {/if}
