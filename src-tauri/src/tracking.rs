@@ -21,6 +21,7 @@ pub enum Event {
     Install,
     ResetSettings,
     DrinkReminder,
+    WelcomeQuit(String),
 }
 
 impl Event {
@@ -29,6 +30,7 @@ impl Event {
             Event::Install => String::from("install"),
             Event::ResetSettings => String::from("reset_settings"),
             Event::DrinkReminder => String::from("start_session"),
+            Event::WelcomeQuit(state) => String::from(format!("welcome_quit_{}", state)),
         }
     }
 }
@@ -69,7 +71,7 @@ impl Tracking {
             let event_data = json!([{
                 "event": event.name(),
                 "properties": {
-                    "token": "9f58d004510c838794b55947a21a4658",
+                    "token": "21c5f5354133116affaafe40b4d316db",
                     "app_version": self.app_version,
                     "platform": self.platform,
                     "arch": self.arch,

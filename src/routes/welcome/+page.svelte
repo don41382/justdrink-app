@@ -25,6 +25,8 @@
     import SelectSubscribe from "./SelectSubscribe.svelte";
     import SelectProduct from "./SelectProduct.svelte";
     import {StripePaymentInfo} from "./StripePaymentInfo.js";
+    import LoadingSpinner from "./LoadingSpinner.svelte";
+    import Icon from "@iconify/svelte";
 
     let {data} = $props();
 
@@ -90,25 +92,8 @@
 
     onMount(async () => {
         await info("mount welcome")
-        paymentInfo = StripePaymentInfo.fetchPaymentInfo();
+        await load();
     })
-
-    function finishWelcome() {
-        info(`start first session, email: ${email}, consent: ${consent}`)
-        enable()
-        commands.welcomeSave(
-            email,
-            consent,
-            {
-                next_break_duration_minutes: drinkBreakMin,
-                drink_amount_ml: drinkAmount,
-                sip_size: selectedSipSize,
-                character: selectedDrinkCharacter ?? initialDrinkCharacter,
-                gender_type: gender ?? initialGender,
-            }
-        )
-        commands.welcomeClose()
-    }
 
     function nextFinishWelcomeSettings() {
         info(`finish reset`)
@@ -124,7 +109,7 @@
             }
         )
         if (data.welcomeMode === "OnlySipSettings") {
-            commands.welcomeClose()
+            commands.welcomeClose(currentStep)
         } else {
             next()
         }
@@ -144,8 +129,12 @@
         }
     }
 
-    function load() {
+    async function load() {
+        paymentInfo = StripePaymentInfo.fetchPaymentInfo();
+    }
 
+    async function close() {
+        await commands.welcomeClose(currentStep)
     }
 
     const getProgress = () => (steps.indexOf(currentStep) / (steps.length - 1)) * 100;
@@ -164,16 +153,20 @@
         ></div>
     </div>
 
-    <div class="pt-8 mb-4">
+    <div class="flex pt-8 mb-4 justify-between items-center">
         <div class="flex items-center">
             <img alt="Drink Now!" class="size-12" src="{data.iconPath}">
             <p class="text-xl ml-2 text-primary">Drink Now!</p>
         </div>
+        <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-secondary/20 hover:text-white p-1"
+                onclick={async () => { await close() }}>
+            <Icon class="size-6" icon="iconoir:xmark"/>
+        </button>
     </div>
 
     {#await paymentInfo}
+        <LoadingSpinner/>
     {:then info}
-
         {#if currentStep === "Start"}
             <SelectStart welcomePath={data.welcomePath} next={next}/>
         {:else if currentStep === "GenderType"}
@@ -205,14 +198,11 @@
         <div class="flex-1">
             <div class="flex flex-col w-full h-full">
                 <h1 class="flex-none text-4xl text-primary text-left mb-2">Please try again</h1>
-                <p class="text-secondary/80 font-light">
-                    We have problems reaching the Drink Now! server.
-                </p>
-                <div class="flex flex-col flex-1 w-full justify-center items-center mt-7">
-
+                <div class="flex flex-col flex-1 w-full justify-center items-center">
                     <p class="text-highlight mt-4">We are unable to access the server. Please ensure that you have a
                         working internet connection.</p>
                     <p class="text-highlight/50 text-sm">Error reason: "{error}"</p>
+
                     <button class="bg-primary hover:bg-primary/50 text-black py-2 rounded-md px-8 ml-auto mt-4"
                             onclick={load}>Reload
                     </button>

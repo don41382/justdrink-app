@@ -24,7 +24,6 @@ where
         .decorations(false)
         .shadow(true)
         .resizable(false)
-        .skip_taskbar(false)
         .inner_size(1024.0, 768.0)
         .visible(false)
         .build()?;

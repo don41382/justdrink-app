@@ -65,8 +65,8 @@ async welcomeRedo() : Promise<void> {
 async welcomeSave(email: string | null, consent: boolean | null, settings: WelcomeSettings) : Promise<void> {
     await TAURI_INVOKE("welcome_save", { email, consent, settings });
 },
-async welcomeClose() : Promise<void> {
-    await TAURI_INVOKE("welcome_close");
+async welcomeClose(state: string) : Promise<void> {
+    await TAURI_INVOKE("welcome_close", { state });
 },
 async closeErrorWindow() : Promise<void> {
     await TAURI_INVOKE("close_error_window");

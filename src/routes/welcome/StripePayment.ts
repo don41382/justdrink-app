@@ -9,7 +9,12 @@ import {info} from "@tauri-apps/plugin-log";
 import type {StripeElementsOptionsMode} from "@stripe/stripe-js/dist/stripe-js/elements-group";
 
 export enum Status {
-    RequirePaymentMethod = "RequirePaymentMethod",
+    Canceled = "Canceled",
+    Processing = "Processing",
+    RequiresAction = "RequiresAction",
+    RequiresCapture = "RequiresCapture",
+    RequiresConfirmation = "RequiresConfirmation",
+    RequiresPaymentMethod = "RequiresPaymentMethod",
     Succeeded = "Succeeded"
 }
 
@@ -41,11 +46,11 @@ async function fetchPayment(email: string | null, deviceId: string): Promise<Pay
 export interface PaymentRequirePaymentMethodSetup {
     elements: StripeElements,
     paymentElement: StripePaymentElement,
-    status: Status.RequirePaymentMethod
+    status: Status.RequiresPaymentMethod
 }
 
 export interface PaymentSuccess {
-    status: Status.Succeeded
+    status: Status.Succeeded | Status.RequiresCapture
 }
 
 export type StripeResult = PaymentRequirePaymentMethodSetup | PaymentSuccess
@@ -71,7 +76,7 @@ export async function fetchAndInitStripe(email: string | null, deviceId: string)
 
 async function processPaymentIntent(stripe: Stripe, payment: PaymentResponse): Promise<PaymentRequirePaymentMethodSetup | PaymentSuccess> {
     switch (payment.status) {
-        case Status.RequirePaymentMethod:
+        case Status.RequiresPaymentMethod:
             const options: StripeElementsOptionsClientSecret = {
                 clientSecret: payment.clientSecret,
                 appearance: {
@@ -97,11 +102,15 @@ async function processPaymentIntent(stripe: Stripe, payment: PaymentResponse): P
             return {
                 elements: elements,
                 paymentElement: paymentElement,
-                status: Status.RequirePaymentMethod
+                status: Status.RequiresPaymentMethod
             }
         case Status.Succeeded:
             return {
                 status: Status.Succeeded
+            }
+        case Status.RequiresCapture:
+            return {
+                status: Status.RequiresCapture
             }
         default:
             throw new Error(`Unhandled payment status: ${payment.status}`);

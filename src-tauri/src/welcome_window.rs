@@ -3,8 +3,12 @@ use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
 use crate::model::settings::{SettingsUserDetails, WelcomeWizardMode};
 use crate::model::welcome::WelcomeSettings;
-use crate::settings_manager::{UserSettingsStore};
-use crate::{tracking, tray, CountdownTimerState, SettingsManagerState, SubscriptionManagerState, TrackingState};
+use crate::settings_manager::{SettingsManager, UserSettingsStore};
+use crate::tracking::Event;
+use crate::{
+    dashboard_window, tracking, tray, CountdownTimerState, SettingsManagerState,
+    SubscriptionManagerState, TrackingState,
+};
 use log::{info, warn};
 use std::time::Duration;
 #[cfg(target_os = "macos")]
@@ -18,6 +22,11 @@ pub fn show(
     device_id: &DeviceId,
     welcome_mode: WelcomeWizardMode,
 ) -> Result<(), anyhow::Error> {
+    #[cfg(target_os = "macos")]
+    app.app_handle()
+        .set_activation_policy(ActivationPolicy::Regular)
+        .expect("switch to regular app");
+
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
         window.set_focus()?;
         return Ok(());
@@ -35,7 +44,6 @@ pub fn show(
     .decorations(false)
     .resizable(false)
     .shadow(true)
-    .skip_taskbar(false)
     .visible(false)
     .build()?;
 
@@ -87,8 +95,8 @@ pub fn welcome_save(
     settings: WelcomeSettings,
     settings_manager: State<SettingsManagerState>,
     subscription_manager: State<SubscriptionManagerState>,
+    timer: State<'_, CountdownTimerState>,
 ) {
-
     tray::show_tray_icon(app.app_handle());
 
     if let Some(consent) = consent {
@@ -125,23 +133,6 @@ pub fn welcome_save(
             Some(err),
             false)
     );
-}
-
-#[specta::specta]
-#[tauri::command]
-pub fn welcome_close(
-    app: AppHandle,
-    settings_manager: State<SettingsManagerState>,
-    timer: State<'_, CountdownTimerState>,
-) {
-    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
-        window.destroy().expect("welcome window should be visible");
-    }
-
-    #[cfg(target_os = "macos")]
-    app.app_handle()
-        .set_activation_policy(ActivationPolicy::Accessory)
-        .expect("should allow to start app as accessory");
 
     match settings_manager.get_settings() {
         None => {
@@ -152,6 +143,34 @@ pub fn welcome_close(
                 (s.user.next_break_duration_minutes * 60) as u64,
             ));
         }
+    }
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn welcome_close(
+    app: AppHandle,
+    settings_manager: State<'_, SettingsManager>,
+    tracking: State<'_, TrackingState>,
+    state: String,
+) {
+    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+        window.destroy().expect("welcome window should be visible");
+    }
+
+    info!("close welcome, state: {}", state);
+
+    tracking.send_tracking(Event::WelcomeQuit(state));
+
+    if let None = settings_manager.get_settings() {
+        info!("quitting app, if configuration not finished yet.");
+        app.exit(0);
+    } else {
+        dashboard_window::show(app.app_handle()).expect("should show dashboard after welcome");
+        #[cfg(target_os = "macos")]
+        app.app_handle()
+            .set_activation_policy(ActivationPolicy::Accessory)
+            .expect("switch back to accessory");
     }
 }
 
