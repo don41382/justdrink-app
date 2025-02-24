@@ -1,12 +1,10 @@
 use crate::alert::Alert;
 use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
-use crate::model::session::{DrinkCharacter, SipSize};
-use crate::model::settings::{SettingsUserDetails, WelcomeMode};
-use crate::{
-    tracking, CountdownTimerState, SettingsManagerState,
-    SubscriptionManagerState, TrackingState,
-};
+use crate::model::settings::{SettingsUserDetails, WelcomeWizardMode};
+use crate::model::welcome::WelcomeSettings;
+use crate::settings_manager::{UserSettingsStore};
+use crate::{tracking, tray, CountdownTimerState, SettingsManagerState, SubscriptionManagerState, TrackingState};
 use log::{info, warn};
 use std::time::Duration;
 #[cfg(target_os = "macos")]
@@ -18,7 +16,7 @@ const WINDOW_LABEL: &str = "welcome";
 pub fn show(
     app: &AppHandle,
     device_id: &DeviceId,
-    welcome_mode: WelcomeMode,
+    welcome_mode: WelcomeWizardMode,
 ) -> Result<(), anyhow::Error> {
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
         window.set_focus()?;
@@ -41,7 +39,7 @@ pub fn show(
     .visible(false)
     .build()?;
 
-    if welcome_mode == WelcomeMode::Complete {
+    if welcome_mode == WelcomeWizardMode::Complete {
         app.state::<TrackingState>()
             .send_tracking(tracking::Event::Install);
         open_thank_you(device_id);
@@ -55,12 +53,20 @@ pub fn show(
 
 #[specta::specta]
 #[tauri::command]
+pub fn welcome_load_settings(
+    settings_manager: State<'_, SettingsManagerState>,
+) -> Option<SettingsUserDetails> {
+    settings_manager.get_settings().map(|s| s.user)
+}
+
+#[specta::specta]
+#[tauri::command]
 pub fn welcome_redo(app: AppHandle, tracking: State<TrackingState>) {
     info!("start welcome redo");
     show(
         app.app_handle(),
         &tracking.device_id(),
-        WelcomeMode::OnlySipSettings,
+        WelcomeWizardMode::OnlySipSettings,
     )
     .unwrap_or_else(|err| {
         app.alert(
@@ -74,82 +80,79 @@ pub fn welcome_redo(app: AppHandle, tracking: State<TrackingState>) {
 
 #[specta::specta]
 #[tauri::command]
-pub fn welcome_finish_sip_settings(
-    app: AppHandle,
-    next_break_duration_minutes: u32,
-    drink_amount_ml: u32,
-    sip_size: SipSize,
-    character: DrinkCharacter,
-    timer: State<'_, CountdownTimerState>,
-    settings_manager: State<SettingsManagerState>,
-) {
-    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
-        window.destroy().expect("welcome window should be visible");
-    }
-
-    if let Some(settings) = settings_manager.get_settings() {
-        settings_manager.update_user(SettingsUserDetails {
-            next_break_duration_minutes,
-            drink_amount_ml,
-            sip_size,
-            character,
-            ..settings.user.clone()
-        }).unwrap_or_else(|err|
-            app.alert(
-                "Error while saving",
-                "I am sorry, I am unable to save your settings. Please contact Rocket Solutions for support.",
-                Some(err),
-                false)
-        );
-
-        timer.start(Duration::from_secs(
-            (next_break_duration_minutes * 60) as u64,
-        ));
-    }
-}
-
-#[specta::specta]
-#[tauri::command]
-pub fn welcome_finish(
+pub fn welcome_save(
     app: AppHandle,
     email: Option<String>,
-    settings: SettingsUserDetails,
+    consent: Option<bool>,
+    settings: WelcomeSettings,
     settings_manager: State<SettingsManagerState>,
-    timer: State<'_, CountdownTimerState>,
     subscription_manager: State<SubscriptionManagerState>,
 ) {
-    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
-        window.destroy().expect("welcome window should be visible");
+
+    tray::show_tray_icon(app.app_handle());
+
+    if let Some(consent) = consent {
+        subscription_manager
+            .subscribe(email, consent)
+            .unwrap_or_else(|err| {
+                app.alert(
+                    "Can't subscribe",
+                    "There was an error while subscribing",
+                    Some(err),
+                    true,
+                )
+            });
     }
-    subscription_manager
-        .subscribe(email, settings.consent)
-        .unwrap_or_else(|err| {
-            app.alert(
-                "Can't subscribe",
-                "There was an error while subscribing",
-                Some(err),
-                true,
-            )
-        });
 
-    // switch to Accessory mode
-    #[cfg(target_os = "macos")]
-    app.app_handle()
-        .set_activation_policy(ActivationPolicy::Accessory)
-        .expect("should allow to start app as accessory");
-
-    timer.start(Duration::from_secs(
-        (settings.next_break_duration_minutes * 60) as u64,
-    ));
+    let current_settings = settings_manager
+        .get_settings()
+        .unwrap_or(UserSettingsStore::default())
+        .user;
 
     // save settings
-    settings_manager.update_user(settings).unwrap_or_else(|err|
+    settings_manager.update_user(SettingsUserDetails {
+        next_break_duration_minutes: settings.next_break_duration_minutes,
+        drink_amount_ml: settings.drink_amount_ml,
+        sip_size: settings.sip_size,
+        character: settings.character,
+        gender_type: settings.gender_type,
+        consent: consent.unwrap_or(current_settings.consent),
+        ..current_settings
+    }).unwrap_or_else(|err|
         app.alert(
             "Error while saving",
             "I am sorry, I am unable to save your settings. Please contact Rocket Solutions for support.",
             Some(err),
             false)
     );
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn welcome_close(
+    app: AppHandle,
+    settings_manager: State<SettingsManagerState>,
+    timer: State<'_, CountdownTimerState>,
+) {
+    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+        window.destroy().expect("welcome window should be visible");
+    }
+
+    #[cfg(target_os = "macos")]
+    app.app_handle()
+        .set_activation_policy(ActivationPolicy::Accessory)
+        .expect("should allow to start app as accessory");
+
+    match settings_manager.get_settings() {
+        None => {
+            warn!("no settings saved, can't start timer")
+        }
+        Some(s) => {
+            timer.start(Duration::from_secs(
+                (s.user.next_break_duration_minutes * 60) as u64,
+            ));
+        }
+    }
 }
 
 pub fn open_thank_you(device_id: &DeviceId) {

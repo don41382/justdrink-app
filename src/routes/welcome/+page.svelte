@@ -1,13 +1,11 @@
 <script lang="ts">
     import AutoSize from "../AutoSize.svelte";
-    import SelectEnd from "./SelectEnd.svelte";
     import SelectStart from "./SelectStart.svelte";
     import {enable} from "@tauri-apps/plugin-autostart";
     import {
         commands,
         type DrinkCharacter,
         type GenderType,
-        type SettingsUserDetails,
         type SipSize
     } from "../../bindings";
     import {info} from "@tauri-apps/plugin-log";
@@ -23,43 +21,54 @@
     import {sessionTimes} from "../session-times";
     import SelectPayment from "./SelectPayment.svelte";
     import {onMount} from "svelte";
-    import type {StripeExpressCheckoutElement, StripePaymentElement} from "@stripe/stripe-js";
-    import {fetchAndInitStripe} from "./StripePayment";
-
-    ;
+    import {fetchAndInitStripe, type StripeSetup} from "./StripePayment";
+    import SelectSubscribe from "./SelectSubscribe.svelte";
+    import SelectProduct from "./SelectProduct.svelte";
+    import {StripePaymentInfo} from "./StripePaymentInfo.js";
 
     let {data} = $props();
 
-    type WelcomeStep = "Start" | "GenderType" | "Weight" | "DrinkAmount" | "SipSize" | "Reminder" | "Purchase" | "Finish"
+    type WelcomeStep =
+        "Start"
+        | "GenderType"
+        | "Weight"
+        | "DrinkAmount"
+        | "SipSize"
+        | "Reminder"
+        | "Subscribe"
+        | "Product"
+        | "Purchase"
 
     function getSteps(): WelcomeStep[] {
         switch (data.welcomeMode) {
             case "Complete":
-                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Purchase", "Finish"];
+                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Subscribe", "Product", "Purchase"]
             case "OnlySipSettings":
-                return ["GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"];
+                return ["GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"]
+            case "OnlyPayment":
+                return ["Purchase"]
         }
     }
 
     let steps: WelcomeStep[] = getSteps()
     let currentStep: WelcomeStep = $state(steps.at(0) ?? "Start")
 
-    let defaultGender: GenderType = "Female"
-    let defaultDrinkCharacter: DrinkCharacter = "YoungMan"
+    let initialGender: GenderType = data.settings?.gender_type ?? "Female"
+    let initialDrinkCharacter: DrinkCharacter = data.settings?.character ?? "YoungMan"
 
     let email: string | null = $state(null);
     let consent: boolean = $state(true);
 
     let measureSystem = $state(MeasureSystem.getMeasureSystem());
     let gender: GenderType | undefined = $state()
-    let weightInKg: number = $state(WeightConverter.defaultWeightByGender(defaultGender))
+    let weightInKg: number = $state(WeightConverter.defaultWeightByGender(initialGender))
     let drinkAmount: number = $state(0)
     let drinkAmountBasedOnGender: number = $state(0)
     let selectedSipSize: SipSize = $state("BigSip")
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
     let drinkBreakMin = $derived(roundToNearestSessionTime((12 * 60) / (drinkAmount / Sip.getMlForSize(selectedSipSize))))
 
-    let paymentElement: StripeExpressCheckoutElement | undefined = $state(undefined);
+    let paymentInfo: Promise<StripePaymentInfo.Info> = $state(Promise.reject("stripe was not initialized yet"));
 
     function roundToNearestSessionTime(num: number): number {
         let closest = sessionTimes[0];
@@ -75,52 +84,56 @@
     }
 
     $effect(() => {
-        drinkAmount = CalculatedDrinkAmount.calc(gender ?? defaultGender, weightInKg)
-        drinkAmountBasedOnGender = CalculatedDrinkAmount.calc(gender ?? defaultGender, weightInKg)
+        drinkAmount = CalculatedDrinkAmount.calc(gender ?? initialGender, weightInKg)
+        drinkAmountBasedOnGender = CalculatedDrinkAmount.calc(gender ?? initialGender, weightInKg)
     })
 
     onMount(async () => {
         await info("mount welcome")
-        // paymentElement = await fetchAndInitStripe()
+        paymentInfo = StripePaymentInfo.fetchPaymentInfo();
     })
+
+    function finishWelcome() {
+        info(`start first session, email: ${email}, consent: ${consent}`)
+        enable()
+        commands.welcomeSave(
+            email,
+            consent,
+            {
+                next_break_duration_minutes: drinkBreakMin,
+                drink_amount_ml: drinkAmount,
+                sip_size: selectedSipSize,
+                character: selectedDrinkCharacter ?? initialDrinkCharacter,
+                gender_type: gender ?? initialGender,
+            }
+        )
+        commands.welcomeClose()
+    }
+
+    function nextFinishWelcomeSettings() {
+        info(`finish reset`)
+        commands.welcomeSave(
+            null,
+            null,
+            {
+                next_break_duration_minutes: drinkBreakMin,
+                drink_amount_ml: drinkAmount,
+                sip_size: selectedSipSize,
+                character: selectedDrinkCharacter ?? initialDrinkCharacter,
+                gender_type: gender ?? initialGender,
+            }
+        )
+        if (data.welcomeMode === "OnlySipSettings") {
+            commands.welcomeClose()
+        } else {
+            next()
+        }
+    }
 
     function next() {
         const currentIndex = steps.indexOf(currentStep);
         if (currentIndex < steps.length - 1) {
             currentStep = steps[currentIndex + 1];
-        } else if (steps[currentIndex] == steps.at(steps.length-1)) {
-            switch (data.welcomeMode) {
-                case "Complete":
-                    info(`start first session, email: ${email}, consent: ${consent}`)
-                    enable()
-                    commands.welcomeFinish(
-                        email,
-                        {
-                            next_break_duration_minutes: drinkBreakMin,
-                            character: selectedDrinkCharacter ?? defaultDrinkCharacter,
-                            consent: consent,
-                            sip_size: selectedSipSize,
-                            gender_type: gender ?? defaultGender,
-                            drink_amount_ml: drinkAmount,
-                            active: true,
-                            allow_tracking: true,
-                            enable_idle_detection: true,
-                            beta_version: false,
-                            enable_on_startup: true
-                        }
-                    )
-                    break;
-                case "OnlySipSettings":
-                    info(`finish reset`)
-                    commands.welcomeFinishSipSettings(
-                        drinkBreakMin,
-                        drinkAmount,
-                        selectedSipSize,
-                        selectedDrinkCharacter ?? defaultDrinkCharacter,
-                    )
-                    break;
-
-            }
         }
     }
 
@@ -131,12 +144,8 @@
         }
     }
 
-    function canStepNext(): boolean {
-        if (currentStep === "Reminder" && !selectedDrinkCharacter) {
-            return false
-        } else {
-            return true
-        }
+    function load() {
+
     }
 
     const getProgress = () => (steps.indexOf(currentStep) / (steps.length - 1)) * 100;
@@ -162,46 +171,53 @@
         </div>
     </div>
 
+    {#await paymentInfo}
+    {:then info}
 
-    <div class="flex-1">
         {#if currentStep === "Start"}
-            <SelectStart welcomePath={data.welcomePath}/>
+            <SelectStart welcomePath={data.welcomePath} next={next}/>
         {:else if currentStep === "GenderType"}
-            <SelectGender bind:selectedGender={gender} bind:weightInKg={weightInKg} genderImages={data.genderImages}/>
+            <SelectGender bind:selectedGender={gender} bind:weightInKg={weightInKg} genderImages={data.genderImages}
+                          back={back} next={next}/>
         {:else if currentStep === "Weight"}
-            <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg}/>
+            <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg} back={back} next={next}/>
         {:else if currentStep === "DrinkAmount"}
             <SelectDrinkAmountPerDay bind:drinkAmount={drinkAmount} measureSystem={measureSystem}
-                                     min={drinkAmountBasedOnGender - 500} max={drinkAmountBasedOnGender + 500}/>
+                                     min={drinkAmountBasedOnGender - 500} max={drinkAmountBasedOnGender + 500}
+                                     back={back} next={next}/>
         {:else if currentStep === "SipSize"}
             <SelectSipSize sipImages={data.sipImages} bind:selectedSipSize={selectedSipSize}
                            drinkBreakMin={drinkBreakMin}
-                           measureSystem={measureSystem}/>
+                           measureSystem={measureSystem} back={back} next={next}/>
         {:else if currentStep === "Reminder"}
             <SelectReminder bind:selectedDrinkCharacter={selectedDrinkCharacter} sipSize={selectedSipSize}
-                            reminderImages={data.reminderImages}/>
+                            reminderImages={data.reminderImages} back={back}
+                            next={nextFinishWelcomeSettings}/>
+        {:else if currentStep === "Subscribe"}
+            <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
+        {:else if currentStep === "Product"}
+            <SelectProduct paymentInfo={info} back={back} next={next}/>
         {:else if currentStep === "Purchase"}
-            <SelectPayment paymentElement={paymentElement}/>
-        {:else if currentStep === "Finish"}
-            <SelectEnd bind:email={email} bind:consent={consent} next={() => next()}/>
+            <SelectPayment paymentInfo={info} email={email} deviceId={data.deviceId}
+                           welcomeWizardMode={data.welcomeMode} back={back}/>
         {/if}
-    </div>
+    {:catch error}
+        <div class="flex-1">
+            <div class="flex flex-col w-full h-full">
+                <h1 class="flex-none text-4xl text-primary text-left mb-2">Please try again</h1>
+                <p class="text-secondary/80 font-light">
+                    We have problems reaching the Drink Now! server.
+                </p>
+                <div class="flex flex-col flex-1 w-full justify-center items-center mt-7">
 
-    <div class="flex w-full pb-10">
-        {#if currentStep !== steps.at(0)}
-            <button class="text-secondary/30 py-2 rounded-md" onclick={back}>
-                Back
-            </button>
-        {/if}
-        <button class="{(steps[steps.indexOf(currentStep)] === 'Purchase') ? 'bg-highlight' : 'bg-primary'} hover:{(steps[steps.indexOf(currentStep)] === 'Purchase') ? 'bg-highlight/50' : 'bg-primary/50'} text-black py-2 rounded-md px-8 ml-auto"
-                disabled={!canStepNext()} onclick={next}>
-            {#if steps[steps.indexOf(currentStep)] === steps.at(steps.length-1)}
-                Finish
-            {:else if steps[steps.indexOf(currentStep)] === "Purchase"}
-                Try for 2,99 €
-            {:else}
-                Next
-            {/if}
-        </button>
-    </div>
+                    <p class="text-highlight mt-4">We are unable to access the server. Please ensure that you have a
+                        working internet connection.</p>
+                    <p class="text-highlight/50 text-sm">Error reason: "{error}"</p>
+                    <button class="bg-primary hover:bg-primary/50 text-black py-2 rounded-md px-8 ml-auto mt-4"
+                            onclick={load}>Reload
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/await}
 </AutoSize>

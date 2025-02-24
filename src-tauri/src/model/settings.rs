@@ -6,9 +6,10 @@ use specta::Type;
 use tauri_specta::Event;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
-pub enum WelcomeMode {
+pub enum WelcomeWizardMode {
     Complete,
-    OnlySipSettings
+    OnlySipSettings,
+    OnlyPayment
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
@@ -29,7 +30,7 @@ pub struct Settings {
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct AppDetails {
     pub(crate) version: String,
-    pub(crate) license_info: LicenseInfo,
+    pub(crate) license_info: LicenseInfo
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]

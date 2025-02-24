@@ -30,7 +30,7 @@ use tauri::ActivationPolicy;
 use crate::countdown_timer::CountdownTimer;
 
 use crate::alert::Alert;
-use crate::model::settings::WelcomeMode;
+use crate::model::settings::WelcomeWizardMode;
 use crate::settings_manager::SettingsManager;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
@@ -62,11 +62,13 @@ pub fn run() {
             session_window::end_session,
             settings_window::open_settings,
             settings_window::load_settings,
+            settings_window::get_device_id,
             settings_window::update_settings,
             settings_window::open_browser,
+            welcome_window::welcome_load_settings,
             welcome_window::welcome_redo,
-            welcome_window::welcome_finish_sip_settings,
-            welcome_window::welcome_finish,
+            welcome_window::welcome_save,
+            welcome_window::welcome_close,
             alert::close_error_window,
             updater_window::updater_close,
             license_manager::settings_register_license,
@@ -76,7 +78,7 @@ pub fn run() {
         collect_events![
             model::event::SessionStartEvent,
             model::settings::Settings,
-            model::settings::WelcomeMode,
+            model::settings::WelcomeWizardMode,
             model::settings::SettingsUserDetails,
             license_manager::LicenseResult,
             countdown_timer::CountdownEvent,
@@ -167,8 +169,11 @@ pub fn run() {
                 app.app_handle(),
             )));
 
+            tray::create_tray(app.handle())?;
+
             match app.state::<SettingsManagerState>().get_settings() {
                 Some(settings) => {
+                    tray::show_tray_icon(app.app_handle());
                     if dashboard_window::should_show_dashboard() {
                         show_dashboard(app.app_handle());
                     }
@@ -183,14 +188,12 @@ pub fn run() {
                 }
                 None => {
                     warn!("settings are missing, display welcome screen");
-                    welcome_window::show(app.app_handle(), &device_id, WelcomeMode::Complete)?;
+                    welcome_window::show(app.app_handle(), &device_id, WelcomeWizardMode::Complete)?;
                 }
             }
 
             session_window::init(app.app_handle())?;
             detect_idling::init(app.app_handle())?;
-
-            tray::create_tray(app.handle())?;
 
             let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {

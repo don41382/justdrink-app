@@ -1,14 +1,15 @@
 import type {PageLoad} from './$types';
 import {loadAppIcon, loadImage} from "../../app";
-import type {WelcomeMode} from "../../bindings";
+import {commands, type SettingsUserDetails, type WelcomeSettings, type WelcomeWizardMode} from "../../bindings";
+import {info} from "@tauri-apps/plugin-log";
 
 export type GenderImages = { male: string, female: string, other: string }
 export type SipImages = { full: string, half: string, sip3: string, sip2: string, sip1: string }
 export type ReminderImages = { woman: string, man: string }
 
-function getMode(): WelcomeMode {
+function getMode(): WelcomeWizardMode {
     let mode = new URLSearchParams(window.location.search).get("mode");
-    if (mode === "Complete" || mode === "OnlySipSettings") {
+    if (mode === "Complete" || mode === "OnlySipSettings" || mode === "OnlyPayment") {
         return mode;
     } else {
         return "Complete";
@@ -19,14 +20,19 @@ function getMode(): WelcomeMode {
 /** @type {import('./$types').PageLoad} */
 export const load: PageLoad = async (): Promise<{
     iconPath: string,
+    deviceId: string,
+    settings: WelcomeSettings | null,
+    welcomeMode: WelcomeWizardMode,
     welcomePath: string,
-    welcomeMode: WelcomeMode,
     genderImages: GenderImages,
     sipImages: SipImages,
     reminderImages: ReminderImages
 }> => {
+    await info("welcome load")
     return {
         iconPath: await loadAppIcon(),
+        deviceId: await commands.getDeviceId(),
+        settings: await commands.welcomeLoadSettings(),
         welcomePath: await loadImage("welcome/dn-water-glass.png"),
         welcomeMode: getMode(),
         genderImages:

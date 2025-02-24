@@ -1,9 +1,7 @@
 use crate::alert::Alert;
-use crate::model::settings::{SettingsTabs};
+use crate::model::settings::SettingsTabs;
 use crate::settings_manager::UserSettingsStore;
-use crate::{
-    model, CountdownTimerState, LicenseManagerState, SettingsManagerState
-};
+use crate::{model, CountdownTimerState, LicenseManagerState, SettingsManagerState, TrackingState};
 use log::info;
 use std::string::ToString;
 use std::time::Duration;
@@ -56,6 +54,12 @@ pub fn load_settings(
 
 #[specta::specta]
 #[tauri::command]
+pub fn get_device_id(tracking: State<'_, TrackingState>) -> String {
+    tracking.device_id().get_hash_hex_id()
+}
+
+#[specta::specta]
+#[tauri::command]
 pub fn update_settings(
     app_handle: AppHandle,
     settings: model::settings::SettingsUserDetails,
@@ -70,15 +74,17 @@ pub fn update_settings(
         timer.stop();
     }
 
-    settings_manager.update_user(settings).unwrap_or_else(|err| {
-        app_handle.alert(
-            "Failed to update settings",
-            "Drink Now! is unable to update settings.",
-            Some(err),
-            false,
-        );
-        ()
-    });
+    settings_manager
+        .update_user(settings)
+        .unwrap_or_else(|err| {
+            app_handle.alert(
+                "Failed to update settings",
+                "Drink Now! is unable to update settings.",
+                Some(err),
+                false,
+            );
+            ()
+        });
 }
 
 #[specta::specta]

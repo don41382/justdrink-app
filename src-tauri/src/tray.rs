@@ -74,7 +74,7 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
     )?;
 
     let tray_icon = tray_icon(main_app.app_handle())?;
-    let _tray = TrayIconBuilder::with_id(TRAY_ID)
+    let tray = TrayIconBuilder::with_id(TRAY_ID)
         .icon(tray_icon)
         .icon_as_template(true)
         .menu(&menu)
@@ -156,6 +156,8 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
         })
         .build(main_app)?;
 
+    tray.set_visible(false)?;
+
     let app_handle = main_app.clone();
     CountdownEvent::listen(main_app.app_handle(), move |event| {
         let timer_control_text = if event.payload.status.is_running() {
@@ -188,6 +190,15 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
     });
 
     Ok(())
+}
+
+pub fn show_tray_icon(app: &AppHandle) -> () {
+    app.tray_by_id(TRAY_ID)
+        .map(|tray| {
+            tray.set_visible(true)
+                .expect("should be able to set the tray icon to visible")
+        })
+        .expect("should be able to access the tray icon")
 }
 
 pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> tauri::Result<()> {
