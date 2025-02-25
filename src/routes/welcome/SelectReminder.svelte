@@ -5,12 +5,13 @@
     import {DrinkCharacters} from "../DrinkCharacters";
     import Navigation from "./Navigation.svelte";
 
-    let {selectedDrinkCharacter = $bindable(), sipSize, reminderImages, back, next}: {
+    let {selectedDrinkCharacter = $bindable(), sipSize, reminderImages, back, next, lastStep}: {
         selectedDrinkCharacter: undefined | DrinkCharacter,
         sipSize: SipSize,
         reminderImages: ReminderImages,
         back: () => void,
         next: () => void,
+        lastStep: boolean
     } = $props()
 
     function select(character: DrinkCharacter) {
@@ -58,4 +59,4 @@
             next={selectedDrinkCharacter === undefined ? (() => {}) : next}
             nextBackground="bg-primary"
             nextDisabled={selectedDrinkCharacter === undefined}
-            nextName="Next"/>
+            nextName={lastStep ? 'Finish' : 'Next'}/>

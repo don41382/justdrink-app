@@ -1,10 +1,6 @@
 use crate::alert::Alert;
-use crate::model::settings::SettingsTabs;
-use crate::{
-    countdown_timer, feedback_window, settings_window, tracking, updater_window,
-    CountdownTimerState, LicenseManagerState, SettingsManagerState, SettingsSystemState,
-    TrackingState,
-};
+use crate::model::settings::{WelcomeWizardMode};
+use crate::{countdown_timer, feedback_window, tracking, updater_window, welcome_window, CountdownTimerState, LicenseManagerState, SettingsManagerState, SettingsSystemState, TrackingState};
 use anyhow::Error;
 use core::clone::Clone;
 use log::info;
@@ -121,7 +117,7 @@ pub fn show_session(
             );
         }
     } else {
-        settings_window::show(app, SettingsTabs::License)?
+        welcome_window::show(app.app_handle(), &app.state::<TrackingState>().device_id(), WelcomeWizardMode::OnlyPayment)?;
     }
 
     Ok(())
@@ -154,7 +150,7 @@ pub(crate) fn days_between(
     end: chrono::DateTime<chrono::Utc>,
 ) -> i64 {
     let duration: chrono::Duration = end - start;
-    duration.num_days()
+    duration.num_days() + 1
 }
 
 #[specta::specta]

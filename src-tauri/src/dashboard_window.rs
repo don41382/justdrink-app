@@ -20,6 +20,7 @@ where
         )
         .title("Drink Now! - Dashboard")
         .center()
+            .focused(true)
         .transparent(true)
         .decorations(false)
         .shadow(true)

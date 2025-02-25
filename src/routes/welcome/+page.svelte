@@ -21,12 +21,12 @@
     import {sessionTimes} from "../session-times";
     import SelectPayment from "./SelectPayment.svelte";
     import {onMount} from "svelte";
-    import {fetchAndInitStripe, type StripeSetup} from "./StripePayment";
     import SelectSubscribe from "./SelectSubscribe.svelte";
     import SelectProduct from "./SelectProduct.svelte";
     import {StripePaymentInfo} from "./StripePaymentInfo.js";
     import LoadingSpinner from "./LoadingSpinner.svelte";
     import Icon from "@iconify/svelte";
+    import ThankYou from "./ThankYou.svelte";
 
     let {data} = $props();
 
@@ -40,20 +40,37 @@
         | "Subscribe"
         | "Product"
         | "Purchase"
+        | "ThankYou"
+
+    function getPaymentSteps(paymentStatus: StripePaymentInfo.PaymentStatus): WelcomeStep[] {
+        if (data.welcomeMode !== "OnlySipSettings") {
+            switch (paymentStatus) {
+                case StripePaymentInfo.PaymentStatus.PAID:
+                    return ["ThankYou"]
+                case StripePaymentInfo.PaymentStatus.START:
+                    return ["Subscribe", "Product", "Purchase", "ThankYou"]
+                case StripePaymentInfo.PaymentStatus.REQUIRE_INFO:
+                    return ["Purchase", "ThankYou"]
+            }
+        } else {
+            return []
+        }
+    }
 
     function getSteps(): WelcomeStep[] {
         switch (data.welcomeMode) {
             case "Complete":
-                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Subscribe", "Product", "Purchase"]
+                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"]
             case "OnlySipSettings":
                 return ["GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"]
             case "OnlyPayment":
-                return ["Purchase"]
+                return [];
         }
     }
 
-    let steps: WelcomeStep[] = getSteps()
+    let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(data.stripePaymentInfo.paymentStatus)))
     let currentStep: WelcomeStep = $state(steps.at(0) ?? "Start")
+    let lastStep: boolean = $derived(steps.indexOf(currentStep) === steps.length - 1)
 
     let initialGender: GenderType = data.settings?.gender_type ?? "Female"
     let initialDrinkCharacter: DrinkCharacter = data.settings?.character ?? "YoungMan"
@@ -69,8 +86,6 @@
     let selectedSipSize: SipSize = $state("BigSip")
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
     let drinkBreakMin = $derived(roundToNearestSessionTime((12 * 60) / (drinkAmount / Sip.getMlForSize(selectedSipSize))))
-
-    let paymentInfo: Promise<StripePaymentInfo.Info> = $state(Promise.reject("stripe was not initialized yet"));
 
     function roundToNearestSessionTime(num: number): number {
         let closest = sessionTimes[0];
@@ -91,8 +106,7 @@
     })
 
     onMount(async () => {
-        await info("mount welcome")
-        await load();
+        await info(`mount welcome, mode: ${data.welcomeMode}, paymentInfo: ${data.stripePaymentInfo.paymentStatus}`)
     })
 
     function nextFinishWelcomeSettings() {
@@ -108,7 +122,7 @@
                 gender_type: gender ?? initialGender,
             }
         )
-        if (data.welcomeMode === "OnlySipSettings") {
+        if (lastStep) {
             commands.welcomeClose(currentStep)
         } else {
             next()
@@ -127,10 +141,6 @@
         if (currentIndex > 0) {
             currentStep = steps[currentIndex - 1];
         }
-    }
-
-    async function load() {
-        paymentInfo = StripePaymentInfo.fetchPaymentInfo();
     }
 
     async function close() {
@@ -164,50 +174,33 @@
         </button>
     </div>
 
-    {#await paymentInfo}
-        <LoadingSpinner/>
-    {:then info}
-        {#if currentStep === "Start"}
-            <SelectStart welcomePath={data.welcomePath} next={next}/>
-        {:else if currentStep === "GenderType"}
-            <SelectGender bind:selectedGender={gender} bind:weightInKg={weightInKg} genderImages={data.genderImages}
-                          back={back} next={next}/>
-        {:else if currentStep === "Weight"}
-            <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg} back={back} next={next}/>
-        {:else if currentStep === "DrinkAmount"}
-            <SelectDrinkAmountPerDay bind:drinkAmount={drinkAmount} measureSystem={measureSystem}
-                                     min={drinkAmountBasedOnGender - 500} max={drinkAmountBasedOnGender + 500}
-                                     back={back} next={next}/>
-        {:else if currentStep === "SipSize"}
-            <SelectSipSize sipImages={data.sipImages} bind:selectedSipSize={selectedSipSize}
-                           drinkBreakMin={drinkBreakMin}
-                           measureSystem={measureSystem} back={back} next={next}/>
-        {:else if currentStep === "Reminder"}
-            <SelectReminder bind:selectedDrinkCharacter={selectedDrinkCharacter} sipSize={selectedSipSize}
-                            reminderImages={data.reminderImages} back={back}
-                            next={nextFinishWelcomeSettings}/>
-        {:else if currentStep === "Subscribe"}
-            <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
-        {:else if currentStep === "Product"}
-            <SelectProduct paymentInfo={info} back={back} next={next}/>
-        {:else if currentStep === "Purchase"}
-            <SelectPayment paymentInfo={info} email={email} deviceId={data.deviceId}
-                           welcomeWizardMode={data.welcomeMode} back={back}/>
-        {/if}
-    {:catch error}
-        <div class="flex-1">
-            <div class="flex flex-col w-full h-full">
-                <h1 class="flex-none text-4xl text-primary text-left mb-2">Please try again</h1>
-                <div class="flex flex-col flex-1 w-full justify-center items-center">
-                    <p class="text-highlight mt-4">We are unable to access the server. Please ensure that you have a
-                        working internet connection.</p>
-                    <p class="text-highlight/50 text-sm">Error reason: "{error}"</p>
-
-                    <button class="bg-primary hover:bg-primary/50 text-black py-2 rounded-md px-8 ml-auto mt-4"
-                            onclick={load}>Reload
-                    </button>
-                </div>
-            </div>
-        </div>
-    {/await}
+    {#if currentStep === "Start"}
+        <SelectStart welcomePath={data.welcomePath} next={next}/>
+    {:else if currentStep === "GenderType"}
+        <SelectGender bind:selectedGender={gender} bind:weightInKg={weightInKg} genderImages={data.genderImages}
+                      back={back} next={next}/>
+    {:else if currentStep === "Weight"}
+        <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg} back={back} next={next}/>
+    {:else if currentStep === "DrinkAmount"}
+        <SelectDrinkAmountPerDay bind:drinkAmount={drinkAmount} measureSystem={measureSystem}
+                                 min={drinkAmountBasedOnGender - 500} max={drinkAmountBasedOnGender + 500}
+                                 back={back} next={next}/>
+    {:else if currentStep === "SipSize"}
+        <SelectSipSize sipImages={data.sipImages} bind:selectedSipSize={selectedSipSize}
+                       drinkBreakMin={drinkBreakMin}
+                       measureSystem={measureSystem} back={back} next={next}/>
+    {:else if currentStep === "Reminder"}
+        <SelectReminder bind:selectedDrinkCharacter={selectedDrinkCharacter} sipSize={selectedSipSize}
+                        reminderImages={data.reminderImages} back={back}
+                        next={nextFinishWelcomeSettings} lastStep={lastStep}/>
+    {:else if currentStep === "Subscribe"}
+        <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
+    {:else if currentStep === "Product"}
+        <SelectProduct paymentInfo={data.stripePaymentInfo} back={back} next={next}/>
+    {:else if currentStep === "Purchase"}
+        <SelectPayment paymentInfo={data.stripePaymentInfo} email={email} deviceId={data.deviceId}
+                       welcomeWizardMode={data.welcomeMode} back={back}/>
+    {:else if currentStep === "ThankYou"}
+        <ThankYou paymentInfo={data.stripePaymentInfo} next={next} back={back}/>
+    {/if}
 </AutoSize>
