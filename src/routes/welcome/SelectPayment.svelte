@@ -35,7 +35,7 @@
         })
     }
 
-    async function load() {
+    async function  load() {
         stripeSetup = fetchAndInitStripe(email, deviceId).then(async (setup) => {
             loading = false
             return setup

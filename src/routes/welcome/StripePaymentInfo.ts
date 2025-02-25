@@ -1,19 +1,30 @@
 import {fetch} from "@tauri-apps/plugin-http";
+import type {Status} from "./StripePayment";
 
 export namespace StripePaymentInfo {
 
     interface Response {
         price: number,
-        trialDays: string
+        trialDays: string,
+        paymentStatus: PaymentStatus,
+        paymentIntentId: string
+    }
+
+    export enum PaymentStatus {
+        PAID = "PAID",
+        START = "START",
+        REQUIRE_INFO = "REQUIRE_INFO"
     }
 
     export interface Info {
         trialDays: string,
-        priceFormatted: string
+        priceFormatted: string,
+        paymentStatus: PaymentStatus,
+        paymentIntentId: string
     }
 
-    export async function fetchPaymentInfo(): Promise<Info> {
-        const responseRaw = await fetch(`http://drinknow.test:8080/pricing/payment/info`, {
+    export async function fetchPaymentInfo(deviceId: string): Promise<Info> {
+        const responseRaw = await fetch(`http://drinknow.test:8080/pricing/payment/info/${deviceId}`, {
             method: 'GET'
         })
 
@@ -25,7 +36,9 @@ export namespace StripePaymentInfo {
 
         return {
             trialDays: response.trialDays,
-            priceFormatted: formatPrice(response.price)
+            priceFormatted: formatPrice(response.price),
+            paymentStatus: response.paymentStatus,
+            paymentIntentId: response.paymentIntentId
         }
     }
 
