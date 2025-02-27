@@ -333,6 +333,16 @@ impl LicenseManager {
         &mut self,
         app_handle: &AppHandle,
     ) -> Result<LicenseData, String> {
+        // only refresh, if not full or paid
+        if let Some(data) = self.status.as_ref() {
+            if matches!(
+                data.status,
+                LicenseStatus::Valid(ValidTypes::Paid(_)) | LicenseStatus::Valid(ValidTypes::Full)
+            ) {
+                return Ok(data.clone());
+            }
+        }
+
         match Self::validate(&self.client, &self.device_id) {
             Ok(license_data) => {
                 self.status = Some(license_data.clone());

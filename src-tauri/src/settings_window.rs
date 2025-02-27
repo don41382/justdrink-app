@@ -6,6 +6,7 @@ use log::info;
 use std::string::ToString;
 use std::time::Duration;
 use tauri::{AppHandle, Manager, Runtime, State, Window};
+use crate::app_config::AppConfig;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
@@ -49,6 +50,7 @@ pub fn load_settings(
             device_id: tracking.device_id().get_hash_hex_id(),
             version: version.unwrap_or("unknown".to_string()),
             license_data: license_data.to_model(),
+            url: AppConfig::build().get_url(),
         },
         user: settings.user,
         selected_tab: SettingsTabs::Session,
@@ -138,6 +140,7 @@ where
     .minimizable(false)
     .maximizable(false)
     .resizable(false)
+    .closable(true)
     .build()?;
 
     info!("start with new settings - done");

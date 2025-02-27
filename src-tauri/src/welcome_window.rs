@@ -3,7 +3,7 @@ use crate::app_config::AppConfig;
 use crate::license_manager::LicenseManager;
 use crate::model::device::DeviceId;
 use crate::model::settings::{SettingsUserDetails, WelcomeWizardMode};
-use crate::model::welcome::WelcomeSettings;
+use crate::model::welcome::{WelcomeLoadSettings, WelcomeUserSettings};
 use crate::settings_manager::{SettingsManager, UserSettingsStore};
 use crate::tracking::Event;
 use crate::{
@@ -23,8 +23,8 @@ pub fn show(
     device_id: &DeviceId,
     welcome_mode: WelcomeWizardMode,
 ) -> Result<(), anyhow::Error> {
-
-    let _ = app.state::<LicenseManagerState>()
+    let _ = app
+        .state::<LicenseManagerState>()
         .lock()
         .expect("get license manager")
         .refresh_license_status(app.app_handle());
@@ -88,8 +88,11 @@ pub fn welcome_only_payment(app: AppHandle) {
 #[tauri::command]
 pub fn welcome_load_settings(
     settings_manager: State<'_, SettingsManagerState>,
-) -> Option<SettingsUserDetails> {
-    settings_manager.get_settings().map(|s| s.user)
+) -> WelcomeLoadSettings {
+    WelcomeLoadSettings {
+        user: settings_manager.get_settings().map(|s| s.user),
+        backend_url: AppConfig::build().get_url(),
+    }
 }
 
 #[specta::specta]
@@ -117,7 +120,7 @@ pub fn welcome_save(
     app: AppHandle,
     email: Option<String>,
     consent: Option<bool>,
-    settings: WelcomeSettings,
+    settings: WelcomeUserSettings,
     settings_manager: State<SettingsManagerState>,
     subscription_manager: State<SubscriptionManagerState>,
     timer: State<'_, CountdownTimerState>,
@@ -192,12 +195,12 @@ pub fn welcome_close(
         info!("quitting app, if configuration not finished yet.");
         app.exit(0);
     } else {
-        dashboard_window::show(app.app_handle()).expect("should show dashboard after welcome");
-
         let _ = license_manager_state
             .lock()
             .expect("license manager")
             .refresh_license_status(app.app_handle());
+
+        dashboard_window::show(app.app_handle()).expect("should show dashboard after welcome");
 
         #[cfg(target_os = "macos")]
         app.app_handle()

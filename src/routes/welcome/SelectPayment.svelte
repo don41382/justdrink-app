@@ -9,8 +9,9 @@
     import LoadingSpinner from "./LoadingSpinner.svelte";
     import {PriceFormatter} from "../PriceFormatter";
 
-    let {licenseData, email, deviceId, welcomeWizardMode, back}: {
+    let {licenseData, backendUrl, email, deviceId, welcomeWizardMode, back}: {
         licenseData: LicenseData,
+        backendUrl: string,
         email: string | null,
         deviceId: string,
         welcomeWizardMode: WelcomeWizardMode,
@@ -36,7 +37,7 @@
     }
 
     async function load() {
-        stripeSetup = fetchAndInitStripe(email, deviceId).then(async (setup) => {
+        stripeSetup = fetchAndInitStripe(backendUrl, email, deviceId).then(async (setup) => {
             loading = false
             return setup
         }).then((res) => {

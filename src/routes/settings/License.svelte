@@ -3,27 +3,42 @@
         type AppDetails,
         commands, type LicenseData,
     } from '../../bindings';
-    import {info} from "@tauri-apps/plugin-log";
+    import {info, warn} from "@tauri-apps/plugin-log";
+    import {fetch} from '@tauri-apps/plugin-http';
     import {fade} from 'svelte/transition';
     import LicensePayMessage from "./LicensePayMessage.svelte";
+    import {getCurrentWindow} from "@tauri-apps/api/window";
 
     let {app}: { app: AppDetails } = $props();
 
     let dataPromise: Promise<LicenseData> = $state(Promise.resolve(app.license_data))
 
-    async function reload() {
-        dataPromise = commands.requestLicenseStatus()
-    }
-
     async function purchase() {
         await info("get a license")
         await commands.welcomeOnlyPayment()
+        await getCurrentWindow().destroy()
+    }
+
+    async function cancelPayment(deviceId: string): Promise<void> {
+        const url = `${app.url}/pricing/payment/cancel/${deviceId}`;
+        await info(`request: ${url}`)
+        const responseRaw = await fetch(url, {
+            method: 'POST',
+        });
+
+        if (!responseRaw.ok) {
+            throw new Error(`Can't access payment network: ${responseRaw.statusText}`);
+        }
+
+        return;
     }
 
     async function cancelPurchase() {
-        // TODO: NEED TO Add the route
         await info("cancel purchase")
-        await reload()
+        await cancelPayment(app.device_id).catch((err) => {
+            warn(`unable to cancel payment: ${err}, url: ${app.url}, device-id: ${app.device_id}`)
+        })
+        await getCurrentWindow().destroy()
     }
 
 </script>

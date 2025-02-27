@@ -3,9 +3,8 @@ import {loadAppIcon, loadImage} from "../../app";
 
 import {
     type LicenseData,
-    type WelcomeSettings,
     type WelcomeWizardMode,
-    commands,
+    commands, type WelcomeLoadSettings,
 } from "../../bindings";
 
 import {info} from "@tauri-apps/plugin-log";
@@ -28,7 +27,7 @@ function getMode(): WelcomeWizardMode {
 export const load: PageLoad = async (): Promise<{
     iconPath: string,
     deviceId: string,
-    settings: WelcomeSettings | null,
+    settings: WelcomeLoadSettings,
     licenseData: LicenseData,
     welcomeMode: WelcomeWizardMode,
     welcomePath: string,

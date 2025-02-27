@@ -25,13 +25,13 @@ interface PaymentResponse {
 }
 
 
-async function fetchPayment(email: string | null, deviceId: string): Promise<PaymentResponse> {
+async function fetchPayment(url: string, email: string | null, deviceId: string): Promise<PaymentResponse> {
     const formData = new FormData();
     if (email != null) {
         formData.append('email', email);
     }
 
-    const response = await fetch(`http://drinknow.test:8080/pricing/payment/setup/${deviceId}`, {
+    const response = await fetch(`${url}/pricing/payment/setup/${deviceId}`, {
         method: 'POST',
         body: formData
     });
@@ -61,8 +61,8 @@ export interface StripeSetup {
 }
 
 
-export async function fetchAndInitStripe(email: string | null, deviceId: string): Promise<StripeSetup> {
-    const payment = await fetchPayment(email, deviceId)
+export async function fetchAndInitStripe(url: string, email: string | null, deviceId: string): Promise<StripeSetup> {
+    const payment = await fetchPayment(url, email, deviceId)
     const stripe: Stripe | null = await loadStripe(payment.pubKey)
     if (stripe) {
         return {

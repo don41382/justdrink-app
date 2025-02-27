@@ -1,9 +1,9 @@
 use crate::countdown_timer::{PauseOrigin, TimerStatus};
-use crate::{CountdownTimerState, SettingsManagerState};
-use log::{debug};
+use crate::{session_window, CountdownTimerState, SettingsManagerState};
+use log::{debug, warn};
 use std::thread::sleep;
 use std::time::Duration;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Wry};
 use user_idle::UserIdle;
 
 const IDLE_DURATION_S: u64 = 60;
@@ -14,10 +14,7 @@ pub enum Mode {
     Working,
 }
 
-pub fn init<R>(app: &AppHandle<R>) -> Result<(), anyhow::Error>
-where
-    R: tauri::Runtime,
-{
+pub fn init(app: &AppHandle<Wry>) -> Result<(), anyhow::Error> {
     let app_handle = app.app_handle().clone();
     tauri::async_runtime::spawn(async move {
         let timer = app_handle.state::<CountdownTimerState>();
@@ -58,6 +55,9 @@ where
                         Mode::Working => {
                             if idle.as_seconds() > IDLE_DURATION_S {
                                 debug!("switch to pause");
+                                session_window::hide_window(app_handle.app_handle()).unwrap_or_else(|err| {
+                                    warn!("could not hide session window: {err}");
+                                });
                                 timer.pause(PauseOrigin::Idle);
                                 mode = Mode::Pause;
                             }

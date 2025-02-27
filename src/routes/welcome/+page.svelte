@@ -75,8 +75,8 @@
     let currentStep: WelcomeStep = $state(steps.at(0) ?? "Start")
     let lastStep: boolean = $derived(steps.indexOf(currentStep) === steps.length - 1)
 
-    let initialGender: GenderType = data.settings?.gender_type ?? "Female"
-    let initialDrinkCharacter: DrinkCharacter = data.settings?.character ?? "YoungMan"
+    let initialGender: GenderType = data.settings.user?.gender_type ?? "Female"
+    let initialDrinkCharacter: DrinkCharacter = data.settings.user?.character ?? "YoungMan"
 
     let email: string | null = $state(null);
     let consent: boolean = $state(true);
@@ -112,7 +112,7 @@
         await info(`mount welcome, mode: ${data.welcomeMode}, paymentInfo: ${data.licenseData.payment.payment_status}`)
     })
 
-    function nextFinishWelcomeSettings() {
+    function nextFinishWelcomeUserSettings() {
         info(`finish reset`)
         commands.welcomeSave(
             null,
@@ -199,13 +199,13 @@
     {:else if currentStep === "Reminder"}
         <SelectReminder bind:selectedDrinkCharacter={selectedDrinkCharacter} sipSize={selectedSipSize}
                         reminderImages={data.reminderImages} back={back}
-                        next={nextFinishWelcomeSettings} lastStep={lastStep}/>
+                        next={nextFinishWelcomeUserSettings} lastStep={lastStep}/>
     {:else if currentStep === "Subscribe"}
         <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
     {:else if currentStep === "Product"}
         <SelectProduct backVisible={!firstStep()} licenseData={data.licenseData} back={back} next={next}/>
     {:else if currentStep === "Purchase"}
-        <SelectPayment licenseData={data.licenseData} email={email} deviceId={data.deviceId}
+        <SelectPayment backendUrl={data.settings.backend_url} licenseData={data.licenseData} email={email} deviceId={data.deviceId}
                        welcomeWizardMode={data.welcomeMode} back={back}/>
     {:else if currentStep === "ThankYou"}
         <ThankYou licenseData={data.licenseData} backVisible={!lastStep} back={back}/>

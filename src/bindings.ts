@@ -44,13 +44,13 @@ async openBrowser(url: string, close: boolean) : Promise<null> {
 async welcomeOnlyPayment() : Promise<void> {
     await TAURI_INVOKE("welcome_only_payment");
 },
-async welcomeLoadSettings() : Promise<SettingsUserDetails | null> {
+async welcomeLoadSettings() : Promise<WelcomeLoadSettings> {
     return await TAURI_INVOKE("welcome_load_settings");
 },
 async welcomeRedo() : Promise<void> {
     await TAURI_INVOKE("welcome_redo");
 },
-async welcomeSave(email: string | null, consent: boolean | null, settings: WelcomeSettings) : Promise<void> {
+async welcomeSave(email: string | null, consent: boolean | null, settings: WelcomeUserSettings) : Promise<void> {
     await TAURI_INVOKE("welcome_save", { email, consent, settings });
 },
 async welcomeClose(state: string) : Promise<void> {
@@ -94,7 +94,7 @@ welcomeWizardMode: "welcome-wizard-mode"
 
 /** user-defined types **/
 
-export type AppDetails = { version: string; license_data: LicenseData; device_id: string }
+export type AppDetails = { version: string; license_data: LicenseData; device_id: string; url: string }
 export type ChangeTime = { Add: number } | { Remove: number }
 export type CountdownEvent = { status: TimerStatus }
 export type DrinkCharacter = "YoungWoman" | "YoungMan"
@@ -114,7 +114,8 @@ export type SettingsTabs = "Session" | "Tracking" | "License" | "About"
 export type SettingsUserDetails = { next_break_duration_minutes: number; drink_amount_ml: number; sip_size: SipSize; character: DrinkCharacter; gender_type: GenderType; consent: boolean; active: boolean; allow_tracking: boolean; enable_on_startup: boolean; beta_version: boolean; enable_idle_detection: boolean }
 export type SipSize = "BigSip" | "HalfCup" | "FullCup"
 export type TimerStatus = { NotStarted: number } | { Active: number } | { Paused: [PauseOrigin, number] } | "Finished"
-export type WelcomeSettings = { next_break_duration_minutes: number; drink_amount_ml: number; sip_size: SipSize; character: DrinkCharacter; gender_type: GenderType }
+export type WelcomeLoadSettings = { user: SettingsUserDetails | null; backend_url: string }
+export type WelcomeUserSettings = { next_break_duration_minutes: number; drink_amount_ml: number; sip_size: SipSize; character: DrinkCharacter; gender_type: GenderType }
 export type WelcomeWizardMode = "Complete" | "OnlySipSettings" | "OnlyPayment"
 
 /** tauri-specta globals **/

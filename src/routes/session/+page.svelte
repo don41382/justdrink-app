@@ -4,7 +4,7 @@
         commands, type DrinkCharacter, events, type SipSize,
     } from '../../bindings';
     import {onDestroy, onMount} from 'svelte';
-    import type {UnlistenFn} from "@tauri-apps/api/event";
+    import {type UnlistenFn} from "@tauri-apps/api/event";
     import CharacterDrinkPlayer from "./CharacterDrinkPlayer.svelte";
     import VideoPlayer from "./VideoPlayer.svelte";
     import {getAllWindows, getCurrentWindow} from "@tauri-apps/api/window";

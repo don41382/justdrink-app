@@ -1,16 +1,16 @@
+use crate::model;
 use crate::model::license::LicenseInfo;
 use crate::model::session::{DrinkCharacter, GenderType, SipSize};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri_specta::Event;
-use crate::model;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
 pub enum WelcomeWizardMode {
     Complete,
     OnlySipSettings,
-    OnlyPayment
+    OnlyPayment,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
@@ -32,7 +32,8 @@ pub struct Settings {
 pub struct AppDetails {
     pub(crate) version: String,
     pub(crate) license_data: model::license::LicenseData,
-    pub(crate) device_id: String
+    pub(crate) device_id: String,
+    pub(crate) url: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
