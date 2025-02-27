@@ -5,18 +5,13 @@
     } from '../../bindings';
     import {info} from "@tauri-apps/plugin-log";
     import {fade} from 'svelte/transition';
-    import {onMount} from "svelte";
     import LicensePayMessage from "./LicensePayMessage.svelte";
 
     let {app}: { app: AppDetails } = $props();
 
-    let dataPromise: Promise<LicenseData> = $state(Promise.reject("waiting for payment info"))
+    let dataPromise: Promise<LicenseData> = $state(Promise.resolve(app.license_data))
 
-    onMount(async () => {
-        await load();
-    })
-
-    async function load() {
+    async function reload() {
         dataPromise = commands.requestLicenseStatus()
     }
 
@@ -28,8 +23,7 @@
     async function cancelPurchase() {
         // TODO: NEED TO Add the route
         await info("cancel purchase")
-        // await StripePaymentInfo.cancelPayment(app.device_id)
-        await load();
+        await reload()
     }
 
 </script>
@@ -106,7 +100,7 @@
             {:catch err}
                 <p class="text-black">I am sorry, something went wrong. Error: {err}</p>
                 <button class="bg-accent border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
-                        onclick={async () => load()}>
+                        onclick={async () => reload()}>
                     Retry
                 </button>
             {/await}
