@@ -17,29 +17,14 @@ async toggleTimer() : Promise<void> {
 async timerChange(changeTime: ChangeTime) : Promise<void> {
     await TAURI_INVOKE("timer_change", { changeTime });
 },
-async feedbackWindowSendFeedback(feedback: string, rating: FeedbackRate) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("feedback_window_send_feedback", { feedback, rating }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async feedbackWindowSendFeedback(feedback: string, rating: FeedbackRate) : Promise<null> {
+    return await TAURI_INVOKE("feedback_window_send_feedback", { feedback, rating });
 },
-async startSession(drinkSettings: SessionStartEvent | null) : Promise<Result<null, null>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("start_session", { drinkSettings }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async startSession(drinkSettings: SessionStartEvent | null) : Promise<null> {
+    return await TAURI_INVOKE("start_session", { drinkSettings });
 },
-async endSession(demoMode: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("end_session", { demoMode }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async endSession(demoMode: boolean) : Promise<null> {
+    return await TAURI_INVOKE("end_session", { demoMode });
 },
 async openSettings() : Promise<null> {
     return await TAURI_INVOKE("open_settings");
@@ -77,14 +62,8 @@ async closeErrorWindow() : Promise<void> {
 async updaterClose() : Promise<void> {
     await TAURI_INVOKE("updater_close");
 },
-async settingsRegisterLicense(licenseKey: string) : Promise<LicenseInfo> {
-    return await TAURI_INVOKE("settings_register_license", { licenseKey });
-},
-async settingsResetLicense() : Promise<LicenseInfo> {
-    return await TAURI_INVOKE("settings_reset_license");
-},
-async getALicense() : Promise<null> {
-    return await TAURI_INVOKE("get_a_license");
+async requestLicenseStatus() : Promise<LicenseData> {
+    return await TAURI_INVOKE("request_license_status");
 }
 }
 
@@ -115,14 +94,17 @@ welcomeWizardMode: "welcome-wizard-mode"
 
 /** user-defined types **/
 
-export type AppDetails = { version: string; license_info: LicenseInfo; device_id: string }
+export type AppDetails = { version: string; license_data: LicenseData; device_id: string }
 export type ChangeTime = { Add: number } | { Remove: number }
 export type CountdownEvent = { status: TimerStatus }
 export type DrinkCharacter = "YoungWoman" | "YoungMan"
 export type FeedbackRate = "UNKNOWN" | "BAD" | "OK" | "AWESOME"
 export type GenderType = "Male" | "Female" | "Other"
+export type LicenseData = { payment: LicensePaymentInfo; info: LicenseInfo }
 export type LicenseInfo = { status: LicenseInfoStatus; license_key: string | null; message: string | null }
 export type LicenseInfoStatus = "Trial" | "Paid" | "Full" | "Invalid"
+export type LicensePaymentInfo = { total_trail_days: number; trial_days_left: number; purchase_price: number; payment_status: LicensePaymentStatus }
+export type LicensePaymentStatus = "Start" | "RequireInfo" | "ReadyToCapture" | "Paid" | "Canceled" | "Error"
 export type LicenseResult = { status: LicenseResultStatus; error: string | null }
 export type LicenseResultStatus = "Success" | "Error"
 export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"

@@ -1,8 +1,14 @@
 import type {PageLoad} from './$types';
 import {loadAppIcon, loadImage} from "../../app";
-import {commands, type SettingsUserDetails, type WelcomeSettings, type WelcomeWizardMode} from "../../bindings";
+
+import {
+    type LicenseData,
+    type WelcomeSettings,
+    type WelcomeWizardMode,
+    commands,
+} from "../../bindings";
+
 import {info} from "@tauri-apps/plugin-log";
-import {StripePaymentInfo} from "../StripePaymentInfo";
 
 export type GenderImages = { male: string, female: string, other: string }
 export type SipImages = { full: string, half: string, sip3: string, sip2: string, sip1: string }
@@ -23,7 +29,7 @@ export const load: PageLoad = async (): Promise<{
     iconPath: string,
     deviceId: string,
     settings: WelcomeSettings | null,
-    stripePaymentInfo: StripePaymentInfo.Info,
+    licenseData: LicenseData,
     welcomeMode: WelcomeWizardMode,
     welcomePath: string,
     genderImages: GenderImages,
@@ -36,7 +42,7 @@ export const load: PageLoad = async (): Promise<{
         iconPath: await loadAppIcon(),
         deviceId: deviceId,
         settings: await commands.welcomeLoadSettings(),
-        stripePaymentInfo: await StripePaymentInfo.fetchPaymentInfo(deviceId),
+        licenseData: await commands.requestLicenseStatus(),
         welcomePath: await loadImage("welcome/dn-water-glass.png"),
         welcomeMode: getMode(),
         genderImages:

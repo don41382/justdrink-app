@@ -76,7 +76,7 @@ impl Tracking {
                     "platform": self.platform,
                     "arch": self.arch,
                     "distinct_id": self.machine_id.get_hash_hex_id(),
-                    "license_state": state.to_license_status_name()
+                    "license_state": "change" // TODO FIX THIS
                 }
             }]);
             let client_clone = self.client.clone();

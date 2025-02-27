@@ -5,7 +5,7 @@
     import {
         commands,
         type DrinkCharacter,
-        type GenderType,
+        type GenderType, type LicensePaymentStatus,
         type SipSize
     } from "../../bindings";
     import {info} from "@tauri-apps/plugin-log";
@@ -23,7 +23,6 @@
     import {onMount} from "svelte";
     import SelectSubscribe from "./SelectSubscribe.svelte";
     import SelectProduct from "./SelectProduct.svelte";
-    import {StripePaymentInfo} from "../StripePaymentInfo.js";
     import Icon from "@iconify/svelte";
     import ThankYou from "./ThankYou.svelte";
 
@@ -41,17 +40,19 @@
         | "Purchase"
         | "ThankYou"
 
-    function getPaymentSteps(paymentStatus: StripePaymentInfo.PaymentStatus): WelcomeStep[] {
+    function getPaymentSteps(paymentStatus: LicensePaymentStatus): WelcomeStep[] {
         if (data.welcomeMode !== "OnlySipSettings") {
             switch (paymentStatus) {
-                case StripePaymentInfo.PaymentStatus.PAID:
+                case "Error":
+                    return []
+                case "Paid":
                     return ["ThankYou"]
-                case StripePaymentInfo.PaymentStatus.READY_TO_CAPTURE:
+                case "ReadyToCapture":
                     return ["ThankYou"]
-                case StripePaymentInfo.PaymentStatus.START:
-                case StripePaymentInfo.PaymentStatus.CANCELED:
+                case "Start":
+                case "Canceled":
                     return ["Product", "Purchase", "ThankYou"]
-                case StripePaymentInfo.PaymentStatus.REQUIRE_INFO:
+                case "RequireInfo":
                     return ["Purchase", "ThankYou"]
             }
         } else {
@@ -70,7 +71,7 @@
         }
     }
 
-    let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(data.stripePaymentInfo.paymentStatus)))
+    let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(data.licenseData.payment.payment_status)))
     let currentStep: WelcomeStep = $state(steps.at(0) ?? "Start")
     let lastStep: boolean = $derived(steps.indexOf(currentStep) === steps.length - 1)
 
@@ -108,7 +109,7 @@
     })
 
     onMount(async () => {
-        await info(`mount welcome, mode: ${data.welcomeMode}, paymentInfo: ${data.stripePaymentInfo.paymentStatus}`)
+        await info(`mount welcome, mode: ${data.welcomeMode}, paymentInfo: ${data.licenseData.payment.payment_status}`)
     })
 
     function nextFinishWelcomeSettings() {
@@ -202,11 +203,11 @@
     {:else if currentStep === "Subscribe"}
         <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
     {:else if currentStep === "Product"}
-        <SelectProduct backVisible={!firstStep()} paymentInfo={data.stripePaymentInfo} back={back} next={next}/>
+        <SelectProduct backVisible={!firstStep()} licenseData={data.licenseData} back={back} next={next}/>
     {:else if currentStep === "Purchase"}
-        <SelectPayment paymentInfo={data.stripePaymentInfo} email={email} deviceId={data.deviceId}
+        <SelectPayment licenseData={data.licenseData} email={email} deviceId={data.deviceId}
                        welcomeWizardMode={data.welcomeMode} back={back}/>
     {:else if currentStep === "ThankYou"}
-        <ThankYou paymentInfo={data.stripePaymentInfo} back={back}/>
+        <ThankYou licenseData={data.licenseData} back={back}/>
     {/if}
 </AutoSize>

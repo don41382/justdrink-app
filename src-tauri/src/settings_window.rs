@@ -29,30 +29,30 @@ pub fn load_settings(
     app: AppHandle,
     settings: State<'_, SettingsManagerState>,
     tracking: State<'_, TrackingState>,
-) -> model::settings::Settings {
+) -> Result<model::settings::Settings, String> {
     info!("load settings data");
     let version = app.app_handle().config().version.clone();
     let license_manager = app.state::<LicenseManagerState>();
-    let license_status =
+    let license_data =
         license_manager
             .lock()
             .unwrap()
-            .get_status(&app.app_handle(), false, true);
+            .get_status(&app.app_handle(), false, true)?;
     info!("load settings data - done");
 
     let settings = settings
         .get_settings()
         .unwrap_or(UserSettingsStore::default());
 
-    model::settings::Settings {
+    Ok(model::settings::Settings {
         app: model::settings::AppDetails {
             device_id: tracking.device_id().get_hash_hex_id(),
             version: version.unwrap_or("unknown".to_string()),
-            license_info: license_status.to_license_info(),
+            license_data: license_data.to_model(),
         },
         user: settings.user,
         selected_tab: SettingsTabs::Session,
-    }
+    })
 }
 
 #[specta::specta]

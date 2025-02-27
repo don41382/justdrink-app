@@ -24,7 +24,7 @@ pub fn show(
     welcome_mode: WelcomeWizardMode,
 ) -> Result<(), anyhow::Error> {
 
-    app.state::<LicenseManagerState>()
+    let _ = app.state::<LicenseManagerState>()
         .lock()
         .expect("get license manager")
         .refresh_license_status(app.app_handle());
@@ -194,7 +194,7 @@ pub fn welcome_close(
     } else {
         dashboard_window::show(app.app_handle()).expect("should show dashboard after welcome");
 
-        license_manager_state
+        let _ = license_manager_state
             .lock()
             .expect("license manager")
             .refresh_license_status(app.app_handle());

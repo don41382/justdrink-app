@@ -1,9 +1,10 @@
 <script lang="ts">
     import Navigation from "./Navigation.svelte";
-    import {StripePaymentInfo} from "../StripePaymentInfo";
+    import type {LicenseData} from "../../bindings";
+    import {PriceFormatter} from "../PriceFormatter.js";
 
-    let {paymentInfo, backVisible, back, next}: {
-        paymentInfo: StripePaymentInfo.Info,
+    let {licenseData, backVisible, back, next}: {
+        licenseData: LicenseData,
         backVisible: boolean,
         back: () => void,
         next: () => void
@@ -13,11 +14,11 @@
 
 <div class="flex-1">
     <div class="flex flex-col w-full h-full">
-        <h1 class="flex-none text-4xl text-primary text-left mb-2">Try it for {paymentInfo.trialDays} days!</h1>
+        <h1 class="flex-none text-4xl text-primary text-left mb-2">Try it for {licenseData.payment.total_trail_days} days!</h1>
         <span class="text-secondary/80 font-light">
                 We want to ensure this is the perfect app for you. Try it for free, and if you love it, get the
                 <span class="text-primary">lifetime license</span> for just <span
-                class="text-primary">{paymentInfo.priceFormatted}</span>.
+                class="text-primary">{PriceFormatter.format(licenseData.payment.purchase_price)}</span>.
             </span>
         <div class="flex flex-col flex-1 w-full justify-center items-start mt-8 ml-8">
             <ul class="text-secondary max-w-md space-y-1 list-inside">

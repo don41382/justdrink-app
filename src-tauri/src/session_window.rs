@@ -1,7 +1,11 @@
 use crate::alert::Alert;
-use crate::model::settings::{WelcomeWizardMode};
-use crate::{countdown_timer, feedback_window, tracking, updater_window, welcome_window, CountdownTimerState, LicenseManagerState, SettingsManagerState, SettingsSystemState, TrackingState};
-use anyhow::Error;
+use crate::model::settings::WelcomeWizardMode;
+use crate::{
+    countdown_timer, feedback_window, tracking, updater_window, welcome_window,
+    CountdownTimerState, LicenseManagerState, SettingsManagerState, SettingsSystemState,
+    TrackingState,
+};
+use anyhow::{anyhow, Error};
 use core::clone::Clone;
 use log::info;
 use tauri::{AppHandle, EventId, Manager, State, WebviewWindowBuilder, Wry};
@@ -53,11 +57,13 @@ pub fn show_session(
         .as_ref()
         .map(|s| s.demo_mode.clone())
         .unwrap_or(false);
-    if demo_mode || license_manager
-        .try_lock()
-        .expect("Could not lock license manager")
-        .get_status(&app.app_handle(), false, false)
-        .is_active()
+    if demo_mode
+        || license_manager
+            .try_lock()
+            .expect("Could not lock license manager")
+            .get_status(&app.app_handle(), false, false)
+            .map(|s| s.status.is_active())
+            .map_err(|err| anyhow!(err))?
     {
         // stop current running timer
         info!("start session window: stop timer");
@@ -117,7 +123,11 @@ pub fn show_session(
             );
         }
     } else {
-        welcome_window::show(app.app_handle(), &app.state::<TrackingState>().device_id(), WelcomeWizardMode::OnlyPayment)?;
+        welcome_window::show(
+            app.app_handle(),
+            &app.state::<TrackingState>().device_id(),
+            WelcomeWizardMode::OnlyPayment,
+        )?;
     }
 
     Ok(())

@@ -1,11 +1,10 @@
 <script lang="ts">
 
     import Navigation from "./Navigation.svelte";
-    import {StripePaymentInfo} from "../StripePaymentInfo";
-    import {commands} from "../../bindings";
+    import {commands, type LicenseData} from "../../bindings";
 
-    let {paymentInfo, back}: {
-        paymentInfo: StripePaymentInfo.Info,
+    let {licenseData, back}: {
+        licenseData: LicenseData,
         back: () => void,
     } = $props();
 
@@ -23,10 +22,10 @@
         </div>
         <div class="mb-4">
             <div class="p-4 bg-secondary/50 text-white rounded-md">
-                {#if paymentInfo.paymentStatus === "PAID"}
+                {#if licenseData.info.status === "Paid"}
                     <p>Your license is active and valid.</p>
                 {:else}
-                    <p>Enjoy your trial!</p>
+                    <p>Enjoy your trial for {licenseData.payment.trial_days_left} days!</p>
                 {/if}
             </div>
         </div>

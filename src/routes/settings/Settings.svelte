@@ -66,7 +66,7 @@
             <span class="text-gray-700">Enable on startup</span>
             <input bind:checked={user.enable_on_startup} class="toggle-checkbox" on:change={submit} type="checkbox">
         </label>
-        {#if app.license_info.status !== "Full"}
+        {#if app.license_data.info.status !== "Full"}
             <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
                 <div class="flex justify-between items-center">
                     <span class="{user.beta_version ? 'text-gray-700' : 'text-gray-400' }">Enable Beta Access</span>

@@ -1,16 +1,16 @@
 <script lang="ts">
     import type {StripePaymentElement} from '@stripe/stripe-js'
-    import {commands, type WelcomeWizardMode} from "../../bindings";
+    import {commands, type LicenseData, type LicensePaymentInfo, type WelcomeWizardMode} from "../../bindings";
     import {onMount} from "svelte";
     import {fetchAndInitStripe, Status, type StripeSetup} from "./StripePayment";
     import type {Action} from "svelte/action";
     import Navigation from "./Navigation.svelte";
     import {info, warn} from "@tauri-apps/plugin-log"
-    import {StripePaymentInfo} from "../StripePaymentInfo";
     import LoadingSpinner from "./LoadingSpinner.svelte";
+    import {PriceFormatter} from "../PriceFormatter";
 
-    let {paymentInfo, email, deviceId, welcomeWizardMode, back}: {
-        paymentInfo: StripePaymentInfo.Info,
+    let {licenseData, email, deviceId, welcomeWizardMode, back}: {
+        licenseData: LicenseData,
         email: string | null,
         deviceId: string,
         welcomeWizardMode: WelcomeWizardMode,
@@ -88,10 +88,10 @@
 
 <div class="flex-1">
     <div class="flex flex-col w-full h-full">
-        <h1 class="text-4xl text-primary text-left mb-2">Try {paymentInfo.trialDays} Days Free,
-            Pay {paymentInfo.priceFormatted} Once</h1>
+        <h1 class="text-4xl text-primary text-left mb-2">Try {licenseData.payment.total_trail_days} Days Free,
+            Pay {PriceFormatter.format(licenseData.payment.purchase_price)} Once</h1>
         <p class="text-secondary/80 font-light">
-            No charge today — only pay {paymentInfo.priceFormatted} if you love the results. Cancel anytime before the
+            No charge today — only pay {PriceFormatter.format(licenseData.payment.purchase_price)} if you love the results. Cancel anytime before the
             trial ends if it’s not for you.
         </p>
         <div class="mt-4 mb-4">

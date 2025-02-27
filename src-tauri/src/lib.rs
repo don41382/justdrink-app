@@ -38,7 +38,7 @@ use tauri::{AppHandle, Manager, RunEvent, WindowEvent};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::Target;
-use tauri_specta::{collect_commands, collect_events, Builder, Commands, Events};
+use tauri_specta::{collect_commands, collect_events, Builder, Commands, ErrorHandlingMode, Events};
 
 type FeedbackSenderState = feedback_window::FeedbackSender;
 // type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
@@ -72,9 +72,8 @@ pub fn run() {
             welcome_window::welcome_close,
             alert::close_error_window,
             updater_window::updater_close,
-            license_manager::settings_register_license,
-            license_manager::settings_reset_license,
-            license_manager::get_a_license,
+            license_manager::request_license_status,
+
         ],
         collect_events![
             model::event::SessionStartEvent,
@@ -255,6 +254,7 @@ fn build_typescript_interfaces(
     events: Events,
 ) -> Result<Builder, Box<dyn std::error::Error>> {
     let builder = Builder::<tauri::Wry>::new()
+        .error_handling(ErrorHandlingMode::Throw)
         .events(events)
         .commands(commands);
 

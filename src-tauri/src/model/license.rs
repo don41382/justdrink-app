@@ -1,5 +1,4 @@
-use crate::license_manager::{LicenseStatus, ValidTypes};
-use crate::model;
+use crate::{license_manager, model};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri_specta::Event;
@@ -13,45 +12,32 @@ pub enum LicenseInfoStatus {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
+pub(crate) enum LicensePaymentStatus {
+    Start,
+    RequireInfo,
+    ReadyToCapture,
+    Paid,
+    Canceled,
+    Error
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
+pub(crate) struct LicensePaymentInfo {
+    pub(crate) total_trail_days: u32,
+    pub(crate) trial_days_left: u32,
+    pub(crate) purchase_price: f64,
+    pub(crate) payment_status: LicensePaymentStatus,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct LicenseInfo {
     pub(crate) status: LicenseInfoStatus,
     pub(crate) license_key: Option<String>,
     pub(crate) message: Option<String>,
 }
 
-impl LicenseStatus {
-    pub(crate) fn to_license_info(&self) -> model::license::LicenseInfo {
-        match self {
-            LicenseStatus::Valid(trial_types) => match trial_types {
-                ValidTypes::Trial(details) => LicenseInfo {
-                    status: model::license::LicenseInfoStatus::Trial,
-                    license_key: None,
-                    message: Some(format!(
-                        "Your trial has {:?} days remaining",
-                        crate::session_window::days_between(chrono::Utc::now(), details.expired_at)
-                    )),
-                },
-                ValidTypes::Paid(details) => LicenseInfo {
-                    status: LicenseInfoStatus::Paid,
-                    license_key: Some(details.license_key.clone()),
-                    message: Some("Your license is valid".to_string()),
-                },
-                ValidTypes::Full => LicenseInfo {
-                    status: LicenseInfoStatus::Full,
-                    license_key: None,
-                    message: Some("Full-Version".to_string()),
-                },
-            },
-            LicenseStatus::Expired(_) => LicenseInfo {
-                status: LicenseInfoStatus::Invalid,
-                license_key: None,
-                message: Some("Your license has expired".to_string()),
-            },
-            LicenseStatus::Invalid(error) => LicenseInfo {
-                status: LicenseInfoStatus::Invalid,
-                license_key: None,
-                message: Some(error.clone()),
-            },
-        }
-    }
+#[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
+pub struct LicenseData {
+    pub(crate) payment: LicensePaymentInfo,
+    pub(crate) info: LicenseInfo
 }

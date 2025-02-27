@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri_specta::Event;
+use crate::model;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event, PartialEq)]
 pub enum WelcomeWizardMode {
@@ -30,7 +31,7 @@ pub struct Settings {
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct AppDetails {
     pub(crate) version: String,
-    pub(crate) license_info: LicenseInfo,
+    pub(crate) license_data: model::license::LicenseData,
     pub(crate) device_id: String
 }
 
