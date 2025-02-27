@@ -46,7 +46,7 @@
                 case "Error":
                     return []
                 case "Paid":
-                    return ["ThankYou"]
+                    return ["Purchase"]
                 case "ReadyToCapture":
                     return ["ThankYou"]
                 case "Start":
@@ -208,6 +208,6 @@
         <SelectPayment licenseData={data.licenseData} email={email} deviceId={data.deviceId}
                        welcomeWizardMode={data.welcomeMode} back={back}/>
     {:else if currentStep === "ThankYou"}
-        <ThankYou licenseData={data.licenseData} back={back}/>
+        <ThankYou licenseData={data.licenseData} backVisible={!lastStep} back={back}/>
     {/if}
 </AutoSize>

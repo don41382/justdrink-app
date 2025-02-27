@@ -3,8 +3,9 @@
     import Navigation from "./Navigation.svelte";
     import {commands, type LicenseData} from "../../bindings";
 
-    let {licenseData, back}: {
+    let {licenseData, back, backVisible}: {
         licenseData: LicenseData,
+        backVisible: boolean,
         back: () => void,
     } = $props();
 
@@ -33,7 +34,7 @@
 </div>
 
 <Navigation back={back}
-            backVisible={true}
+            backVisible={backVisible}
             next={close}
             nextBackground="bg-primary"
             nextDisabled={false}

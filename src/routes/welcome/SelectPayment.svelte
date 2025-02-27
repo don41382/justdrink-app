@@ -35,7 +35,7 @@
         })
     }
 
-    async function  load() {
+    async function load() {
         stripeSetup = fetchAndInitStripe(email, deviceId).then(async (setup) => {
             loading = false
             return setup
@@ -63,7 +63,7 @@
         switch (setup.paymentResult.status) {
             case Status.Succeeded:
             case Status.RequiresCapture:
-                await info("next")
+                await info("done, capture is ready")
                 await commands.welcomeClose("PaymentDone")
                 break;
             case Status.RequiresPaymentMethod:
@@ -88,12 +88,20 @@
 
 <div class="flex-1">
     <div class="flex flex-col w-full h-full">
-        <h1 class="text-4xl text-primary text-left mb-2">Try {licenseData.payment.total_trail_days} Days Free,
-            Pay {PriceFormatter.format(licenseData.payment.purchase_price)} Once</h1>
-        <p class="text-secondary/80 font-light">
-            No charge today — only pay {PriceFormatter.format(licenseData.payment.purchase_price)} if you love the results. Cancel anytime before the
-            trial ends if it’s not for you.
-        </p>
+        {#if licenseData.payment.trial_days_left > 0}
+            <h1 class="text-4xl text-primary text-left mb-2">Try {licenseData.payment.total_trail_days} Days Free,
+                Pay {PriceFormatter.format(licenseData.payment.purchase_price)} Once</h1>
+            <p class="text-secondary/80 font-light">
+                No charge today — only pay {PriceFormatter.format(licenseData.payment.purchase_price)} if you love the
+                results. Cancel anytime before the
+                trial ends if it’s not for you.
+            </p>
+        {:else}
+            <h1 class="text-4xl text-primary text-left mb-2">Only {PriceFormatter.format(licenseData.payment.purchase_price)} for a lifetime license</h1>
+            <p class="text-secondary/80 font-light">
+                Enjoy the full version of Drink Now!
+            </p>
+        {/if}
         <div class="mt-4 mb-4">
             <form id="payment-form">
                 {#await stripeSetup}
