@@ -23,8 +23,7 @@
     import {onMount} from "svelte";
     import SelectSubscribe from "./SelectSubscribe.svelte";
     import SelectProduct from "./SelectProduct.svelte";
-    import {StripePaymentInfo} from "./StripePaymentInfo.js";
-    import LoadingSpinner from "./LoadingSpinner.svelte";
+    import {StripePaymentInfo} from "../StripePaymentInfo.js";
     import Icon from "@iconify/svelte";
     import ThankYou from "./ThankYou.svelte";
 
@@ -47,8 +46,11 @@
             switch (paymentStatus) {
                 case StripePaymentInfo.PaymentStatus.PAID:
                     return ["ThankYou"]
+                case StripePaymentInfo.PaymentStatus.READY_TO_CAPTURE:
+                    return ["ThankYou"]
                 case StripePaymentInfo.PaymentStatus.START:
-                    return ["Subscribe", "Product", "Purchase", "ThankYou"]
+                case StripePaymentInfo.PaymentStatus.CANCELED:
+                    return ["Product", "Purchase", "ThankYou"]
                 case StripePaymentInfo.PaymentStatus.REQUIRE_INFO:
                     return ["Purchase", "ThankYou"]
             }
@@ -60,7 +62,7 @@
     function getSteps(): WelcomeStep[] {
         switch (data.welcomeMode) {
             case "Complete":
-                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"]
+                return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Subscribe"]
             case "OnlySipSettings":
                 return ["GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"]
             case "OnlyPayment":
@@ -143,6 +145,10 @@
         }
     }
 
+    function firstStep(): boolean {
+        return steps.indexOf(currentStep) == 0
+    }
+
     async function close() {
         await commands.welcomeClose(currentStep)
     }
@@ -196,11 +202,11 @@
     {:else if currentStep === "Subscribe"}
         <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
     {:else if currentStep === "Product"}
-        <SelectProduct paymentInfo={data.stripePaymentInfo} back={back} next={next}/>
+        <SelectProduct backVisible={!firstStep()} paymentInfo={data.stripePaymentInfo} back={back} next={next}/>
     {:else if currentStep === "Purchase"}
         <SelectPayment paymentInfo={data.stripePaymentInfo} email={email} deviceId={data.deviceId}
                        welcomeWizardMode={data.welcomeMode} back={back}/>
     {:else if currentStep === "ThankYou"}
-        <ThankYou paymentInfo={data.stripePaymentInfo} next={next} back={back}/>
+        <ThankYou paymentInfo={data.stripePaymentInfo} back={back}/>
     {/if}
 </AutoSize>

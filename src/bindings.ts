@@ -56,6 +56,9 @@ async updateSettings(settings: SettingsUserDetails) : Promise<null> {
 async openBrowser(url: string, close: boolean) : Promise<null> {
     return await TAURI_INVOKE("open_browser", { url, close });
 },
+async welcomeOnlyPayment() : Promise<void> {
+    await TAURI_INVOKE("welcome_only_payment");
+},
 async welcomeLoadSettings() : Promise<SettingsUserDetails | null> {
     return await TAURI_INVOKE("welcome_load_settings");
 },
@@ -112,7 +115,7 @@ welcomeWizardMode: "welcome-wizard-mode"
 
 /** user-defined types **/
 
-export type AppDetails = { version: string; license_info: LicenseInfo }
+export type AppDetails = { version: string; license_info: LicenseInfo; device_id: string }
 export type ChangeTime = { Add: number } | { Remove: number }
 export type CountdownEvent = { status: TimerStatus }
 export type DrinkCharacter = "YoungWoman" | "YoungMan"

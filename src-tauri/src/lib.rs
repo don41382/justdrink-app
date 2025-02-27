@@ -65,6 +65,7 @@ pub fn run() {
             settings_window::get_device_id,
             settings_window::update_settings,
             settings_window::open_browser,
+            welcome_window::welcome_only_payment,
             welcome_window::welcome_load_settings,
             welcome_window::welcome_redo,
             welcome_window::welcome_save,

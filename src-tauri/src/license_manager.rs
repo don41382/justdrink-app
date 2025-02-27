@@ -1,15 +1,15 @@
-use std::error::Error;
 use crate::alert::Alert;
+use crate::app_config::AppConfig;
 use crate::model::license::LicenseInfo;
 use crate::{model, LicenseManagerState};
 use chrono::Utc;
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tauri::http::{StatusCode};
+use std::error::Error;
+use tauri::http::StatusCode;
 use tauri::{AppHandle, Manager, State, Window};
 use tauri_plugin_http::reqwest::blocking::{Client, Response};
-use crate::app_config::AppConfig;
 
 mod response {
     use chrono::{DateTime, Utc};
@@ -104,8 +104,8 @@ pub struct LicenseManager {
 #[allow(dead_code)]
 #[derive(Debug)]
 enum ServerRequestError {
-    BadRequest(String), // For BAD_REQUEST errors (business error)
-    Other(anyhow::Error),       // For other errors (e.g., non-200, non-400 responses)
+    BadRequest(String),   // For BAD_REQUEST errors (business error)
+    Other(anyhow::Error), // For other errors (e.g., non-200, non-400 responses)
 }
 
 impl LicenseManager {
@@ -137,7 +137,12 @@ impl LicenseManager {
             .body("")
             .send()
             .map_err(|err| {
-                ServerRequestError::Other(anyhow::anyhow!("status: {:?}, source: {:?}, url: {:?}", err.status(), err.source(), err.url()))
+                ServerRequestError::Other(anyhow::anyhow!(
+                    "status: {:?}, source: {:?}, url: {:?}",
+                    err.status(),
+                    err.source(),
+                    err.url()
+                ))
             })?;
 
         Self::parse_response(&url, response)
@@ -163,7 +168,12 @@ impl LicenseManager {
             license_key
         );
         let response = self.client.post(&url).body("").send().map_err(|err| {
-            ServerRequestError::Other(anyhow::anyhow!("status: {:?}, source: {:?}, url: {:?}", err.status(), err.source(), err.url()))
+            ServerRequestError::Other(anyhow::anyhow!(
+                "status: {:?}, source: {:?}, url: {:?}",
+                err.status(),
+                err.source(),
+                err.url()
+            ))
         })?;
 
         Self::parse_response(&url, response).and_then(|status| {
@@ -188,7 +198,12 @@ impl LicenseManager {
             self.device_id.get_hash_hex_id()
         );
         let response = self.client.post(&url).body("").send().map_err(|err| {
-            ServerRequestError::Other(anyhow::anyhow!("status: {:?}, source: {:?}, url: {:?}", err.status(), err.source(), err.url()))
+            ServerRequestError::Other(anyhow::anyhow!(
+                "status: {:?}, source: {:?}, url: {:?}",
+                err.status(),
+                err.source(),
+                err.url()
+            ))
         })?;
 
         Self::parse_response(&url, response).and_then(|status| {
@@ -261,52 +276,64 @@ impl LicenseManager {
                 if cfg!(feature = "fullversion") {
                     LicenseStatus::Valid(ValidTypes::Full)
                 } else {
-                    LicenseStatus::Invalid("This license only works with the Apple App Store Version.".to_string())
+                    LicenseStatus::Invalid(
+                        "This license only works with the Apple App Store Version.".to_string(),
+                    )
                 }
             }
         };
         Ok(license_status)
     }
 
-    pub fn get_status(&mut self, app_handle: &AppHandle, prevent_server_request: bool) -> LicenseStatus {
+    pub fn get_status(
+        &mut self,
+        app_handle: &AppHandle,
+        prevent_server_request: bool,
+        force_request: bool,
+    ) -> LicenseStatus {
+        let do_request = self.status.is_none() || force_request;
+
+        if do_request && !prevent_server_request {
+            self.refresh_license_status(app_handle);
+        }
+
         match &self.status {
-            None => {
-                if prevent_server_request {
-                    LicenseStatus::Invalid("No license - request prevented".to_string())
-                } else {
-                    match Self::validate(&self.client, &self.device_id) {
-                        Ok(status) => {
-                            self.status = Some(status.clone());
-                            status
-                        }
-                        Err(err) => {
-                            warn!("License validation failed during get_status: {:?}", err);
-                            match err {
-                                ServerRequestError::BadRequest(msg) => {
-                                    app_handle.alert(
-                                        "License Error",
-                                        &format!("Unable to validate the license: {}", msg),
-                                        None,
-                                        false,
-                                    );
-                                    LicenseStatus::Invalid(format!("Unable to validate the license: {}", msg))
-                                }
-                                ServerRequestError::Other(e) => {
-                                    app_handle.alert(
-                                        "License Error",
-                                        "Unable to access the license server. Please try again later.",
-                                        Some(e),
-                                        true,
-                                    );
-                                    LicenseStatus::Invalid("Unable to access the license server. Please try again later.".to_string())
-                                }
-                            }
-                        }
+            None => LicenseStatus::Invalid("No license - request prevented".to_string()),
+            Some(status) => status.clone(),
+        }
+    }
+
+    pub fn refresh_license_status(&mut self, app_handle: &AppHandle) -> LicenseStatus {
+        match Self::validate(&self.client, &self.device_id) {
+            Ok(status) => {
+                self.status = Some(status.clone());
+                status
+            }
+            Err(err) => {
+                warn!("License validation failed during get_status: {:?}", err);
+                match err {
+                    ServerRequestError::BadRequest(msg) => {
+                        app_handle.alert(
+                            "License Error",
+                            &format!("Unable to validate the license: {}", msg),
+                            None,
+                            false,
+                        );
+                        LicenseStatus::Invalid(format!("Unable to validate the license: {}", msg))
+                    }
+                    ServerRequestError::Other(e) => {
+                        app_handle.alert(
+                            "License Error",
+                            "Unable to access the license server. Please try again later.",
+                            Some(e),
+                            true,
+                        );
+                        LicenseStatus::Invalid(
+                            "Unable to access the license server. Please try again later."
+                                .to_string(),
+                        )
                     }
                 }
-            }
-            Some(status) => {
-                status.clone()
             }
         }
     }
@@ -348,7 +375,10 @@ pub fn settings_reset_license(app_handle: AppHandle) -> LicenseInfo {
 #[specta::specta]
 #[tauri::command]
 pub fn get_a_license(window: Window, app_handle: AppHandle) -> () {
-    let url = format!("{}/pricing?utm_source=app&utm_medium=settings",AppConfig::build().get_url());
+    let url = format!(
+        "{}/pricing?utm_source=app&utm_medium=settings",
+        AppConfig::build().get_url()
+    );
     match webbrowser::open(&url) {
         Ok(_) => {}
         Err(err) => {

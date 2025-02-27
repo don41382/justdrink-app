@@ -1,13 +1,14 @@
 use crate::alert::Alert;
 use crate::app_config::AppConfig;
+use crate::license_manager::LicenseManager;
 use crate::model::device::DeviceId;
 use crate::model::settings::{SettingsUserDetails, WelcomeWizardMode};
 use crate::model::welcome::WelcomeSettings;
 use crate::settings_manager::{SettingsManager, UserSettingsStore};
 use crate::tracking::Event;
 use crate::{
-    dashboard_window, tracking, tray, CountdownTimerState, SettingsManagerState,
-    SubscriptionManagerState, TrackingState,
+    dashboard_window, tracking, tray, welcome_window, CountdownTimerState, LicenseManagerState,
+    SettingsManagerState, SubscriptionManagerState, TrackingState,
 };
 use log::{info, warn};
 use std::time::Duration;
@@ -22,10 +23,17 @@ pub fn show(
     device_id: &DeviceId,
     welcome_mode: WelcomeWizardMode,
 ) -> Result<(), anyhow::Error> {
-    #[cfg(target_os = "macos")]
-    app.app_handle()
-        .set_activation_policy(ActivationPolicy::Regular)
-        .expect("switch to regular app");
+
+    app.state::<LicenseManagerState>()
+        .lock()
+        .expect("get license manager")
+        .refresh_license_status(app.app_handle());
+
+    for (_name, window) in app.webview_windows().iter() {
+        if window.is_visible()? && window.label() != WINDOW_LABEL {
+            window.hide()?;
+        }
+    }
 
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
         window.set_focus()?;
@@ -44,6 +52,7 @@ pub fn show(
     .decorations(false)
     .resizable(false)
     .shadow(true)
+    .skip_taskbar(false)
     .visible(false)
     .build()?;
 
@@ -56,7 +65,23 @@ pub fn show(
             .send_tracking(tracking::Event::ResetSettings);
     }
 
+    #[cfg(target_os = "macos")]
+    app.app_handle()
+        .set_activation_policy(ActivationPolicy::Regular)
+        .expect("switch to regular app");
+
     Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn welcome_only_payment(app: AppHandle) {
+    welcome_window::show(
+        app.app_handle(),
+        &app.state::<TrackingState>().device_id(),
+        WelcomeWizardMode::OnlyPayment,
+    )
+    .expect("should show welcome window for payment")
 }
 
 #[specta::specta]
@@ -151,6 +176,7 @@ pub fn welcome_save(
 pub fn welcome_close(
     app: AppHandle,
     settings_manager: State<'_, SettingsManager>,
+    license_manager_state: State<'_, LicenseManagerState>,
     tracking: State<'_, TrackingState>,
     state: String,
 ) {
@@ -167,6 +193,12 @@ pub fn welcome_close(
         app.exit(0);
     } else {
         dashboard_window::show(app.app_handle()).expect("should show dashboard after welcome");
+
+        license_manager_state
+            .lock()
+            .expect("license manager")
+            .refresh_license_status(app.app_handle());
+
         #[cfg(target_os = "macos")]
         app.app_handle()
             .set_activation_policy(ActivationPolicy::Accessory)

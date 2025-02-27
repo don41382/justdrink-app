@@ -1,13 +1,17 @@
 <script lang="ts">
 
     import Navigation from "./Navigation.svelte";
-    import {StripePaymentInfo} from "./StripePaymentInfo";
+    import {StripePaymentInfo} from "../StripePaymentInfo";
+    import {commands} from "../../bindings";
 
-    let {paymentInfo, back, next}: {
+    let {paymentInfo, back}: {
         paymentInfo: StripePaymentInfo.Info,
         back: () => void,
-        next: () => void
     } = $props();
+
+    async function close() {
+        await commands.welcomeClose("ThankYou")
+    }
 
 </script>
 
@@ -22,7 +26,7 @@
                 {#if paymentInfo.paymentStatus === "PAID"}
                     <p>Your license is active and valid.</p>
                 {:else}
-                    <p>Enjoy your trail!</p>
+                    <p>Enjoy your trial!</p>
                 {/if}
             </div>
         </div>
@@ -31,7 +35,7 @@
 
 <Navigation back={back}
             backVisible={true}
-            next={next}
+            next={close}
             nextBackground="bg-primary"
             nextDisabled={false}
             nextName="Finish"/>

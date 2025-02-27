@@ -6,7 +6,7 @@
     import type {Action} from "svelte/action";
     import Navigation from "./Navigation.svelte";
     import {info, warn} from "@tauri-apps/plugin-log"
-    import {StripePaymentInfo} from "./StripePaymentInfo";
+    import {StripePaymentInfo} from "../StripePaymentInfo";
     import LoadingSpinner from "./LoadingSpinner.svelte";
 
     let {paymentInfo, email, deviceId, welcomeWizardMode, back}: {
@@ -26,7 +26,7 @@
         await load();
     })
 
-    const mountPayment: Action<HTMLElement, StripePaymentElement> = (node: HTMLDivElement, paymentElement: StripePaymentElement) => {
+    const mountPayment: Action<HTMLDivElement, StripePaymentElement> = (node: HTMLDivElement, paymentElement: StripePaymentElement) => {
         paymentElement.mount(node);
         $effect(() => {
             return () => {

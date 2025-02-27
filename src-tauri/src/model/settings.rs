@@ -30,7 +30,8 @@ pub struct Settings {
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct AppDetails {
     pub(crate) version: String,
-    pub(crate) license_info: LicenseInfo
+    pub(crate) license_info: LicenseInfo,
+    pub(crate) device_id: String
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]

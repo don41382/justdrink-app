@@ -4,89 +4,40 @@
         commands,
     } from '../../bindings';
     import {info} from "@tauri-apps/plugin-log";
+    import {fade} from 'svelte/transition';
+    import {StripePaymentInfo} from "../StripePaymentInfo";
+    import {onMount} from "svelte";
+    import LicensePayMessage from "./LicensePayMessage.svelte";
 
-    export let app: AppDetails;
+    let {app}: { app: AppDetails } = $props();
 
-    let licenseCode: string | null = app.license_info.license_key;
-    let error: string | null = null;
+    let paymentInfo: Promise<StripePaymentInfo.Info> = $state(Promise.reject("waiting for payment info"))
 
-    function formatCode(value: string) {
-        // Remove all non-alphanumeric characters and convert to uppercase
-        value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    onMount(async () => {
+        await load();
+    })
 
-        let formattedValue = '';
-        let chunkSizes = [5, 5, 5, 5, 2]; // Define the chunk sizes for the format 5-5-5-5-2
-        let currentIndex = 0;
-
-        // Loop through the chunk sizes and apply them to the input value
-        for (let i = 0; i < chunkSizes.length; i++) {
-            if (currentIndex >= value.length) {
-                break; // Stop if we've processed the entire value
-            }
-
-            // Get the substring for the current chunk
-            let chunk = value.substring(currentIndex, currentIndex + chunkSizes[i]);
-            if (formattedValue) {
-                formattedValue += '-'; // Add a dash between chunks
-            }
-            formattedValue += chunk;
-
-            currentIndex += chunkSizes[i]; // Move the index forward by the chunk size
-        }
-
-        return formattedValue;
+    async function load() {
+        paymentInfo = StripePaymentInfo.fetchPaymentInfo(app.device_id)
     }
 
-
-    function handleInput(event: Event) {
-        if (event.target instanceof HTMLInputElement) {
-            licenseCode = formatCode(event.target.value);
-        }
-    }
-
-    async function registerLicense() {
-        await info("submit license with key: " + licenseCode)
-        if (licenseCode) {
-            let result = await commands.settingsRegisterLicense(licenseCode);
-            switch (result.status) {
-                case "Trial":
-                    app.license_info = result;
-                    error = null;
-                    break;
-                case "Paid":
-                    app.license_info = result;
-                    error = null;
-                    break;
-                case "Full":
-                    app.license_info = result;
-                    error = null;
-                    break;
-                case "Invalid":
-                    error = result.message;
-                    break;
-
-            }
-        } else {
-            error = "Please enter a valid license key"
-        }
-    }
-
-    async function reset() {
-        await info("reset license")
-        app.license_info = await commands.settingsResetLicense();
-    }
-
-    async function getALicense() {
+    async function purchase() {
         await info("get a license")
-        await commands.getALicense()
+        await commands.welcomeOnlyPayment()
+    }
+
+    async function cancelPurchase() {
+        await info("cancel purchase")
+        await StripePaymentInfo.cancelPayment(app.device_id)
+        await load();
     }
 
 </script>
 
 <div class="space-y-6">
     <div class="flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-gray-900">License</h2>
-        <div class="flex items-center rounded-full px-3 py-1 text-sm bg-gray-200 {app.license_info.status === 'Invalid'  ? 'text-orange-600' : 'text-black'}">
+        <h2 class="text-lg font-semibold text-accent">License Status</h2>
+        <div class="flex items-center rounded-full px-3 py-1 text-sm bg-gray-200 {app.license_info.status === 'Invalid'  ? 'text-highlight' : 'text-black'}">
             {#if app.license_info.message}
                 {app.license_info.message}
             {/if}
@@ -94,51 +45,71 @@
     </div>
 
     <div class="flex-col">
-        {#if app.license_info.status === 'Full'}
-            <div class="flex-col">
-                <p class="text-mm-green font-normal accent-mm-green">You purchased the full version.</p>
-                <p class="text-gray-700 font-thin mb-4">Thank you for supporting Drink Now!.</p>
-            </div>
+        {#if app.license_info.status === 'Full' || app.license_info.status === 'Paid'}
+            <LicensePayMessage/>
         {:else}
-            {#if app.license_info.status === 'Paid'}
-                <div class="flex-col">
-                    <p class="text-mm-green font-normal accent-mm-green">Your license is active.</p>
-                    <p class="text-gray-700 font-thin mb-4">Thank you for supporting Drink Now!</p>
+            {#await paymentInfo}
+                <p class="text-gray-600 text-sm text-center">Retrieving payment info ...</p>
+            {:then info}
+                <div class="flex flex-col mt-8" transition:fade>
+                    {#if app.license_info.status === "Trial"}
+                        {#if info.paymentStatus === "START"}
+                            <p class="text-gray-700 mb-4">
+                                You can try Drink Now! for a few days for free or buy it now.
+                            </p>
+                            <button class="bg-primary border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
+                                    onclick={async () => purchase()}>
+                                Buy Now
+                            </button>
+                        {:else}
+                            {#if (info.paymentStatus === "READY_TO_CAPTURE")}
+                                <p class="text-gray-700">
+                                    Enjoy your trial! You will only be charged after your trial period.
+                                </p>
+                                <div class="flex w-full justify-center">
+                                    <button class="text-gray-600 underline-offset-2 px-4 underline mt-4"
+                                            onclick={async () => cancelPurchase()}>
+                                        I would like to cancel my trial
+                                    </button>
+                                </div>
+                            {:else if info.paymentStatus === "REQUIRE_INFO" }
+                                <p class="text-gray-700">
+                                    Enjoy your trial! You still have a few days left to test it out!
+                                </p>
+                                <button class="bg-primary border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
+                                        onclick={async () => purchase()}>
+                                    Buy Now
+                                </button>
+                            {:else if info.paymentStatus === "PAID"}
+                                <LicensePayMessage/>
+                            {:else if info.paymentStatus === "CANCELED"}
+                                <p class="text-gray-700">
+                                    We're sorry to see you leave. We'd love to hear your feedback on how we can improve.
+                                    If you change your mind, you can purchase it now!
+                                </p>
+                                <button class="bg-primary border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
+                                        onclick={async () => purchase()}>
+                                    Buy Now
+                                </button>
+                            {/if}
+                        {/if}
+                    {:else}
+                        <p class="text-gray-700 mb-4">
+                            Your trial has ended. Please purchase the full version to continue using Drink Now!.
+                        </p>
+                        <button class="bg-primary border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto"
+                                onclick={async () => purchase()}>
+                            Buy Now
+                        </button>
+                    {/if}
                 </div>
-            {:else}
-                <p class="text-gray-700 mb-4">
-                    Enter the license key you received in your email after purchasing Drink Now! to activate it on
-                    this
-                    device:
-                </p>
-            {/if}
-            <input bind:value={licenseCode}
-                   class="w-full border-2 border-gray-300 rounded-lg p-2 mb-1 focus:outline-none focus:border-blue-500 disabled:opacity-50"
-                   disabled={app.license_info.license_key === licenseCode && app.license_info.status === 'Paid'}
-                   maxlength="29" on:input={handleInput}
-                   placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XX" type="text"/>
-            <div class="mb-4">
-                {#if error}
-                    <p class="text-red-800 text-sm">{error}</p>
-                {/if}
-            </div>
-            <div class="flex justify-between">
-                {#if app.license_info.status === 'Paid'}
-                    <button class="text-white rounded-lg px-4 py-2 bg-gray-500 hover:bg-gray-800 ml-auto"
-                            on:click={async () => reset()}>
-                        Reset license
-                    </button>
-                {:else}
-                    <button class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2"
-                            on:click={async () => getALicense()}>
-                        Buy a license
-                    </button>
-                    <button class="text-white rounded-lg px-4 py-2 bg-primary hover:bg-primary/50"
-                            on:click={async () => registerLicense()}>
-                        Activate Drink Now!
-                    </button>
-                {/if}
-            </div>
+            {:catch err}
+                <p class="text-black">I am sorry, something went wrong. Error: {err}</p>
+                <button class="bg-accent border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
+                        onclick={async () => load()}>
+                    Retry
+                </button>
+            {/await}
         {/if}
     </div>
 </div>

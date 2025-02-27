@@ -56,7 +56,7 @@ pub fn show_session(
     if demo_mode || license_manager
         .try_lock()
         .expect("Could not lock license manager")
-        .get_status(&app.app_handle(), false)
+        .get_status(&app.app_handle(), false, false)
         .is_active()
     {
         // stop current running timer

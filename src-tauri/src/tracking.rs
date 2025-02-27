@@ -59,7 +59,7 @@ impl Tracking {
             .state::<LicenseManagerState>()
             .lock()
             .expect("send tracking requires license manager")
-            .get_status(self.app_handle.app_handle(), true);
+            .get_status(self.app_handle.app_handle(), true, false);
         let allow_tracking = self
             .app_handle
             .state::<SettingsManagerState>()

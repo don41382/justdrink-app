@@ -1,9 +1,10 @@
 <script lang="ts">
     import Navigation from "./Navigation.svelte";
-    import {StripePaymentInfo} from "./StripePaymentInfo";
+    import {StripePaymentInfo} from "../StripePaymentInfo";
 
-    let {paymentInfo, back, next}: {
+    let {paymentInfo, backVisible, back, next}: {
         paymentInfo: StripePaymentInfo.Info,
+        backVisible: boolean,
         back: () => void,
         next: () => void
     } = $props()
@@ -21,14 +22,14 @@
         <div class="flex flex-col flex-1 w-full justify-center items-start mt-8 ml-8">
             <ul class="text-secondary max-w-md space-y-1 list-inside">
                 <li><span class="mr-2">⏰</span> Immersive Reminders — Makes you want to drink</li>
-                <li><span class="mr-2">💦</span> No boilerplate — Just drink</li>
+                <li><span class="mr-2">💦</span> No workflow disruption — Just drink</li>
                 <li><span class="mr-2">🎉</span> 3-Day Free Trial — No charge until your trial ends</li>
             </ul>
         </div>
     </div>
 </div>
 <Navigation back={back}
-            backVisible={true}
+            backVisible={backVisible}
             next={next}
             nextBackground="bg-primary"
             nextDisabled={false}

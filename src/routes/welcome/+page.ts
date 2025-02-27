@@ -2,7 +2,7 @@ import type {PageLoad} from './$types';
 import {loadAppIcon, loadImage} from "../../app";
 import {commands, type SettingsUserDetails, type WelcomeSettings, type WelcomeWizardMode} from "../../bindings";
 import {info} from "@tauri-apps/plugin-log";
-import {StripePaymentInfo} from "./StripePaymentInfo";
+import {StripePaymentInfo} from "../StripePaymentInfo";
 
 export type GenderImages = { male: string, female: string, other: string }
 export type SipImages = { full: string, half: string, sip3: string, sip2: string, sip1: string }

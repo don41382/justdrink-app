@@ -1,26 +1,25 @@
 import {fetch} from "@tauri-apps/plugin-http";
-import type {Status} from "./StripePayment";
 
 export namespace StripePaymentInfo {
 
     interface Response {
         price: number,
         trialDays: string,
-        paymentStatus: PaymentStatus,
-        paymentIntentId: string
+        paymentStatus: PaymentStatus
     }
 
     export enum PaymentStatus {
+        READY_TO_CAPTURE = "READY_TO_CAPTURE",
         PAID = "PAID",
         START = "START",
+        CANCELED = "CANCELED",
         REQUIRE_INFO = "REQUIRE_INFO"
     }
 
     export interface Info {
         trialDays: string,
         priceFormatted: string,
-        paymentStatus: PaymentStatus,
-        paymentIntentId: string
+        paymentStatus: PaymentStatus
     }
 
     export async function fetchPaymentInfo(deviceId: string): Promise<Info> {
@@ -37,10 +36,22 @@ export namespace StripePaymentInfo {
         return {
             trialDays: response.trialDays,
             priceFormatted: formatPrice(response.price),
-            paymentStatus: response.paymentStatus,
-            paymentIntentId: response.paymentIntentId
+            paymentStatus: response.paymentStatus
         }
     }
+
+    export async function cancelPayment(deviceId: string): Promise<{}> {
+        const responseRaw = await fetch(`http://drinknow.test:8080/pricing/payment/cancel/${deviceId}`, {
+            method: 'POST',
+        });
+
+        if (!responseRaw.ok) {
+            throw new Error(`Can't access payment network: ${responseRaw.statusText}`);
+        }
+
+        return {}
+    }
+
 
     export function formatPrice(price: number): string {
         const locale = navigator.language || 'en-US'
