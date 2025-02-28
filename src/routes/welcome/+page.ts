@@ -50,29 +50,21 @@ export const load: PageLoad = async (): Promise<{
         welcomeMode: getMode(),
         images: {
             welcomePath: await loadImage("welcome/dn-water-glass.png"),
-            gender:
-                {
-                    male: await loadImage("welcome/gender/male.png"),
-                    female:
-                        await loadImage("welcome/gender/female.png"),
-                    other:
-                        await loadImage("welcome/gender/other.png"),
-                },
+            gender: {
+                male: await loadImage("welcome/gender/male.png"),
+                female: await loadImage("welcome/gender/female.png"),
+                other: await loadImage("welcome/gender/other.png"),
+            },
             sip: {
                 full: await loadImage("welcome/cups/full.png"),
-                half:
-                    await loadImage("welcome/cups/half.png"),
-                sip3:
-                    await loadImage("welcome/cups/sip3.png"),
-                sip2:
-                    await loadImage("welcome/cups/sip2.png"),
-                sip1:
-                    await loadImage("welcome/cups/sip1.png"),
+                half: await loadImage("welcome/cups/half.png"),
+                sip3: await loadImage("welcome/cups/sip3.png"),
+                sip2: await loadImage("welcome/cups/sip2.png"),
+                sip1: await loadImage("welcome/cups/sip1.png"),
             },
             reminder: {
                 man: await loadImage("welcome/reminder/man.png"),
-                woman:
-                    await loadImage("welcome/reminder/woman.png"),
+                woman: await loadImage("welcome/reminder/woman.png"),
             }
         }
     }
