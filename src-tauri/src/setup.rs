@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Mutex;
 use std::time::Duration;
 use log::{info, warn};
-use tauri::{ActivationPolicy, App, Manager};
+use tauri::{App, Manager};
 use tauri_plugin_aptabase::EventTracker;
 use tauri_specta::Builder;
 use crate::{dashboard_window, detect_idling, feedback_window, license_manager, model, session_window, settings_system, show_dashboard, subscription_manager, tray, updater_window, welcome_window, CountdownTimerState, FeedbackSenderState, LicenseManagerState, SettingsManagerState, SettingsSystemState, SubscriptionManagerState, TrackingState};
@@ -10,6 +10,10 @@ use crate::countdown_timer::CountdownTimer;
 use crate::model::settings::WelcomeWizardMode;
 use crate::settings_manager::SettingsManager;
 use crate::tracking::Tracking;
+
+#[cfg(target_os = "macos")]
+use tauri::ActivationPolicy;
+
 
 pub fn setup(builder: Builder, app: &mut App) -> Result<(), Box<dyn Error>> {
     app.track_event("app_started", None);
