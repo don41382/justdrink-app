@@ -19,6 +19,10 @@
         await getCurrentWindow().destroy()
     }
 
+    async function reload() {
+        dataPromise = commands.requestLicenseStatus()
+    }
+
     async function cancelPayment(deviceId: string): Promise<void> {
         const url = `${app.url}/pricing/payment/cancel/${deviceId}`;
         await info(`request: ${url}`)
