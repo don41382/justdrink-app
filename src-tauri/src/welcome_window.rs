@@ -29,6 +29,7 @@ pub async fn show(
     }
 
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+        window.show()?;
         window.set_focus()?;
         return Ok(());
     }
@@ -185,10 +186,6 @@ pub async fn welcome_close(
     tracking: State<'_, TrackingState>,
     state: String,
 ) -> Result<(), String> {
-    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
-        window.destroy().expect("welcome window should be visible");
-    }
-
     let _ = license_manager_state
         .refresh_license_status(app.app_handle())
         .await?;
@@ -208,6 +205,11 @@ pub async fn welcome_close(
             .set_activation_policy(ActivationPolicy::Accessory)
             .expect("switch back to accessory");
     }
+
+    if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
+        window.destroy().expect("welcome window should be visible");
+    }
+
     Ok(())
 }
 

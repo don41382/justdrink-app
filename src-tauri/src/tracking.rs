@@ -81,16 +81,15 @@ impl Tracking {
                     "license_state": license_status.to_license_status_name()
                 }
             }]);
-            let client_clone = self.client.clone();
-            Self::send(&event_data, client_clone).await.unwrap_or_else(|e| {
+            Self::send(&event_data, &self.client).await.unwrap_or_else(|e| {
                 warn!("error sending tracking event: {:?}", e);
                 ()
             })
         }
     }
 
-    async fn send(event_data: &Value, client_clone: Client) -> Result<(), anyhow::Error> {
-        let res = client_clone
+    async fn send(event_data: &Value, client: &Client) -> Result<(), anyhow::Error> {
+        let res = client
             .post("https://api.mixpanel.com/track?ip=1&verbose=1")
             .header("Accept", "text/plain")
             .header("Content-Type", "application/json")

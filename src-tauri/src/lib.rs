@@ -142,7 +142,7 @@ pub fn run() {
         .invoke_handler(builder.invoke_handler())
         .enable_macos_default_menu(false)
         .setup(move |app| {
-            setup::setup(builder, app)?
+            setup::setup(builder, app)
         })
         .on_window_event(|window, event| match event {
             WindowEvent::CloseRequested { api, .. } => {

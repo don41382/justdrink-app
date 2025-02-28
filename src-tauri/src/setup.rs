@@ -11,7 +11,7 @@ use crate::model::settings::WelcomeWizardMode;
 use crate::settings_manager::SettingsManager;
 use crate::tracking::Tracking;
 
-pub fn setup(builder: Builder, app: &mut App) -> Result<Result<(), Box<dyn Error>>, Box<dyn Error>> {
+pub fn setup(builder: Builder, app: &mut App) -> Result<(), Box<dyn Error>> {
     app.track_event("app_started", None);
     builder.mount_events(app.app_handle());
     let device_id = model::device::DeviceId::lookup()?;
@@ -72,5 +72,5 @@ pub fn setup(builder: Builder, app: &mut App) -> Result<Result<(), Box<dyn Error
         });
     });
 
-    Ok(Ok(()))
+    Ok(())
 }

@@ -39,7 +39,8 @@
     {#await licenseDataPromise}
         <LoadingSpinner/>
     {:then licenseData}
-        <Wizard currentStep={currentStep} licenseData={licenseData} welcomeMode={data.welcomeMode} images={data.images} settings={data.settings}/>
+        <Wizard currentStep={currentStep} licenseData={licenseData} welcomeMode={data.welcomeMode} images={data.images}
+                settings={data.settings}/>
     {:catch error}
         <Error error={error} reload={reload}/>
     {/await}
