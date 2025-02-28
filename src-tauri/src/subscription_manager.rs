@@ -1,7 +1,7 @@
 use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
 use serde::Serialize;
-use tauri_plugin_http::reqwest::blocking::Client;
+use tauri_plugin_http::reqwest::Client;
 
 pub struct SubscriptionManager {
     client: Client,
@@ -23,7 +23,7 @@ impl SubscriptionManager {
         }
     }
 
-    pub fn subscribe(&self, email: Option<String>, subscribe: bool) -> Result<(), anyhow::Error> {
+    pub async fn subscribe(&self, email: Option<String>, subscribe: bool) -> Result<(), anyhow::Error> {
         let request = SubscribeRequest {
             subscribe,
             did: self.device_id.get_hash_hex_id(),
@@ -37,7 +37,8 @@ impl SubscriptionManager {
                 AppConfig::build().get_url()
             ))
             .form(&request)
-            .send()?;
+            .send()
+            .await?;
 
         response.error_for_status()?;
         Ok(())

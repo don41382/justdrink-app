@@ -5,7 +5,7 @@ use log::{info, warn};
 use serde_json::{json, Value};
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
-use tauri_plugin_http::reqwest::blocking::{Client, ClientBuilder};
+use tauri_plugin_http::reqwest::{Client, ClientBuilder};
 
 pub(crate) struct Tracking {
     client: Client,
@@ -82,25 +82,24 @@ impl Tracking {
                 }
             }]);
             let client_clone = self.client.clone();
-            std::thread::spawn(move || {
-                Self::send(&event_data, client_clone).unwrap_or_else(|e| {
-                    warn!("error sending tracking event: {:?}", e);
-                    ()
-                })
-            });
+            Self::send(&event_data, client_clone).await.unwrap_or_else(|e| {
+                warn!("error sending tracking event: {:?}", e);
+                ()
+            })
         }
     }
 
-    fn send(event_data: &Value, client_clone: Client) -> Result<(), anyhow::Error> {
+    async fn send(event_data: &Value, client_clone: Client) -> Result<(), anyhow::Error> {
         let res = client_clone
             .post("https://api.mixpanel.com/track?ip=1&verbose=1")
             .header("Accept", "text/plain")
             .header("Content-Type", "application/json")
             .json(&event_data)
             .timeout(Duration::from_secs(10))
-            .send()?;
+            .send()
+            .await?;
 
-        let json = res.error_for_status()?.json::<Value>()?;
+        let json = res.error_for_status()?.json::<Value>().await?;
         let status = json
             .get("status")
             .map(|v| v.as_u64().unwrap_or(0))

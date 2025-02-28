@@ -50,8 +50,8 @@ async welcomeLoadSettings() : Promise<WelcomeLoadSettings> {
 async welcomeRedo() : Promise<null> {
     return await TAURI_INVOKE("welcome_redo");
 },
-async welcomeSave(email: string | null, consent: boolean | null, settings: WelcomeUserSettings) : Promise<void> {
-    await TAURI_INVOKE("welcome_save", { email, consent, settings });
+async welcomeSave(email: string | null, consent: boolean | null, settings: WelcomeUserSettings) : Promise<null> {
+    return await TAURI_INVOKE("welcome_save", { email, consent, settings });
 },
 async welcomeClose(state: string) : Promise<null> {
     return await TAURI_INVOKE("welcome_close", { state });

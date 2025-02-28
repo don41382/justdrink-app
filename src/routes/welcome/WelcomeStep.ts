@@ -1,0 +1,11 @@
+export type WelcomeStep =
+    "Start"
+    | "GenderType"
+    | "Weight"
+    | "DrinkAmount"
+    | "SipSize"
+    | "Reminder"
+    | "Subscribe"
+    | "Product"
+    | "Purchase"
+    | "ThankYou"

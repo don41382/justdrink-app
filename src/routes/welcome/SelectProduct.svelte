@@ -15,8 +15,8 @@
 <div class="flex-1">
     <div class="flex flex-col w-full h-full">
         {#if licenseData.payment.trial_days_left > 0}
-            <h1 class="flex-none text-4xl text-primary text-left mb-2">Try it for {licenseData.payment.total_trail_days}
-                days!</h1>
+            <h1 class="flex-none text-4xl text-primary text-left mb-2">Try it for {licenseData.payment.trial_days_left}
+                more days!</h1>
             <span class="text-secondary/80 font-light">
                 We want to ensure this is the perfect app for you. Try it for free, and if you love it, get the
                 <span class="text-primary">lifetime license</span> for just <span
@@ -34,7 +34,7 @@
             <ul class="text-secondary max-w-md space-y-1 list-inside">
                 <li><span class="mr-2">⏰</span> Immersive Reminders — Makes you want to drink</li>
                 <li><span class="mr-2">💦</span> No workflow disruption — Just drink</li>
-                <li><span class="mr-2">🎉</span> 3-Day Free Trial — No charge until your trial ends</li>
+                <li><span class="mr-2">🎉</span> {licenseData.payment.total_trail_days}-Day Free Trial — No charge until your trial ends</li>
             </ul>
         </div>
     </div>

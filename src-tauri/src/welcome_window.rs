@@ -116,20 +116,21 @@ pub async fn welcome_redo(app: AppHandle, tracking: State<'_, TrackingState>) ->
 
 #[specta::specta]
 #[tauri::command]
-pub fn welcome_save(
+pub async fn welcome_save(
     app: AppHandle,
     email: Option<String>,
     consent: Option<bool>,
     settings: WelcomeUserSettings,
-    settings_manager: State<SettingsManagerState>,
-    subscription_manager: State<SubscriptionManagerState>,
+    settings_manager: State<'_, SettingsManagerState>,
+    subscription_manager: State<'_, SubscriptionManagerState>,
     timer: State<'_, CountdownTimerState>,
-) {
+) -> Result<(), String> {
     tray::show_tray_icon(app.app_handle());
 
     if let Some(consent) = consent {
         subscription_manager
             .subscribe(email, consent)
+            .await
             .unwrap_or_else(|err| {
                 app.alert(
                     "Can't subscribe",
@@ -172,6 +173,7 @@ pub fn welcome_save(
             ));
         }
     }
+    Ok(())
 }
 
 #[specta::specta]

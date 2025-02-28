@@ -38,7 +38,7 @@
     <div class="flex flex-col w-full h-full">
         <h1 class="text-4xl text-primary text-left mb-2">Test your reminder</h1>
         <p class="text-secondary/80 font-light">
-            Test and select your personalized drink reminder.
+            Choose your immersive character as your drink reminder.
         </p>
         <div class="flex flex-col grow items-center justify-center mt-7">
             <div class="flex space-x-2 justify-center items-stretch">

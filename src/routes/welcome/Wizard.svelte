@@ -23,25 +23,15 @@
     import SelectProduct from "./SelectProduct.svelte";
     import ThankYou from "./ThankYou.svelte";
     import type {WelcomeImages} from "./+page";
+    import type {WelcomeStep} from "./WelcomeStep";
 
-    let {images, welcomeMode, licenseData, settings}: {
+    let {images, welcomeMode, licenseData, settings, currentStep = $bindable()}: {
         images: WelcomeImages,
         welcomeMode: WelcomeWizardMode,
         licenseData: LicenseData,
-        settings: WelcomeLoadSettings
+        settings: WelcomeLoadSettings,
+        currentStep: WelcomeStep | undefined,
     } = $props();
-
-    type WelcomeStep =
-        "Start"
-        | "GenderType"
-        | "Weight"
-        | "DrinkAmount"
-        | "SipSize"
-        | "Reminder"
-        | "Subscribe"
-        | "Product"
-        | "Purchase"
-        | "ThankYou"
 
     function getPaymentSteps(paymentStatus: LicensePaymentStatus): WelcomeStep[] {
         if (welcomeMode !== "OnlySipSettings") {
@@ -75,7 +65,8 @@
     }
 
     let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(licenseData.payment.payment_status)))
-    let currentStep: WelcomeStep = $state(steps.at(0) ?? "Start")
+    currentStep = steps.at(0) ?? "Start"
+
     let lastStep: boolean = $derived(steps.indexOf(currentStep) === steps.length - 1)
 
     let initialGender: GenderType = settings.user?.gender_type ?? "Female"
