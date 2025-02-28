@@ -46,7 +46,7 @@ type SettingsManagerState = SettingsManager;
 type SettingsSystemState = Mutex<SettingsSystem>;
 type CountdownTimerState = CountdownTimer;
 type TrackingState = Tracking;
-type LicenseManagerState = Mutex<license_manager::LicenseManager>;
+type LicenseManagerState = license_manager::LicenseManager;
 type SubscriptionManagerState = subscription_manager::SubscriptionManager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -152,9 +152,7 @@ pub fn run() {
                 &device_id.get_hash_hex_id()
             );
 
-            app.manage::<LicenseManagerState>(Mutex::new(license_manager::LicenseManager::new(
-                &device_id,
-            )));
+            app.manage::<LicenseManagerState>(license_manager::LicenseManager::new(&device_id));
             app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
             app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(
                 device_id.clone(),
@@ -188,7 +186,10 @@ pub fn run() {
                 }
                 None => {
                     warn!("settings are missing, display welcome screen");
-                    welcome_window::show(app.app_handle(), &device_id, WelcomeWizardMode::Complete)?;
+                    let app = app.app_handle().clone();
+                    tauri::async_runtime::spawn(async move {
+                        welcome_window::show(app.app_handle(), &device_id, WelcomeWizardMode::Complete).await;
+                    });
                 }
             }
 
@@ -198,7 +199,9 @@ pub fn run() {
             let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 info!("show updater window");
-                updater_window::show_if_update_available(&app_handle, true, true).await;
+                tauri::async_runtime::spawn(async move {
+                    updater_window::show_if_update_available(&app_handle, true, true).await;
+                });
             });
 
             Ok(())

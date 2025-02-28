@@ -91,13 +91,16 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
                 });
             }
             "start" => {
-                session_window::show_session(app.app_handle(), None).unwrap_or_else(|e| {
-                    app.alert(
-                        "Error while starting the session",
-                        "I am sorry, we are unable to start the session.",
-                        Some(e),
-                        false,
-                    );
+                let app_handle = app.clone();
+                tauri::async_runtime::spawn(async move {
+                    session_window::show_session(app_handle.app_handle(), None).await.unwrap_or_else(|e| {
+                        app_handle.alert(
+                            "Error while starting the session",
+                            "I am sorry, we are unable to start the session.",
+                            Some(e),
+                            false,
+                        );
+                    });
                 });
             }
             "settings" => {

@@ -10,6 +10,7 @@ use crate::{
     dashboard_window, tracking, tray, welcome_window, CountdownTimerState, LicenseManagerState,
     SettingsManagerState, SubscriptionManagerState, TrackingState,
 };
+use anyhow::anyhow;
 use log::{info, warn};
 use std::time::Duration;
 #[cfg(target_os = "macos")]
@@ -18,17 +19,11 @@ use tauri::{AppHandle, Manager, State};
 
 const WINDOW_LABEL: &str = "welcome";
 
-pub fn show(
+pub async fn show(
     app: &AppHandle,
     device_id: &DeviceId,
     welcome_mode: WelcomeWizardMode,
 ) -> Result<(), anyhow::Error> {
-    let _ = app
-        .state::<LicenseManagerState>()
-        .lock()
-        .expect("get license manager")
-        .refresh_license_status(app.app_handle());
-
     for (_name, window) in app.webview_windows().iter() {
         if window.is_visible()? && window.label() != WINDOW_LABEL {
             window.hide()?;
@@ -58,11 +53,13 @@ pub fn show(
 
     if welcome_mode == WelcomeWizardMode::Complete {
         app.state::<TrackingState>()
-            .send_tracking(tracking::Event::Install);
+            .send_tracking(tracking::Event::Install)
+            .await;
         open_thank_you(device_id);
     } else {
         app.state::<TrackingState>()
-            .send_tracking(tracking::Event::ResetSettings);
+            .send_tracking(tracking::Event::ResetSettings)
+            .await;
     }
 
     #[cfg(target_os = "macos")]
@@ -75,12 +72,13 @@ pub fn show(
 
 #[specta::specta]
 #[tauri::command]
-pub fn welcome_only_payment(app: AppHandle) {
+pub async fn welcome_only_payment(app: AppHandle) {
     welcome_window::show(
         app.app_handle(),
         &app.state::<TrackingState>().device_id(),
         WelcomeWizardMode::OnlyPayment,
     )
+    .await
     .expect("should show welcome window for payment")
 }
 
@@ -88,22 +86,25 @@ pub fn welcome_only_payment(app: AppHandle) {
 #[tauri::command]
 pub fn welcome_load_settings(
     settings_manager: State<'_, SettingsManagerState>,
+    tracking: State<'_, TrackingState>
 ) -> WelcomeLoadSettings {
     WelcomeLoadSettings {
         user: settings_manager.get_settings().map(|s| s.user),
         backend_url: AppConfig::build().get_url(),
+        device_id: tracking.device_id().get_hash_hex_id(),
     }
 }
 
 #[specta::specta]
 #[tauri::command]
-pub fn welcome_redo(app: AppHandle, tracking: State<TrackingState>) {
+pub async fn welcome_redo(app: AppHandle, tracking: State<'_, TrackingState>) -> Result<(), String> {
     info!("start welcome redo");
     show(
         app.app_handle(),
         &tracking.device_id(),
         WelcomeWizardMode::OnlySipSettings,
     )
+    .await
     .unwrap_or_else(|err| {
         app.alert(
             "Unable to reset",
@@ -111,7 +112,8 @@ pub fn welcome_redo(app: AppHandle, tracking: State<TrackingState>) {
             Some(err),
             false,
         )
-    })
+    });
+    Ok(())
 }
 
 #[specta::specta]
@@ -176,30 +178,29 @@ pub fn welcome_save(
 
 #[specta::specta]
 #[tauri::command]
-pub fn welcome_close(
+pub async fn welcome_close(
     app: AppHandle,
     settings_manager: State<'_, SettingsManager>,
     license_manager_state: State<'_, LicenseManagerState>,
     tracking: State<'_, TrackingState>,
     state: String,
-) {
+) -> Result<(), String> {
     if let Some(window) = app.get_webview_window(WINDOW_LABEL) {
         window.destroy().expect("welcome window should be visible");
     }
 
+    let _ = license_manager_state
+        .refresh_license_status(app.app_handle())
+        .await?;
+
     info!("close welcome, state: {}", state);
 
-    tracking.send_tracking(Event::WelcomeQuit(state));
+    tracking.send_tracking(Event::WelcomeQuit(state)).await;
 
     if let None = settings_manager.get_settings() {
         info!("quitting app, if configuration not finished yet.");
         app.exit(0);
     } else {
-        let _ = license_manager_state
-            .lock()
-            .expect("license manager")
-            .refresh_license_status(app.app_handle());
-
         dashboard_window::show(app.app_handle()).expect("should show dashboard after welcome");
 
         #[cfg(target_os = "macos")]
@@ -207,6 +208,7 @@ pub fn welcome_close(
             .set_activation_policy(ActivationPolicy::Accessory)
             .expect("switch back to accessory");
     }
+    Ok(())
 }
 
 pub fn open_thank_you(device_id: &DeviceId) {

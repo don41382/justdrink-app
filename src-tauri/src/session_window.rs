@@ -23,11 +23,11 @@ pub fn init(app: &AppHandle<Wry>) -> Result<EventId, anyhow::Error> {
     let id = countdown_timer::CountdownEvent::listen(app, move |status| {
         if status.payload.status == countdown_timer::TimerStatus::Finished {
             let app_handle_start = app_handle.clone();
-            app_handle
-                .run_on_main_thread(move || {
-                    show_session(&app_handle_start.app_handle(), None).unwrap();
-                })
-                .unwrap();
+            tauri::async_runtime::spawn(async move {
+                show_session(&app_handle_start.app_handle(), None)
+                    .await
+                    .unwrap();
+            });
         }
     });
     Ok(id)
@@ -35,36 +35,39 @@ pub fn init(app: &AppHandle<Wry>) -> Result<EventId, anyhow::Error> {
 
 #[specta::specta]
 #[tauri::command]
-pub fn start_session(app: AppHandle, drink_settings: Option<SessionStartEvent>) -> Result<(), ()> {
-    show_session(&app, drink_settings).unwrap_or_else(|err| {
-        app.alert(
-            "Can't start session",
-            "There was an error while trying to start the session.",
-            Some(err),
-            false,
-        );
-        ()
-    });
+pub async fn start_session(
+    app: AppHandle,
+    drink_settings: Option<SessionStartEvent>,
+) -> Result<(), ()> {
+    show_session(&app, drink_settings)
+        .await
+        .unwrap_or_else(|err| {
+            app.alert(
+                "Can't start session",
+                "There was an error while trying to start the session.",
+                Some(err),
+                false,
+            );
+        });
     Ok(())
 }
 
-pub fn show_session(
+pub async fn show_session(
     app: &AppHandle<Wry>,
     overwrite_settings: Option<SessionStartEvent>,
 ) -> Result<(), anyhow::Error> {
-    let license_manager = app.state::<LicenseManagerState>();
+    let license_active = app
+        .state::<LicenseManagerState>()
+        .get_status(&app.app_handle(), false, false)
+        .await
+        .map(|s| s.status.is_active())
+        .map_err(|err| anyhow!(err))?;
+
     let demo_mode = overwrite_settings
         .as_ref()
         .map(|s| s.demo_mode.clone())
         .unwrap_or(false);
-    if demo_mode
-        || license_manager
-            .try_lock()
-            .expect("Could not lock license manager")
-            .get_status(&app.app_handle(), false, false)
-            .map(|s| s.status.is_active())
-            .map_err(|err| anyhow!(err))?
-    {
+    if demo_mode || license_active {
         // stop current running timer
         info!("start session window: stop timer");
         app.state::<CountdownTimerState>().stop();
@@ -83,7 +86,7 @@ pub fn show_session(
             // send tracking event
             info!("start session window: send tracking");
             app.state::<TrackingState>()
-                .send_tracking(tracking::Event::DrinkReminder);
+                .send_tracking(tracking::Event::DrinkReminder).await;
         }
 
         let user_settings = app
@@ -127,7 +130,7 @@ pub fn show_session(
             app.app_handle(),
             &app.state::<TrackingState>().device_id(),
             WelcomeWizardMode::OnlyPayment,
-        )?;
+        ).await?;
     }
 
     Ok(())

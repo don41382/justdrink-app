@@ -8,9 +8,11 @@ use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::error::Error;
+use std::sync::Arc;
+use tauri::async_runtime::{block_on, Mutex};
 use tauri::http::StatusCode;
 use tauri::{AppHandle, Manager, State, Window};
-use tauri_plugin_http::reqwest::blocking::{Client, Response};
+use tauri_plugin_http::reqwest::{Client, Response};
 
 mod response {
     use chrono::{DateTime, Utc};
@@ -192,7 +194,7 @@ impl LicenseData {
 pub struct LicenseManager {
     client: Client,
     pub device_id: model::device::DeviceId,
-    status: Option<LicenseData>,
+    status: Arc<Mutex<Option<LicenseData>>>,
 }
 
 #[allow(dead_code)]
@@ -209,11 +211,11 @@ impl LicenseManager {
         Self {
             client,
             device_id: device_id.clone(),
-            status: None,
+            status: Arc::new(Mutex::new(None)),
         }
     }
 
-    fn validate(
+    async fn validate(
         client: &Client,
         device_id: &model::device::DeviceId,
     ) -> Result<LicenseData, ServerRequestError> {
@@ -229,6 +231,7 @@ impl LicenseManager {
             .header("origin", Self::origin())
             .body("")
             .send()
+            .await
             .map_err(|err| {
                 ServerRequestError::Other(anyhow::anyhow!(
                     "status: {:?}, source: {:?}, url: {:?}",
@@ -238,7 +241,7 @@ impl LicenseManager {
                 ))
             })?;
 
-        Self::parse_response(&url, response)
+        Self::parse_response(&url, response).await
     }
 
     fn origin() -> String {
@@ -249,9 +252,12 @@ impl LicenseManager {
         }
     }
 
-    fn parse_response(url: &String, response: Response) -> Result<LicenseData, ServerRequestError> {
+    async fn parse_response(
+        url: &String,
+        response: Response,
+    ) -> Result<LicenseData, ServerRequestError> {
         match response.status() {
-            StatusCode::OK => Self::parse_json(response).map_err(|err| {
+            StatusCode::OK => Self::parse_json(response).await.map_err(|err| {
                 ServerRequestError::Other(anyhow::anyhow!(
                     "failed to parse response from url '{:?}': {:?}",
                     url,
@@ -266,8 +272,8 @@ impl LicenseManager {
         }
     }
 
-    fn parse_json(response: Response) -> Result<LicenseData, ServerRequestError> {
-        let response: response::Response = response.json().map_err(|err| {
+    async fn parse_json(response: Response) -> Result<LicenseData, ServerRequestError> {
+        let response: response::Response = response.json().await.map_err(|err| {
             ServerRequestError::Other(anyhow::anyhow!("failed to parse response: {:?}", err))
         })?;
 
@@ -311,60 +317,62 @@ impl LicenseManager {
         })
     }
 
-    pub fn get_status(
-        &mut self,
+    pub async fn get_status(
+        &self,
         app_handle: &AppHandle,
         prevent_server_request: bool,
         force_request: bool,
     ) -> Result<LicenseData, String> {
-        let do_request = self.status.is_none() || force_request;
+        // TODO: FIX later
+        let do_request = self.status.lock().await.is_none() || force_request;
 
         if do_request && !prevent_server_request {
-            self.refresh_license_status(app_handle)?;
+            self.refresh_license_status(app_handle).await?;
         }
 
-        match &self.status {
-            None => Err("No license - request prevented".to_string()),
-            Some(license_dta) => Ok(license_dta.clone()),
+        let status = self.status.lock().await;
+        match &*status {
+            Some(license_data) => Ok(license_data.clone()),
+            None => Err("License is None".to_string()),
         }
     }
 
-    pub fn refresh_license_status(
-        &mut self,
+    pub async fn refresh_license_status(
+        &self,
         app_handle: &AppHandle,
     ) -> Result<LicenseData, String> {
-        // only refresh, if not full or paid
-        if let Some(data) = self.status.as_ref() {
-            if matches!(
-                data.status,
-                LicenseStatus::Valid(ValidTypes::Paid(_)) | LicenseStatus::Valid(ValidTypes::Full)
-            ) {
-                return Ok(data.clone());
-            }
-        }
-
-        match Self::validate(&self.client, &self.device_id) {
-            Ok(license_data) => {
-                self.status = Some(license_data.clone());
-                Ok(license_data)
-            }
-            Err(err) => {
-                warn!("License validation failed during get_status: {:?}", err);
-                match err {
-                    ServerRequestError::Other(e) => {
-                        app_handle.alert(
-                            "License Error",
-                            "Unable to access the license server. Please try again later.",
-                            Some(e),
-                            true,
-                        );
-                        Err(
-                            "Unable to access the license server. Please try again later."
-                                .to_string(),
-                        )
-                    }
+        {
+            let status = self.status.lock().await;
+            if let Some(data) = status.as_ref() {
+                if matches!(
+                    data.status,
+                    LicenseStatus::Valid(ValidTypes::Paid(_))
+                        | LicenseStatus::Valid(ValidTypes::Full)
+                ) {
+                    return Ok(data.clone());
                 }
             }
+        } // `status` lock is released here
+
+        // Make your network request
+        match Self::validate(&self.client, &self.device_id).await {
+            Ok(license_data) => {
+                // Acquire a *mutable* lock on status again to update it
+                let mut status = self.status.lock().await;
+                *status = Some(license_data.clone());
+                Ok(license_data)
+            }
+            Err(err) => match err {
+                ServerRequestError::Other(e) => {
+                    app_handle.alert(
+                        "License Error",
+                        "Unable to access the license server. Please try again later.",
+                        Some(e),
+                        true,
+                    );
+                    Err("Unable to access the license server. Please try again later.".to_string())
+                }
+            },
         }
     }
 }
@@ -383,13 +391,12 @@ pub struct LicenseResult {
 
 #[specta::specta]
 #[tauri::command]
-pub fn request_license_status(
+pub async fn request_license_status(
     app: AppHandle,
     license_manager: State<'_, LicenseManagerState>,
 ) -> Result<model::license::LicenseData, String> {
     license_manager
-        .lock()
-        .expect("a license manager for request license")
-        .get_status(app.app_handle(), false, true)
+        .refresh_license_status(app.app_handle())
+        .await
         .map(|data| data.to_model())
 }

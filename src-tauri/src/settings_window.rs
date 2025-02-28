@@ -1,4 +1,5 @@
 use crate::alert::Alert;
+use crate::app_config::AppConfig;
 use crate::model::settings::SettingsTabs;
 use crate::settings_manager::UserSettingsStore;
 use crate::{model, CountdownTimerState, LicenseManagerState, SettingsManagerState, TrackingState};
@@ -6,7 +7,6 @@ use log::info;
 use std::string::ToString;
 use std::time::Duration;
 use tauri::{AppHandle, Manager, Runtime, State, Window};
-use crate::app_config::AppConfig;
 
 pub(crate) const WINDOW_LABEL: &'static str = "settings";
 
@@ -26,7 +26,7 @@ pub async fn open_settings(app_handle: AppHandle) -> () {
 
 #[specta::specta]
 #[tauri::command]
-pub fn load_settings(
+pub async fn load_settings(
     app: AppHandle,
     settings: State<'_, SettingsManagerState>,
     tracking: State<'_, TrackingState>,
@@ -34,11 +34,7 @@ pub fn load_settings(
     info!("load settings data");
     let version = app.app_handle().config().version.clone();
     let license_manager = app.state::<LicenseManagerState>();
-    let license_data =
-        license_manager
-            .lock()
-            .unwrap()
-            .get_status(&app.app_handle(), false, true)?;
+    let license_data = license_manager.get_status(&app.app_handle(), false, true).await?;
     info!("load settings data - done");
 
     let settings = settings

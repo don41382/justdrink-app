@@ -1,14 +1,14 @@
 import {warn} from "@tauri-apps/plugin-log";
 import {commands} from "./bindings";
 import {getCurrentWindow} from "@tauri-apps/api/window";
+import type {HandleClientError} from "@sveltejs/kit";
 
-
-export async function handleError({error}) {
-    await warn(`Client-side error: ${error}`);
+export const handleError: HandleClientError = async ({ error, event, message }) => {
+    await warn(`Client-side error: ${message}, with event: ${event.route}, ${event.url}, error: ${error}`);
     await commands.alertLogClientError(
         "Client error",
-        "There was an error while running UI. If the error persists, please contact me at info@rocket-solutions.de. Thanks.",
+        `There was an error while running UI. If the error persists, please contact me at info@rocket-solutions.de. Error: ${message}`,
         `${error}`
     );
-    await getCurrentWindow().close();
+    await getCurrentWindow().close()
 }

@@ -53,13 +53,15 @@ impl Tracking {
         })
     }
 
-    pub fn send_tracking(&self, event: Event) {
-        let state = self
+    pub async fn send_tracking(&self, event: Event) {
+        let license_status = self
             .app_handle
             .state::<LicenseManagerState>()
-            .lock()
-            .expect("send tracking requires license manager")
-            .get_status(self.app_handle.app_handle(), true, false);
+            .get_status(self.app_handle.app_handle(), true, false)
+            .await
+            .map(|data | data.status)
+            .unwrap_or_else(|err| LicenseStatus::Invalid(err));
+
         let allow_tracking = self
             .app_handle
             .state::<SettingsManagerState>()
@@ -76,7 +78,7 @@ impl Tracking {
                     "platform": self.platform,
                     "arch": self.arch,
                     "distinct_id": self.machine_id.get_hash_hex_id(),
-                    "license_state": "change" // TODO FIX THIS
+                    "license_state": license_status.to_license_status_name()
                 }
             }]);
             let client_clone = self.client.clone();
