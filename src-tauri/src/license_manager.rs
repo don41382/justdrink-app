@@ -2,16 +2,16 @@ use crate::alert::Alert;
 use crate::app_config::AppConfig;
 use crate::license_manager::response::PaymentStatus;
 use crate::model::license::LicenseInfoStatus;
-use crate::{license_manager, model, LicenseManagerState};
+use crate::{model, LicenseManagerState};
 use chrono::Utc;
-use log::{info, warn};
+use log::{info};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::error::Error;
 use std::sync::Arc;
-use tauri::async_runtime::{block_on, Mutex};
+use tauri::async_runtime::{Mutex};
 use tauri::http::StatusCode;
-use tauri::{AppHandle, Manager, State, Window};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_http::reqwest::{Client, Response};
 
 mod response {

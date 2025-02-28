@@ -17,20 +17,19 @@ mod settings_window;
 mod subscription_manager;
 mod updater_window;
 mod welcome_window;
+mod setup;
 
-use log::{info, warn};
+use log::{info};
 use serde_json::json;
 #[cfg(debug_assertions)]
 use specta_typescript::Typescript;
 use std::sync::Mutex;
-use std::time::Duration;
 #[cfg(target_os = "macos")]
 use tauri::ActivationPolicy;
 
 use crate::countdown_timer::CountdownTimer;
 
 use crate::alert::Alert;
-use crate::model::settings::WelcomeWizardMode;
 use crate::settings_manager::SettingsManager;
 use crate::settings_system::SettingsSystem;
 use crate::tracking::Tracking;
@@ -41,7 +40,6 @@ use tauri_plugin_log::Target;
 use tauri_specta::{collect_commands, collect_events, Builder, Commands, ErrorHandlingMode, Events};
 
 type FeedbackSenderState = feedback_window::FeedbackSender;
-// type SettingsDetailsState = Mutex<Option<model::settings::SettingsUserDetails>>;
 type SettingsManagerState = SettingsManager;
 type SettingsSystemState = Mutex<SettingsSystem>;
 type CountdownTimerState = CountdownTimer;
@@ -144,67 +142,7 @@ pub fn run() {
         .invoke_handler(builder.invoke_handler())
         .enable_macos_default_menu(false)
         .setup(move |app| {
-            app.track_event("app_started", None);
-            builder.mount_events(app.app_handle());
-            let device_id = model::device::DeviceId::lookup()?;
-            info!(
-                "application start, device id: {}",
-                &device_id.get_hash_hex_id()
-            );
-
-            app.manage::<LicenseManagerState>(license_manager::LicenseManager::new(&device_id));
-            app.manage::<FeedbackSenderState>(feedback_window::FeedbackSender::new(&device_id));
-            app.manage::<SubscriptionManagerState>(subscription_manager::SubscriptionManager::new(
-                device_id.clone(),
-            ));
-
-            let settings_manager = SettingsManager::new(app.app_handle())?;
-
-            app.manage::<CountdownTimerState>(CountdownTimer::new(app.app_handle()));
-            app.manage::<SettingsManagerState>(settings_manager);
-            app.manage::<TrackingState>(Tracking::new(&device_id, app.app_handle())?);
-            app.manage::<SettingsSystemState>(Mutex::new(settings_system::SettingsSystem::load(
-                app.app_handle(),
-            )));
-
-            tray::create_tray(app.handle())?;
-
-            match app.state::<SettingsManagerState>().get_settings() {
-                Some(settings) => {
-                    tray::show_tray_icon(app.app_handle());
-                    if dashboard_window::should_show_dashboard() {
-                        show_dashboard(app.app_handle());
-                    }
-                    app.state::<CountdownTimerState>()
-                        .start(Duration::from_secs(
-                            (settings.user.next_break_duration_minutes * 60) as u64,
-                        ));
-                    #[cfg(target_os = "macos")]
-                    app.app_handle()
-                        .set_activation_policy(ActivationPolicy::Accessory)
-                        .expect("should allow to start app as accessory");
-                }
-                None => {
-                    warn!("settings are missing, display welcome screen");
-                    let app = app.app_handle().clone();
-                    tauri::async_runtime::spawn(async move {
-                        welcome_window::show(app.app_handle(), &device_id, WelcomeWizardMode::Complete).await;
-                    });
-                }
-            }
-
-            session_window::init(app.app_handle())?;
-            detect_idling::init(app.app_handle())?;
-
-            let app_handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                info!("show updater window");
-                tauri::async_runtime::spawn(async move {
-                    updater_window::show_if_update_available(&app_handle, true, true).await;
-                });
-            });
-
-            Ok(())
+            setup::setup(builder, app)?
         })
         .on_window_event(|window, event| match event {
             WindowEvent::CloseRequested { api, .. } => {
@@ -240,6 +178,7 @@ pub fn run() {
             _ => {}
         })
 }
+
 
 fn show_dashboard(app: &AppHandle) {
     dashboard_window::show(app.app_handle()).unwrap_or_else(|err| {

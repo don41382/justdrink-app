@@ -1,4 +1,3 @@
-use crate::model::device::DeviceId;
 use crate::model::session::{DrinkCharacter, GenderType, SipSize};
 use crate::model::settings::SettingsUserDetails;
 use serde::{Deserialize, Serialize};

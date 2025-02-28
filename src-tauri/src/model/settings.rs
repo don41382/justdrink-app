@@ -1,5 +1,4 @@
 use crate::model;
-use crate::model::license::LicenseInfo;
 use crate::model::session::{DrinkCharacter, GenderType, SipSize};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

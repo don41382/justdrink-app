@@ -1,6 +1,5 @@
 use crate::alert::Alert;
 use crate::app_config::AppConfig;
-use crate::license_manager::LicenseManager;
 use crate::model::device::DeviceId;
 use crate::model::settings::{SettingsUserDetails, WelcomeWizardMode};
 use crate::model::welcome::{WelcomeLoadSettings, WelcomeUserSettings};
@@ -10,7 +9,6 @@ use crate::{
     dashboard_window, tracking, tray, welcome_window, CountdownTimerState, LicenseManagerState,
     SettingsManagerState, SubscriptionManagerState, TrackingState,
 };
-use anyhow::anyhow;
 use log::{info, warn};
 use std::time::Duration;
 #[cfg(target_os = "macos")]
