@@ -323,7 +323,6 @@ impl LicenseManager {
         prevent_server_request: bool,
         force_request: bool,
     ) -> Result<LicenseData, String> {
-        // TODO: FIX later
         let do_request = self.status.lock().await.is_none() || force_request;
 
         if do_request && !prevent_server_request {

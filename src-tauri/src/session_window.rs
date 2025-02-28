@@ -61,7 +61,11 @@ pub async fn show_session(
         .get_status(&app.app_handle(), false, false)
         .await
         .map(|s| s.status.is_active())
-        .map_err(|err| anyhow!(err))?;
+        .map_err(|err| anyhow!(err))
+        .unwrap_or_else(|err| {
+            app.alert("Unable to access license server", "We are sorry, but we have trouble accessing the license server.", Some(err), true);
+            false
+        });
 
     let demo_mode = overwrite_settings
         .as_ref()

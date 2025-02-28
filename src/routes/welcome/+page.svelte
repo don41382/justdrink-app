@@ -8,13 +8,15 @@
 
     let {data} = $props();
 
+    let licenseDataPromise = $state(data.licenseData)
+
     async function close() {
         // TODO: add step
         await commands.welcomeClose("Close")
     }
 
     async function reload() {
-        //licenseData = commands.requestLicenseStatus()
+        licenseDataPromise = commands.requestLicenseStatus()
     }
 
 </script>
@@ -33,7 +35,7 @@
         </button>
     </div>
 
-    {#await data.licenseData}
+    {#await licenseDataPromise}
         <LoadingSpinner/>
     {:then licenseData}
         <Wizard licenseData={licenseData} welcomeMode={data.welcomeMode} images={data.images} settings={data.settings}/>

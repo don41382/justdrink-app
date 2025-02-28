@@ -112,7 +112,7 @@ pub fn alert_log_client_error(app: AppHandle, title: String, message: String, er
 #[tauri::command]
 pub fn close_error_window(window: tauri::Window) {
     window
-        .close()
+        .destroy()
         .expect("alert window must exists and should never be closed");
 }
 
