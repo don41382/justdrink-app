@@ -1,11 +1,11 @@
 <script lang="ts">
     import AutoSize from "../AutoSize.svelte";
     import Error from "./Error.svelte";
-    import Icon from "@iconify/svelte";
     import {commands} from "../../bindings";
     import LoadingSpinner from "./LoadingSpinner.svelte";
     import Wizard from "./Wizard.svelte";
     import type {WelcomeStep} from "./WelcomeStep";
+    import Xmark from "../../icons/Xmark.svelte";
 
     let {data} = $props();
 
@@ -34,9 +34,9 @@
             <img alt="Drink Now!" class="size-12" src="{data.iconPath}">
             <p class="text-xl ml-2 text-primary">Drink Now!</p>
         </div>
-        <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-secondary/20 hover:text-white p-1"
+        <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-secondary/20 hover:text-white p-1 size-8"
                 onclick={async () => { await close() }}>
-            <Icon class="size-6" icon="iconoir:xmark"/>
+            <Xmark/>
         </button>
     </div>
 

@@ -1,14 +1,15 @@
 <script lang="ts">
-    import {commands, events, type Settings, type SettingsUserDetails, type SettingsTabs} from '../../bindings';
-    import {onDestroy, onMount} from 'svelte';
-    import {getCurrentWindow} from "@tauri-apps/api/window";
-    import {debug, info} from "@tauri-apps/plugin-log";
-    import Icon from "@iconify/svelte";
+    import {commands, type SettingsUserDetails, type SettingsTabs} from '../../bindings';
+    import {type Component, onMount} from 'svelte';
     import Session from "./Settings.svelte";
     import Tracking from "./Tracking.svelte";
     import About from "./About.svelte";
     import License from "./License.svelte";
     import AutoSize from "../AutoSize.svelte";
+    import SettingsGear from "../../icons/SettingsGear.svelte";
+    import Timeline from "../../icons/Timeline.svelte";
+    import LicenseOutline from "../../icons/LicenseOutline.svelte";
+    import InfoOutline from "../../icons/InfoOutline.svelte";
 
     let {data} = $props()
     let settings = $state(data.settings)
@@ -21,14 +22,14 @@
     type Page = {
         name: SettingsTabs;
         label: string;
-        icon: string;
+        icon: Component;
     };
 
     const pages: Page[] = [
-        {name: 'Session', label: 'Reminder', icon: 'mdi-light:settings'},
-        {name: 'Tracking', label: 'User Tracking', icon: 'material-symbols-light:timeline'},
-        {name: 'License', label: 'License', icon: 'material-symbols-light:license-outline'},
-        {name: 'About', label: 'About', icon: 'material-symbols-light:info-outline'}
+        {name: 'Session', label: 'Reminder', icon: SettingsGear},
+        {name: 'Tracking', label: 'User Tracking', icon: Timeline},
+        {name: 'License', label: 'License', icon: LicenseOutline},
+        {name: 'About', label: 'About', icon: InfoOutline}
     ];
 
     async function updateSettings(updatedSettings: SettingsUserDetails) {
@@ -63,11 +64,14 @@
             <div class="flex-grow overflow-y-auto pt-8 px-4">
                 <ul class="space-y-2">
                     {#each pages as page}
+                        {@const PageIcon = page.icon}
                         <li>
                             <button
-                                    class="flex w-full items-center {currentPage === page.name ? 'text-white bg-accent' : 'text-black'} rounded-lg py-2 px-4 cursor-pointer"
+                                    class="flex w-full items-center {currentPage === page.name ? 'text-white bg-accent' : 'text-black'} items-start rounded-lg py-2 px-4 cursor-pointer"
                                     onclick={() => currentPage = page.name}>
-                                <Icon class="mr-2" icon={page.icon} height="24" width="24"/>
+                                <div class="mr-2 size-6">
+                                    <PageIcon/>
+                                </div>
                                 <span>{page.label}</span>
                             </button>
                         </li>

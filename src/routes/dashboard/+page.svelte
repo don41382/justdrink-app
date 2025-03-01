@@ -1,12 +1,16 @@
 <script lang="ts">
 
     import {onDestroy, onMount} from "svelte";
-    import Icon from "@iconify/svelte";
     import {commands, events, type TimerStatus} from "../../bindings";
     import type {UnlistenFn} from "@tauri-apps/api/event";
     import {getCurrentWindow} from "@tauri-apps/api/window";
     import AutoSize from "../AutoSize.svelte";
     import {info} from "@tauri-apps/plugin-log";
+    import SettingsGear from "../../icons/SettingsGear.svelte";
+    import Xmark from "../../icons/Xmark.svelte";
+    import Play from "../../icons/Play.svelte";
+    import Pause from "../../icons/Pause.svelte";
+    import GlassEmpty from "../../icons/GlassEmpty.svelte";
 
     let countdownUnlistenFn: UnlistenFn;
 
@@ -133,13 +137,13 @@
             <p class="text-xl text-primary/ font-light text-left whitespace-nowrap text-primary" data-tauri-drag-region>Drink Now!</p>
         </div>
         <div class="flex space-x-2 justify-end">
-            <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1"
+            <button class="flex items-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1 size-8"
                     onclick={async () => { await openSettings()}}>
-                <Icon class="size-6" icon="mdi-light:settings"/>
+                <SettingsGear/>
             </button>
-            <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1"
+            <button class="flex items-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1 size-8"
                     onclick={async () => { await close() }}>
-                <Icon class="size-6" icon="iconoir:xmark"/>
+                <Xmark/>
             </button>
 
         </div>
@@ -155,18 +159,24 @@
             <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-primary hover:text-white p-6 rounded-bl-2xl"
                     onclick={async () => await toggleTimer()}>
                 {#if countdown.pause}
-                    <Icon class="w-8 h-8" icon="iconoir:play"/>
-                    <span class="text-lg font-light tracking-wide">Run</span>
+                    <div class="size-8">
+                        <Play/>
+                    </div>
+                    <span class="text-lg font-light mt-1 tracking-wide">Run</span>
                 {:else}
-                    <Icon class="w-8 h-8" icon="iconoir:pause"/>
-                    <span class="text-lg font-light tracking-wide">Pause</span>
+                    <div class="size-8">
+                        <Pause/>
+                    </div>
+                    <span class="text-lg font-light mt-1 tracking-wide">Pause</span>
                 {/if}
             </button>
             <div class="border-l-2 border-white/70"></div>
             <button class="w-1/2 flex flex-col items-center justify-center cursor-pointer hover:bg-primary hover:text-white p-6 rounded-br-2xl"
                     onclick={async () => { await startSession() }}>
-                <Icon class="w-8 h-8" icon="iconoir:glass-empty"/>
-                <span class="text-lg font-light tracking-wide whitespace-nowrap">Drink Now</span>
+                <div class="size-8">
+                    <GlassEmpty/>
+                </div>
+                <span class="text-lg font-light mt-1 tracking-wide whitespace-nowrap">Drink Now</span>
             </button>
         </div>
     </div>

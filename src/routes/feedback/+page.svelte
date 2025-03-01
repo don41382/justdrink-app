@@ -1,8 +1,8 @@
 <script lang="ts">
     import AutoSize from "../AutoSize.svelte";
-    import Icon from "@iconify/svelte";
     import {getCurrentWindow} from "@tauri-apps/api/window";
     import {commands, type FeedbackRate} from "../../bindings";
+    import Xmark from "../../icons/Xmark.svelte";
 
     let {data} = $props();
 
@@ -41,9 +41,9 @@
             <p class="text-xl font-light text-primary text-left whitespace-nowrap" data-tauri-drag-region>Drink Now!</p>
         </div>
         <div class="flex space-x-2 justify-end">
-            <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-mm-green-100 hover:text-white p-1"
+            <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-mm-green-100 hover:text-white p-1 size-8"
                     onclick={async () => { await close() }}>
-                <Icon class="size-6" icon="iconoir:xmark"/>
+                <Xmark/>
             </button>
 
         </div>
