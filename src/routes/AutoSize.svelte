@@ -17,7 +17,7 @@
 
     async function resizeWindow() {
         const currentWindow = getCurrentWindow();
-        await debug("resizeWindow called");
+        await debug(`resizeWindow called, container: ${container != null}, ready: ${ready}`);
 
         if (container && ready) {
             await tick();
