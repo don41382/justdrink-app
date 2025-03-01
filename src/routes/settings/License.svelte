@@ -48,24 +48,24 @@
 </script>
 
 <div class="space-y-6">
-    <div class="flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-accent">License Status</h2>
-        <div class="flex items-center rounded-full px-3 py-1 text-sm bg-gray-200 {app.license_data.info.status === 'Invalid'  ? 'text-highlight' : 'text-black'}">
-            {#if app.license_data.info.message}
-                {app.license_data.info.message}
-            {/if}
+    {#await dataPromise}
+        <p class="text-gray-600 text-sm text-center">Retrieving payment info ...</p>
+    {:then data}
+        <div class="flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-accent">License Status</h2>
+            <div class="flex items-center rounded-full px-3 py-1 text-sm bg-gray-200 {data.info.status === 'Invalid'  ? 'text-highlight' : 'text-black'}">
+                {#if data.info.message}
+                    {data.info.message}
+                {/if}
+            </div>
         </div>
-    </div>
 
-    <div class="flex-col">
-        {#if app.license_data.info.status === 'Full' || app.license_data.info.status === 'Paid'}
-            <LicensePayMessage/>
-        {:else}
-            {#await dataPromise}
-                <p class="text-gray-600 text-sm text-center">Retrieving payment info ...</p>
-            {:then data}
+        <div class="flex-col">
+            {#if data.info.status === 'Full' || data.info.status === 'Paid'}
+                <LicensePayMessage/>
+            {:else}
                 <div class="flex flex-col mt-8" transition:fade>
-                    {#if app.license_data.info.status === "Trial"}
+                    {#if data.info.status === "Trial"}
                         {#if data.payment.payment_status === "Start"}
                             <p class="text-gray-700 mb-4">
                                 You can try Drink Now! for a few days for free or buy it now.
@@ -116,13 +116,13 @@
                         </button>
                     {/if}
                 </div>
-            {:catch err}
-                <p class="text-black">I am sorry, something went wrong. Error: {err}</p>
-                <button class="bg-accent border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
-                        onclick={async () => reload()}>
-                    Retry
-                </button>
-            {/await}
-        {/if}
-    </div>
+            {/if}
+        </div>
+    {:catch err}
+        <p class="text-black">I am sorry, something went wrong. Error: {err}</p>
+        <button class="bg-accent border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
+                onclick={async () => reload()}>
+            Retry
+        </button>
+    {/await}
 </div>
