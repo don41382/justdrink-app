@@ -25,7 +25,6 @@ where
         .decorations(false)
         .shadow(true)
         .resizable(false)
-        .inner_size(1024.0, 768.0)
         .visible(false)
         .build()?;
     }
