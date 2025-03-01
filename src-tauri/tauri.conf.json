@@ -15,15 +15,7 @@
   "app": {
     "macOSPrivateApi": true,
     "security": {
-      "csp": {
-        "default-src": "'self' customprotocol: asset:",
-        "connect-src": "ipc: http://ipc.localhost https://api.stripe.com https://maps.googleapis.com",
-        "frame-src": "https://*.js.stripe.com https://js.stripe.com https://connect-js.stripe.com https://hooks.stripe.com",
-        "script-src": "'self' https://*.js.stripe.com https://js.stripe.com https://connect-js.stripe.com https://maps.googleapis.com",
-        "font-src": ["https://fonts.gstatic.com"],
-        "img-src": "'self' asset: http://asset.localhost blob: data: https://*.stripe.com",
-        "style-src": "'self' https://fonts.googleapis.com sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk="
-      },
+      "csp": null,
       "assetProtocol": {
         "scope": [
           "**/*.mov",
