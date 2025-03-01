@@ -11,9 +11,13 @@
 
     let licenseDataPromise = $state(data.licenseData)
     let currentStep: WelcomeStep | undefined = $state(undefined)
+    let isClosing: boolean = $state(false)
 
     async function close() {
-        await commands.welcomeClose(currentStep ?? "Start")
+        isClosing = true
+        await commands.welcomeClose(currentStep ?? "Start").catch(() => {
+            isClosing = false;
+        })
     }
 
     async function reload() {
@@ -44,4 +48,8 @@
     {:catch error}
         <Error error={error} reload={reload}/>
     {/await}
+
+    {#if isClosing}
+        <LoadingSpinner/>
+    {/if}
 </AutoSize>

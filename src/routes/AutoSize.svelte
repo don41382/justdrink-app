@@ -36,9 +36,11 @@
             await currentWindow.setSize(size);
             await tick();
 
-            await currentWindow.center();
-            await currentWindow.show();
-            await currentWindow.setFocus();
+            setTimeout(async () => {
+                await currentWindow.center();
+                await currentWindow.show();
+                await currentWindow.setFocus();
+            }, 50)
         }
     }
 
