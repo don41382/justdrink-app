@@ -1,6 +1,6 @@
 <script lang="ts">
     import type {StripePaymentElement} from '@stripe/stripe-js'
-    import {commands, type LicenseData, type LicensePaymentInfo, type WelcomeWizardMode} from "../../bindings";
+    import {commands, type LicenseData, type WelcomeWizardMode} from "../../bindings";
     import {onMount} from "svelte";
     import {fetchAndInitStripe, Status, type StripeSetup} from "./StripePayment";
     import type {Action} from "svelte/action";
@@ -59,6 +59,11 @@
         })
     }
 
+    function getWindowUrl(): string {
+        const { protocol, hostname, port } = window.location;
+        return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
+    }
+
     async function nextOrPayNow() {
         const setup = await stripeSetup;
         switch (setup.paymentResult.status) {
@@ -73,7 +78,7 @@
                 await setup.stripe.confirmPayment({
                     elements: setup.paymentResult.elements,
                     confirmParams: {
-                        return_url: `http://localhost:1420/welcome?mode=${"OnlyPayment" as WelcomeWizardMode}`,
+                        return_url: `${getWindowUrl()}/welcome?mode=${"OnlyPayment" as WelcomeWizardMode}`,
                     }
                 }).then(() => {
                     loading = false
