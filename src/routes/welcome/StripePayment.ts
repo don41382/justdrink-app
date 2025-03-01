@@ -31,7 +31,7 @@ async function fetchPayment(url: string, email: string | null, deviceId: string)
         formData.append('email', email);
     }
 
-    const response = await fetch(`${url}/pricing/payment/setup/${deviceId}`, {
+    const response = await fetch(`${url}/app/v1/payment/setup/${deviceId}`, {
         method: 'POST',
         body: formData
     });

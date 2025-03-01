@@ -24,7 +24,7 @@
     }
 
     async function cancelPayment(deviceId: string): Promise<void> {
-        const url = `${app.url}/pricing/payment/cancel/${deviceId}`;
+        const url = `${app.url}/app/v1/payment/cancel/${deviceId}`;
         await info(`request: ${url}`)
         const responseRaw = await fetch(url, {
             method: 'POST',
