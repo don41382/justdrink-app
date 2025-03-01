@@ -65,9 +65,7 @@
     }
 
     let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(licenseData.payment.payment_status)))
-    currentStep = steps.at(0) ?? "Start"
-
-    let lastStep: boolean = $derived(steps.indexOf(currentStep) === steps.length - 1)
+    let lastStep: boolean = $derived(steps.indexOf(getCurrentStep()) === steps.length - 1)
 
     let initialGender: GenderType = settings.user?.gender_type ?? "Female"
     let initialDrinkCharacter: DrinkCharacter = settings.user?.character ?? "YoungMan"
@@ -106,6 +104,10 @@
         await info(`mount welcome, mode: ${welcomeMode}, paymentInfo: ${licenseData.payment.payment_status}`)
     })
 
+    function getCurrentStep(): WelcomeStep {
+        return currentStep ? currentStep : (steps.at(0) ?? "Start")
+    }
+
     function nextFinishWelcomeUserSettings() {
         info(`finish reset`)
         commands.welcomeSave(
@@ -120,31 +122,31 @@
             }
         )
         if (lastStep) {
-            commands.welcomeClose(currentStep)
+            commands.welcomeClose(getCurrentStep())
         } else {
             next()
         }
     }
 
     function next() {
-        const currentIndex = steps.indexOf(currentStep);
+        const currentIndex = steps.indexOf(getCurrentStep());
         if (currentIndex < steps.length - 1) {
             currentStep = steps[currentIndex + 1];
         }
     }
 
     function back() {
-        const currentIndex = steps.indexOf(currentStep);
+        const currentIndex = steps.indexOf(getCurrentStep());
         if (currentIndex > 0) {
             currentStep = steps[currentIndex - 1];
         }
     }
 
     function firstStep(): boolean {
-        return steps.indexOf(currentStep) == 0
+        return steps.indexOf(getCurrentStep()) == 0
     }
 
-    const getProgress = () => (steps.indexOf(currentStep) / (steps.length - 1)) * 100;
+    const getProgress = () => (steps.indexOf(getCurrentStep()) / (steps.length - 1)) * 100;
 </script>
 
 
@@ -156,33 +158,33 @@
     ></div>
 </div>
 
-{#if currentStep === "Start"}
+{#if getCurrentStep() === "Start"}
     <SelectStart welcomePath={images.welcomePath} next={next}/>
-{:else if currentStep === "GenderType"}
+{:else if getCurrentStep() === "GenderType"}
     <SelectGender bind:selectedGender={gender} bind:weightInKg={weightInKg} genderImages={images.gender}
                   back={back} next={next}/>
-{:else if currentStep === "Weight"}
+{:else if getCurrentStep() === "Weight"}
     <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg} back={back} next={next}/>
-{:else if currentStep === "DrinkAmount"}
+{:else if getCurrentStep() === "DrinkAmount"}
     <SelectDrinkAmountPerDay bind:drinkAmount={drinkAmount} measureSystem={measureSystem}
                              min={drinkAmountBasedOnGender - 500} max={drinkAmountBasedOnGender + 500}
                              back={back} next={next}/>
-{:else if currentStep === "SipSize"}
+{:else if getCurrentStep() === "SipSize"}
     <SelectSipSize sipImages={images.sip} bind:selectedSipSize={selectedSipSize}
                    drinkBreakMin={drinkBreakMin}
                    measureSystem={measureSystem} back={back} next={next}/>
-{:else if currentStep === "Reminder"}
+{:else if getCurrentStep() === "Reminder"}
     <SelectReminder bind:selectedDrinkCharacter={selectedDrinkCharacter} sipSize={selectedSipSize}
                     reminderImages={images.reminder} back={back}
                     next={nextFinishWelcomeUserSettings} lastStep={lastStep}/>
-{:else if currentStep === "Subscribe"}
+{:else if getCurrentStep() === "Subscribe"}
     <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
-{:else if currentStep === "Product"}
+{:else if getCurrentStep() === "Product"}
     <SelectProduct backVisible={!firstStep()} licenseData={licenseData} back={back} next={next}/>
-{:else if currentStep === "Purchase"}
+{:else if getCurrentStep() === "Purchase"}
     <SelectPayment backendUrl={settings.backend_url} licenseData={licenseData} email={email}
                    deviceId={settings.device_id}
                    welcomeWizardMode={welcomeMode} back={back}/>
-{:else if currentStep === "ThankYou"}
+{:else if getCurrentStep() === "ThankYou"}
     <ThankYou licenseData={licenseData} backVisible={!lastStep} back={back}/>
 {/if}

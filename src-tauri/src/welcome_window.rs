@@ -22,6 +22,12 @@ pub async fn show(
     device_id: &DeviceId,
     welcome_mode: WelcomeWizardMode,
 ) -> Result<(), anyhow::Error> {
+
+    #[cfg(target_os = "macos")]
+    app.app_handle()
+        .set_activation_policy(ActivationPolicy::Regular)
+        .expect("switch to regular app");
+
     for (_name, window) in app.webview_windows().iter() {
         if window.is_visible()? && window.label() != WINDOW_LABEL {
             window.hide()?;
@@ -60,11 +66,6 @@ pub async fn show(
             .send_tracking(tracking::Event::ResetSettings)
             .await;
     }
-
-    #[cfg(target_os = "macos")]
-    app.app_handle()
-        .set_activation_policy(ActivationPolicy::Regular)
-        .expect("switch to regular app");
 
     Ok(())
 }

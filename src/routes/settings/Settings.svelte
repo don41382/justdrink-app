@@ -27,7 +27,6 @@
 
     function welcome_redo() {
         commands.welcomeRedo();
-        getCurrentWindow().destroy();
     }
 
 </script>
