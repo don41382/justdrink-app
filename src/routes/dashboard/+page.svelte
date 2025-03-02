@@ -26,13 +26,13 @@
 
     onMount(async () => {
         await info("dashboard mounted")
+        ready = true;
         countdown.time = formatTime(getSeconds(data.timerStatus))
         countdown.pause = isPause(data.timerStatus)
         countdownUnlistenFn = await events.countdownEvent.listen(async (response) => {
             countdown.time = formatTime(getSeconds(response.payload.status));
             countdown.pause = isPause(response.payload.status);
         });
-        ready = true;
     })
 
 
