@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {commands, type SettingsUserDetails, type SettingsTabs} from '../../bindings';
+    import {commands, type SettingsUserDetails, type SettingsTabs, type Settings} from '../../bindings';
     import {type Component, onMount} from 'svelte';
     import Session from "./Settings.svelte";
     import Tracking from "./Tracking.svelte";

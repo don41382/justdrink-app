@@ -30,7 +30,6 @@ pub struct Settings {
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub struct AppDetails {
     pub(crate) version: String,
-    pub(crate) license_data: model::license::LicenseData,
     pub(crate) device_id: String,
     pub(crate) url: String,
 }

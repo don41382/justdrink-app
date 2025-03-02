@@ -142,7 +142,7 @@
     </div>
 
     {#if loading}
-        <LoadingSpinner/>
+        <LoadingSpinner fullScreen={true}/>
     {/if}
 </div>
 <Navigation back={back}

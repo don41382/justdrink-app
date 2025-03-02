@@ -8,10 +8,16 @@
     import {fade} from 'svelte/transition';
     import LicensePayMessage from "./LicensePayMessage.svelte";
     import {getCurrentWindow} from "@tauri-apps/api/window";
+    import {onMount} from "svelte";
+    import LoadingSpinner from "../welcome/LoadingSpinner.svelte";
 
     let {app}: { app: AppDetails } = $props();
 
-    let dataPromise: Promise<LicenseData> = $state(Promise.resolve(app.license_data))
+    let dataPromise: Promise<LicenseData> = $state(Promise.reject("failed to load license data"))
+
+    onMount(async() => {
+        dataPromise = commands.requestLicenseStatus()
+    })
 
     async function purchase() {
         await info("get a license")
@@ -47,9 +53,9 @@
 
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6 h-full">
     {#await dataPromise}
-        <p class="text-gray-600 text-sm text-center">Retrieving payment info ...</p>
+        <LoadingSpinner fullScreen={false}/>
     {:then data}
         <div class="flex justify-between items-center">
             <h2 class="text-lg font-semibold text-accent">License Status</h2>

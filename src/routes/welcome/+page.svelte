@@ -41,7 +41,7 @@
     </div>
 
     {#await licenseDataPromise}
-        <LoadingSpinner/>
+        <LoadingSpinner fullScreen={true}/>
     {:then licenseData}
         <Wizard currentStep={currentStep} licenseData={licenseData} welcomeMode={data.welcomeMode} images={data.images}
                 settings={data.settings}/>
@@ -50,6 +50,6 @@
     {/await}
 
     {#if isClosing}
-        <LoadingSpinner/>
+        <LoadingSpinner fullScreen={true}/>
     {/if}
 </AutoSize>

@@ -33,8 +33,6 @@ pub async fn load_settings(
 ) -> Result<model::settings::Settings, String> {
     info!("load settings data");
     let version = app.app_handle().config().version.clone();
-    let license_manager = app.state::<LicenseManagerState>();
-    let license_data = license_manager.get_status(&app.app_handle(), false, true).await?;
     info!("load settings data - done");
 
     let settings = settings
@@ -45,7 +43,6 @@ pub async fn load_settings(
         app: model::settings::AppDetails {
             device_id: tracking.device_id().get_hash_hex_id(),
             version: version.unwrap_or("unknown".to_string()),
-            license_data: license_data.to_model(),
             url: AppConfig::build().get_url(),
         },
         user: settings.user,

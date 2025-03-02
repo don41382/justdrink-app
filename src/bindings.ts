@@ -94,7 +94,7 @@ welcomeWizardMode: "welcome-wizard-mode"
 
 /** user-defined types **/
 
-export type AppDetails = { version: string; license_data: LicenseData; device_id: string; url: string }
+export type AppDetails = { version: string; device_id: string; url: string }
 export type ChangeTime = { Add: number } | { Remove: number }
 export type CountdownEvent = { status: TimerStatus }
 export type DrinkCharacter = "YoungWoman" | "YoungMan"

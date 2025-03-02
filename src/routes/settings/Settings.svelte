@@ -65,17 +65,15 @@
             <span class="text-gray-700">Enable on startup</span>
             <input bind:checked={user.enable_on_startup} class="toggle-checkbox" on:change={submit} type="checkbox">
         </label>
-        {#if app.license_data.info.status !== "Full"}
-            <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
-                <div class="flex justify-between items-center">
-                    <span class="{user.beta_version ? 'text-gray-700' : 'text-gray-400' }">Enable Beta Access</span>
-                    <input bind:checked={user.beta_version} class="toggle-checkbox" on:change={submit} type="checkbox">
-                </div>
-                <div class="{user.beta_version ? 'text-gray-500' : 'text-gray-400' } text-sm space-y-1 mt-1">
-                    <p> Opt in to receive early access to beta versions.</p>
-                    <p> Please note that these versions may contain bugs or be unstable.</p>
-                </div>
-            </label>
-        {/if}
+        <label class="block justify-between items-center bg-white p-4 rounded-lg shadow-sm cursor-pointer">
+            <div class="flex justify-between items-center">
+                <span class="{user.beta_version ? 'text-gray-700' : 'text-gray-400' }">Enable Beta Access</span>
+                <input bind:checked={user.beta_version} class="toggle-checkbox" on:change={submit} type="checkbox">
+            </div>
+            <div class="{user.beta_version ? 'text-gray-500' : 'text-gray-400' } text-sm space-y-1 mt-1">
+                <p> Opt in to receive early access to beta versions.</p>
+                <p> Please note that these versions may contain bugs or be unstable.</p>
+            </div>
+        </label>
     </div>
 </div>
