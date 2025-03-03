@@ -224,9 +224,15 @@ pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> ta
 }
 
 fn tray_icon(app: &AppHandle<Wry>) -> tauri::Result<Image<'_>> {
+    let image_path = if cfg!(target_os = "windows") {
+        "icons/drinknow-glass-tray-512.png"
+    } else {
+        "icons/drinknow-glass-tray-50.png"
+    };
+
     let image = Image::from_path(
         app.path()
-            .resolve("icons/drinknow-glass-tray-512.png", BaseDirectory::Resource)?,
+            .resolve(image_path, BaseDirectory::Resource)?,
     )?;
     Ok(image)
 }

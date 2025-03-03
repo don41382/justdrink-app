@@ -4,6 +4,8 @@
     import {commands, type DrinkCharacter, type SipSize} from "../../bindings";
     import {DrinkCharacters} from "../DrinkCharacters";
     import Navigation from "./Navigation.svelte";
+    import {Sip} from "./SipSize";
+    import Speaker from "../../icons/Speaker.svelte";
 
     let {selectedDrinkCharacter = $bindable(), sipSize, reminderImages, back, next, lastStep}: {
         selectedDrinkCharacter: undefined | DrinkCharacter,
@@ -36,10 +38,27 @@
 
 <div class="flex-1">
     <div class="flex flex-col w-full h-full">
-        <h1 class="text-4xl text-primary text-left mb-2">Test your reminder</h1>
-        <p class="text-secondary/80 font-light">
-            Choose your immersive character as your drink reminder.
-        </p>
+        <div class="flex-none flex justify-between">
+            <div class="flex-col">
+                <h1 class="text-4xl text-primary text-left mb-2">Who should remind you?</h1>
+                <p class="text-secondary/80 font-light">
+                    Choose your immersive character as your drink reminder.
+                </p>
+            </div>
+            <div class="relative group inline-block">
+                <div class="flex flex-col items-center justify-center text-secondary/50">
+                    <div class="size-12">
+                        <Speaker/>
+                    </div>
+                    <p class="text-xs mt-2">unmute speaker</p>
+                </div>
+                <div class="absolute bottom-full mb-2 hidden group-hover:block">
+                    <div class="px-2 py-1 w-28 text-xs text-white bg-gray-950/50 text-center rounded shadow-lg">
+                        Please unmute your speakers
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="flex flex-col grow items-center justify-center mt-12">
             <div class="flex space-x-2 justify-center items-stretch">
                 {#each DrinkCharacters.all as character}
