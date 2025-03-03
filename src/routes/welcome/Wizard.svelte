@@ -98,10 +98,10 @@
         return currentStep ? currentStep : (steps.at(0) ?? "Start")
     }
 
-    function nextFinishWelcomeUserSettings() {
-        info(`finish reset`)
+    async function nextFinishWelcomeUserSettings() {
+        await info(`finish reset`)
         loading = true;
-        commands.welcomeSave(
+        await commands.welcomeSave(
             null,
             null,
             {
@@ -114,9 +114,11 @@
         ).catch((err) => {
             loading = false;
             warn(`failed to save welcome: ${err}`)
+        }).then(() => {
+            loading = false;
         })
         if (lastStep) {
-            commands.welcomeClose(getCurrentStep())
+            await commands.welcomeClose(getCurrentStep())
         } else {
             next()
         }

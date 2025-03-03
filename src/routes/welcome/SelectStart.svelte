@@ -7,13 +7,10 @@
 </script>
 
 <div class="flex-1">
-    <div class="flex flex-col w-full h-full">
+    <div class="flex flex-col w-full h-full mt-8">
         <div class="flex flex-col grow items-center justify-center">
             <div class="flex space-x-2 justify-center items-stretch">
-
-
                 <div class="flex items-center gap-8">
-
                     <div class="flex justify-center">
                         <img alt="welcome" class="w-96" src={welcomePath}/>
                     </div>
