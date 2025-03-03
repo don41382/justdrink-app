@@ -2,7 +2,7 @@ use crate::alert::Alert;
 use crate::app_config::AppConfig;
 use crate::model::settings::SettingsTabs;
 use crate::settings_manager::UserSettingsStore;
-use crate::{model, CountdownTimerState, LicenseManagerState, SettingsManagerState, TrackingState};
+use crate::{model, CountdownTimerState, SettingsManagerState, TrackingState};
 use log::info;
 use std::string::ToString;
 use std::time::Duration;

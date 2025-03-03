@@ -214,7 +214,7 @@ pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> ta
             TimerStatus::Paused(origin, _) => match origin {
                 PauseOrigin::Idle => Some("Idle".to_string()),
                 PauseOrigin::PreventSleep(_) => Some("Busy".to_string()),
-                PauseOrigin::User => Some("Paused".to_string()),
+                PauseOrigin::User => Some("Silent".to_string()),
             },
             TimerStatus::Finished => None,
         };
@@ -225,7 +225,7 @@ pub fn update_tray_title(app_handle: &AppHandle<Wry>, status: TimerStatus) -> ta
 
 fn tray_icon(app: &AppHandle<Wry>) -> tauri::Result<Image<'_>> {
     let image_path = if cfg!(target_os = "windows") {
-        "icons/drinknow-glass-tray.ico"
+        "icons/drinknow-glass-tray-50.png"
     } else {
         "icons/drinknow-glass-tray-512.png"
     };
