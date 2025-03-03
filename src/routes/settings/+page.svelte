@@ -82,7 +82,7 @@
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto p-8">
             {#if currentPage === 'Session'}
-                <Session user={settings.user} app={settings.app} {updateSettings}/>
+                <Session user={settings.user} {updateSettings}/>
             {:else if currentPage === 'Tracking'}
                 <Tracking user={settings.user} {updateSettings}/>
             {:else if currentPage === 'License'}

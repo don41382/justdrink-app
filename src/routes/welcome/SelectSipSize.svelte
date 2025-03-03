@@ -8,10 +8,17 @@
     import {CalculatedDrinkAmount} from "./CalculatedDrinkAmount";
     import {DrinkTimeCalculator} from "./DrinkTimeCalculator";
 
-    let {sipImages, selectedSipSize = $bindable(), gender, drinkAmountMl, drinkBreakMin = $bindable(), measureSystem, back, next}: {
+    let {
+        sipImages,
+        selectedSipSize = $bindable(),
+        drinkAmountMl,
+        drinkBreakMin = $bindable(),
+        measureSystem,
+        back,
+        next
+    }: {
         sipImages: SipImages,
         selectedSipSize: SipSize,
-        gender: GenderType,
         drinkAmountMl: number,
         drinkBreakMin: number,
         measureSystem: MeasureSystem,
@@ -58,7 +65,8 @@
                             onclick={() => selectSize(size.type)}
                             class="flex p-4 group flex-col cursor-pointer shadow-sm rounded-xl items-center w-32 {(size.type === selectedSipSize) ? 'bg-primary' : 'bg-primary/10 hover:bg-primary/50'}">
                         <img fetchpriority="high" class="w-14 h-18" alt="{size.text}" src="{imagePath(size.type)}"/>
-                        <p class="text-lg/6 mt-2 {(size.type === selectedSipSize) ? 'text-accent' : 'text-primary'}">{DrinkTimeCalculator.calc(drinkAmountMl, size.type)} min</p>
+                        <p class="text-lg/6 mt-2 {(size.type === selectedSipSize) ? 'text-accent' : 'text-primary'}">{DrinkTimeCalculator.calc(drinkAmountMl, size.type)}
+                            min</p>
                         <p class="text-sm {(size.type === selectedSipSize) ? 'text-accent/70' : 'text-secondary/40'}">{size.text}</p>
                     </button>
                 {/each}

@@ -173,7 +173,6 @@
 {:else if getCurrentStep() === "SipSize"}
     <SelectSipSize sipImages={images.sip}
                    bind:selectedSipSize={selectedSipSize}
-                   gender={gender}
                    drinkAmountMl={drinkAmount}
                    drinkBreakMin={drinkBreakMin}
                    measureSystem={measureSystem} back={back} next={next}/>

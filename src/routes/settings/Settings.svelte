@@ -6,7 +6,6 @@
     import {getCurrentWindow} from "@tauri-apps/api/window";
 
     export let user: SettingsUserDetails;
-    export let app: AppDetails;
     export let updateSettings: (updatedSettings: SettingsUserDetails) => Promise<void>;
 
     let next_break_duration_minutes: number = user.next_break_duration_minutes;
