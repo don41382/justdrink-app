@@ -227,7 +227,7 @@ fn tray_icon(app: &AppHandle<Wry>) -> tauri::Result<Image<'_>> {
     let image_path = if cfg!(target_os = "windows") {
         "icons/drinknow-glass-tray-512.png"
     } else {
-        "icons/drinknow-glass-tray-50.png"
+        "icons/drinknow-glass-tray.ico"
     };
 
     let image = Image::from_path(
