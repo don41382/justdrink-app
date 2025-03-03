@@ -6,10 +6,11 @@
     import {allGender, imagePath} from "./Gender";
     import Navigation from "./Navigation.svelte";
 
-    let {selectedGender = $bindable(), weightInKg = $bindable(), genderImages, back, next}: {
+    let {selectedGender = $bindable(), weightInKg = $bindable(), genderImages, backVisible, back, next}: {
         selectedGender: GenderType | undefined,
         weightInKg: number | undefined,
         genderImages: GenderImages,
+        backVisible: boolean,
         back: () => void,
         next: () => void
     } = $props();
@@ -31,7 +32,7 @@
         <p class="text-secondary/80 font-light">
             Choose the gender that best represents you.
         </p>
-        <div class="flex flex-col grow items-center justify-center mt-7">
+        <div class="flex flex-col grow items-center justify-center mt-12">
             <div class="flex space-x-2 justify-center items-stretch">
                 {#each allGender as gender}
                     <button
@@ -53,7 +54,7 @@
 </div>
 
 <Navigation back={back}
-            backVisible={true}
+            backVisible={backVisible}
             next={next}
             nextBackground="bg-primary"
             nextDisabled={false}

@@ -19,13 +19,10 @@
     <div class="flex flex-col w-full h-full">
         <h1 class="flex-none text-4xl text-primary text-left mb-2">How much you should drink</h1>
         <p class="text-secondary/80 font-light">
-            Based on your age, you should drink
-            between {VolumeConverter.to(min, measureSystem).toFixed(0).toLocaleString()}
-            - {VolumeConverter.to(max, measureSystem).toFixed(0).toLocaleString()} {toVolumeName(measureSystem)}  per
-            day.
-            You can adjusted, if you like.
+            Based on your age, you should drink between {VolumeConverter.to(min, measureSystem).toFixed(0).toLocaleString()} - {VolumeConverter.to(max, measureSystem).toFixed(0).toLocaleString()} {toVolumeName(measureSystem)} per day.
+            You can adjust as needed.
         </p>
-        <div class="flex grow justify-center mt-7">
+        <div class="flex grow justify-center mt-14">
             <div class="flex flex-col justify-center items-center">
                 <div class="flex w-fit h-16 text-2xl items-center rounded-xl bg-secondary/20 px-3 outline-1 -outline-offset-1 outline-gray-300">
                     <input

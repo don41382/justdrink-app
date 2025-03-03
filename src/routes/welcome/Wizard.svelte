@@ -24,6 +24,7 @@
     import ThankYou from "./ThankYou.svelte";
     import type {WelcomeImages} from "./+page";
     import type {WelcomeStep} from "./WelcomeStep";
+    import {DrinkTimeCalculator} from "./DrinkTimeCalculator";
 
     let {images, welcomeMode, licenseData, settings, currentStep = $bindable()}: {
         images: WelcomeImages,
@@ -80,7 +81,7 @@
     let drinkAmountBasedOnGender: number = $state(0)
     let selectedSipSize: SipSize = $state("BigSip")
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
-    let drinkBreakMin = $derived(roundToNearestSessionTime((12 * 60) / (drinkAmount / Sip.getMlForSize(selectedSipSize))))
+    let drinkBreakMin = $derived(DrinkTimeCalculator.calc(drinkAmount, selectedSipSize))
 
     function roundToNearestSessionTime(num: number): number {
         let closest = sessionTimes[0];
@@ -162,7 +163,7 @@
     <SelectStart welcomePath={images.welcomePath} next={next}/>
 {:else if getCurrentStep() === "GenderType"}
     <SelectGender bind:selectedGender={gender} bind:weightInKg={weightInKg} genderImages={images.gender}
-                  back={back} next={next}/>
+                  backVisible={!firstStep()} back={back} next={next}/>
 {:else if getCurrentStep() === "Weight"}
     <SelectWeight bind:measureSystem={measureSystem} bind:weightInKg={weightInKg} back={back} next={next}/>
 {:else if getCurrentStep() === "DrinkAmount"}
@@ -170,7 +171,10 @@
                              min={drinkAmountBasedOnGender - 500} max={drinkAmountBasedOnGender + 500}
                              back={back} next={next}/>
 {:else if getCurrentStep() === "SipSize"}
-    <SelectSipSize sipImages={images.sip} bind:selectedSipSize={selectedSipSize}
+    <SelectSipSize sipImages={images.sip}
+                   bind:selectedSipSize={selectedSipSize}
+                   gender={gender}
+                   drinkAmountMl={drinkAmount}
                    drinkBreakMin={drinkBreakMin}
                    measureSystem={measureSystem} back={back} next={next}/>
 {:else if getCurrentStep() === "Reminder"}

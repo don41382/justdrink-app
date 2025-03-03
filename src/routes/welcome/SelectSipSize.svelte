@@ -3,12 +3,16 @@
     import {toVolumeName, VolumeConverter} from "./VolumeConverter";
     import type {MeasureSystem} from "./MeasureSystem";
     import {Sip} from "./SipSize";
-    import type {SipSize} from "../../bindings";
+    import type {GenderType, SipSize} from "../../bindings";
     import Navigation from "./Navigation.svelte";
+    import {CalculatedDrinkAmount} from "./CalculatedDrinkAmount";
+    import {DrinkTimeCalculator} from "./DrinkTimeCalculator";
 
-    let {sipImages, selectedSipSize = $bindable(), drinkBreakMin = $bindable(), measureSystem, back, next}: {
+    let {sipImages, selectedSipSize = $bindable(), gender, drinkAmountMl, drinkBreakMin = $bindable(), measureSystem, back, next}: {
         sipImages: SipImages,
         selectedSipSize: SipSize,
+        gender: GenderType,
+        drinkAmountMl: number,
         drinkBreakMin: number,
         measureSystem: MeasureSystem,
         back: () => void,
@@ -37,14 +41,14 @@
     <div class="flex flex-col w-full h-full">
         <div class="flex-none flex justify-between">
             <div class="flex-col">
-                <h1 class="flex-none text-4xl text-primary text-left mb-2">Your drink breaks</h1>
+                <h1 class="flex-none text-4xl text-primary text-left mb-2">Select your cup size</h1>
                 <p class="flex-none text-secondary/80">
-                    Choose how much you like to drink on each break
+                    Your selection determines how often you'll get water reminders
                 </p>
             </div>
             <div class="flex flex-col items-center justify-center">
-                <p class="text-primary/40">{Sip.getTextForSize(selectedSipSize) ?? "sip"} every</p>
-                <p class="text-primary text-4xl">{drinkBreakMin.toFixed(0)} min</p>
+                <p class="text-primary/40 whitespace-nowrap">{Sip.getTextForSize(selectedSipSize) ?? "sip"} every</p>
+                <p class="text-primary text-4xl whitespace-nowrap">{drinkBreakMin.toFixed(0)} min</p>
             </div>
         </div>
         <div class="flex grow items-center justify-center mt-7">
@@ -53,9 +57,9 @@
                     <button
                             onclick={() => selectSize(size.type)}
                             class="flex p-4 group flex-col cursor-pointer shadow-sm rounded-xl items-center w-32 {(size.type === selectedSipSize) ? 'bg-primary' : 'bg-primary/10 hover:bg-primary/50'}">
-                        <img fetchpriority="high" class="w-12 h-14" alt="{size.text}" src="{imagePath(size.type)}"/>
-                        <p class="text-lg/6 mt-2 {(size.type === selectedSipSize) ? 'text-accent' : 'text-primary'}">{size.text}</p>
-                        <p class="text-sm {(size.type === selectedSipSize) ? 'text-accent/70' : 'text-secondary/40'}">{VolumeConverter.from(size.ml, measureSystem)} {toVolumeName(measureSystem)}</p>
+                        <img fetchpriority="high" class="w-14 h-18" alt="{size.text}" src="{imagePath(size.type)}"/>
+                        <p class="text-lg/6 mt-2 {(size.type === selectedSipSize) ? 'text-accent' : 'text-primary'}">{DrinkTimeCalculator.calc(drinkAmountMl, size.type)} min</p>
+                        <p class="text-sm {(size.type === selectedSipSize) ? 'text-accent/70' : 'text-secondary/40'}">{size.text}</p>
                     </button>
                 {/each}
             </div>

@@ -16,7 +16,7 @@
     <div class="flex flex-col w-full h-full">
         {#if licenseData.payment.trial_days_left > 0}
             <h1 class="flex-none text-4xl text-primary text-left mb-2">Try it for {licenseData.payment.trial_days_left}
-                more days!</h1>
+                {licenseData.payment.total_trail_days !== licenseData.payment.trial_days_left ? "more" : ""} more days!</h1>
             <span class="text-secondary/80 font-light">
                 We want to ensure this is the perfect app for you. Try it for free, and if you love it, get the
                 <span class="text-primary">lifetime license</span> for just <span

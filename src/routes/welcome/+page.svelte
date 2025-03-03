@@ -27,7 +27,7 @@
 </script>
 
 <AutoSize
-        class="flex flex-col bg-accent w-[650px] min-h-[450px] px-12 cursor-default rounded-2xl"
+        class="flex flex-col bg-accent w-[650px] min-h-[500px] px-12 cursor-default rounded-2xl"
         ready={true}>
     <div class="flex pt-8 mb-4 justify-between items-center">
         <div class="flex items-center">

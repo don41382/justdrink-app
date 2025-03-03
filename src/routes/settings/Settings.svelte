@@ -54,7 +54,7 @@
                 <p class="text-gray-500 text-sm mt-1">Time until your next sip</p>
                 <button class="text-gray-500 text-sm underline hover:text-accent mt-1 text-right cursor-pointer"
                         on:click={welcome_redo}>
-                    Reset
+                    Restart Wizard
                 </button>
             </div>
         </label>

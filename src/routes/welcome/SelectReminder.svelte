@@ -40,7 +40,7 @@
         <p class="text-secondary/80 font-light">
             Choose your immersive character as your drink reminder.
         </p>
-        <div class="flex flex-col grow items-center justify-center mt-7">
+        <div class="flex flex-col grow items-center justify-center mt-12">
             <div class="flex space-x-2 justify-center items-stretch">
                 {#each DrinkCharacters.all as character}
                     <button
