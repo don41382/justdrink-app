@@ -11,6 +11,9 @@
     import Play from "../../icons/Play.svelte";
     import Pause from "../../icons/Pause.svelte";
     import GlassEmpty from "../../icons/GlassEmpty.svelte";
+    import Minimize from "../../icons/Minimize.svelte";
+    import AlertOn from "../../icons/AlertOn.svelte";
+    import AlertOff from "../../icons/AlertOff.svelte";
 
     let countdownUnlistenFn: UnlistenFn;
 
@@ -26,13 +29,13 @@
 
     onMount(async () => {
         await info("dashboard mounted")
-        ready = true;
         countdown.time = formatTime(getSeconds(data.timerStatus))
         countdown.pause = isPause(data.timerStatus)
         countdownUnlistenFn = await events.countdownEvent.listen(async (response) => {
             countdown.time = formatTime(getSeconds(response.payload.status));
             countdown.pause = isPause(response.payload.status);
         });
+        ready = true;
     })
 
 
@@ -143,7 +146,7 @@
             </button>
             <button class="flex items-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1 size-8"
                     onclick={async () => { await close() }}>
-                <Xmark/>
+                <Minimize/>
             </button>
 
         </div>
@@ -152,7 +155,7 @@
     <div class="flex flex-col w-full text-center text-black bg-gray-200/80 rounded-2xl cursor-default">
         <div class="p-6">
             <div class="text-2xl font-light text-accent">next reminder in</div>
-            <div class="text-6xl font-bold text-black">{countdown.time}</div>
+            <div class="text-6xl font-bold {countdown.pause ? 'text-black/20' : 'text-black'} ">{countdown.time}</div>
         </div>
         <div class="w-full border-b-2 border-white/70"></div>
         <div class="flex items-stretc w-full rounded-b-2xl">
@@ -160,14 +163,14 @@
                     onclick={async () => await toggleTimer()}>
                 {#if countdown.pause}
                     <div class="size-8">
-                        <Play/>
+                        <AlertOff/>
                     </div>
-                    <span class="text-lg font-light mt-1 tracking-wide">Run</span>
+                    <span class="text-lg font-light mt-1 tracking-wide">Silent</span>
                 {:else}
                     <div class="size-8">
-                        <Pause/>
+                        <AlertOn/>
                     </div>
-                    <span class="text-lg font-light mt-1 tracking-wide">Pause</span>
+                    <span class="text-lg font-light mt-1 tracking-wide">Active</span>
                 {/if}
             </button>
             <div class="border-l-2 border-white/70"></div>
