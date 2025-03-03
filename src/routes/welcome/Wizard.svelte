@@ -6,7 +6,7 @@
         type GenderType, type LicenseData, type LicensePaymentStatus, type SettingsUserDetails,
         type SipSize, type WelcomeLoadSettings, type WelcomeWizardMode
     } from "../../bindings";
-    import {info} from "@tauri-apps/plugin-log";
+    import {info, warn} from "@tauri-apps/plugin-log";
     import SelectGender from "./SelectGender.svelte";
     import SelectWeight from "./SelectWeight.svelte";
     import SelectDrinkAmountPerDay from "./SelectDrinkAmountPerDay.svelte";
@@ -15,7 +15,6 @@
     import SelectSipSize from "./SelectSipSize.svelte";
     import {WeightConverter} from "./WeightConverter";
     import SelectReminder from "./SelectReminder.svelte";
-    import {Sip} from "./SipSize";
     import {sessionTimes} from "../session-times";
     import SelectPayment from "./SelectPayment.svelte";
     import {onMount} from "svelte";
@@ -25,6 +24,7 @@
     import type {WelcomeImages} from "./+page";
     import type {WelcomeStep} from "./WelcomeStep";
     import {DrinkTimeCalculator} from "./DrinkTimeCalculator";
+    import LoadingSpinner from "./LoadingSpinner.svelte";
 
     let {images, welcomeMode, licenseData, settings, currentStep = $bindable()}: {
         images: WelcomeImages,
@@ -65,6 +65,8 @@
         }
     }
 
+    let loading = $state(false);
+
     let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(licenseData.payment.payment_status)))
     let lastStep: boolean = $derived(steps.indexOf(getCurrentStep()) === steps.length - 1)
 
@@ -83,19 +85,6 @@
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
     let drinkBreakMin = $derived(DrinkTimeCalculator.calc(drinkAmount, selectedSipSize))
 
-    function roundToNearestSessionTime(num: number): number {
-        let closest = sessionTimes[0];
-
-        // Iterate through sessionTimes to find the closest number
-        for (const time of sessionTimes) {
-            if (Math.abs(time - num) < Math.abs(closest - num)) {
-                closest = time;
-            }
-        }
-
-        return closest;
-    }
-
     $effect(() => {
         drinkAmount = CalculatedDrinkAmount.calc(gender ?? initialGender, weightInKg)
         drinkAmountBasedOnGender = CalculatedDrinkAmount.calc(gender ?? initialGender, weightInKg)
@@ -111,6 +100,7 @@
 
     function nextFinishWelcomeUserSettings() {
         info(`finish reset`)
+        loading = true;
         commands.welcomeSave(
             null,
             null,
@@ -121,7 +111,10 @@
                 character: selectedDrinkCharacter ?? initialDrinkCharacter,
                 gender_type: gender ?? initialGender,
             }
-        )
+        ).catch((err) => {
+            loading = false;
+            warn(`failed to save welcome: ${err}`)
+        })
         if (lastStep) {
             commands.welcomeClose(getCurrentStep())
         } else {
@@ -158,6 +151,10 @@
             style="width: {getProgress()}%;"
     ></div>
 </div>
+
+{#if loading}
+    <LoadingSpinner fullScreen={true}/>
+{/if}
 
 {#if getCurrentStep() === "Start"}
     <SelectStart welcomePath={images.welcomePath} next={next}/>
