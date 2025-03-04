@@ -33,6 +33,7 @@
 
     onMount(async () => {
         sessionListener = await events.sessionStartEvent.listen(async ({payload}) => {
+            await getCurrentWindow().maximize()
             visible = false
             await info(`start session - character: ${payload.selected_drink_character} - sip_size: ${payload.sip_size}`)
             selectedDrinkCharacter = payload.selected_drink_character
@@ -62,6 +63,7 @@
     }
 
     onDestroy(async () => {
+        await info("destroy session window")
         visible = false
         await commands.endSession(demoMode)
         cleanup()
