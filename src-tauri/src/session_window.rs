@@ -24,6 +24,9 @@ pub fn init(app: &AppHandle<Wry>) -> Result<EventId, anyhow::Error> {
         if status.payload.status == countdown_timer::TimerStatus::Finished {
             let app_handle_start = app_handle.clone();
             tauri::async_runtime::spawn(async move {
+                let timer = app_handle_start.app_handle().state::<CountdownTimerState>();
+                timer.restart();
+
                 show_session(&app_handle_start.app_handle(), None)
                     .await
                     .unwrap();
@@ -38,7 +41,13 @@ pub fn init(app: &AppHandle<Wry>) -> Result<EventId, anyhow::Error> {
 pub async fn start_session(
     app: AppHandle,
     drink_settings: Option<SessionStartEvent>,
+    timer: State<'_, CountdownTimerState>,
 ) -> Result<(), ()> {
+    let demo_mode = drink_settings.as_ref().map(|s| s.demo_mode).unwrap_or(false);
+    if !demo_mode {
+        timer.restart();
+    }
+
     show_session(&app, drink_settings)
         .await
         .unwrap_or_else(|err| {
@@ -63,7 +72,12 @@ pub async fn show_session(
         .map(|s| s.status.is_active())
         .map_err(|err| anyhow!(err))
         .unwrap_or_else(|err| {
-            app.alert("Unable to access license server", "We are sorry, but we have trouble accessing the license server.", Some(err), true);
+            app.alert(
+                "Unable to access license server",
+                "We are sorry, but we have trouble accessing the license server.",
+                Some(err),
+                true,
+            );
             false
         });
 
@@ -72,10 +86,6 @@ pub async fn show_session(
         .map(|s| s.demo_mode.clone())
         .unwrap_or(false);
     if demo_mode || license_active {
-        // stop current running timer
-        info!("start session window: stop timer");
-        app.state::<CountdownTimerState>().stop();
-
         if !demo_mode {
             // stop current running timer
             info!("increase session counter");
@@ -90,7 +100,8 @@ pub async fn show_session(
             // send tracking event
             info!("start session window: send tracking");
             app.state::<TrackingState>()
-                .send_tracking(tracking::Event::DrinkReminder).await;
+                .send_tracking(tracking::Event::DrinkReminder)
+                .await;
         }
 
         let user_settings = app
@@ -98,7 +109,7 @@ pub async fn show_session(
             .get_settings()
             .map(|s| s.user);
 
-        let drink_settings: SessionStartEvent = overwrite_settings
+        let session_start: SessionStartEvent = overwrite_settings
             .or_else(|| {
                 // Attempt to get from user settings if overwrite_settings is None
                 user_settings
@@ -120,7 +131,7 @@ pub async fn show_session(
 
         if let Some(_window) = app.get_webview_window(WINDOW_LABEL) {
             info!("start session window: send event");
-            drink_settings.emit(app.app_handle())?;
+            session_start.emit(app.app_handle())?;
         } else {
             app.alert(
                 "Session Window Missing",
@@ -134,7 +145,8 @@ pub async fn show_session(
             app.app_handle(),
             &app.state::<TrackingState>().device_id(),
             WelcomeWizardMode::OnlyPayment,
-        ).await?;
+        )
+        .await?;
     }
 
     Ok(())
@@ -174,13 +186,10 @@ pub(crate) fn days_between(
 #[tauri::command]
 pub async fn end_session(
     app: AppHandle,
-    timer: State<'_, CountdownTimerState>,
     settings_system: State<'_, SettingsSystemState>,
     demo_mode: bool,
 ) -> Result<(), String> {
     info!("end reminder session");
-    timer.restart();
-
     hide_window(&app)?;
 
     if !demo_mode {

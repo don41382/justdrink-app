@@ -2,7 +2,7 @@ use crate::alert::Alert;
 use crate::countdown_timer::{CountdownEvent, CountdownTimer, PauseOrigin, TimerStatus};
 use crate::model::settings::SettingsTabs;
 use crate::pretty_time::PrettyTime;
-use crate::{dashboard_window, feedback_window, session_window, settings_window, updater_window};
+use crate::{dashboard_window, feedback_window, session_window, settings_window, updater_window, CountdownTimerState};
 use anyhow::anyhow;
 use std::time::Duration;
 use tauri::image::Image;
@@ -93,6 +93,9 @@ pub fn create_tray(main_app: &AppHandle<Wry>) -> tauri::Result<()> {
             "start" => {
                 let app_handle = app.clone();
                 tauri::async_runtime::spawn(async move {
+                    let timer = app_handle.app_handle().state::<CountdownTimerState>();
+                    timer.restart();
+
                     session_window::show_session(app_handle.app_handle(), None).await.unwrap_or_else(|e| {
                         app_handle.alert(
                             "Error while starting the session",
