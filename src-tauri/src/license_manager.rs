@@ -29,10 +29,8 @@ mod response {
 
     #[derive(Deserialize, Debug, Clone)]
     pub(crate) enum PaymentStatus {
-        #[serde(rename(deserialize = "START"))]
-        Start,
-        #[serde(rename(deserialize = "REQUIRE_INFO"))]
-        RequireInfo,
+        #[serde(rename(deserialize = "GO_TO_CHECKOUT"))]
+        GoToCheckout,
         #[serde(rename(deserialize = "READY_TO_CAPTURE"))]
         ReadyToCapture,
         #[serde(rename(deserialize = "PAID"))]
@@ -136,8 +134,7 @@ impl LicenseStatus {
 impl PaymentStatus {
     fn to_model(&self) -> model::license::LicensePaymentStatus {
         match self {
-            PaymentStatus::Start => model::license::LicensePaymentStatus::Start,
-            PaymentStatus::RequireInfo => model::license::LicensePaymentStatus::RequireInfo,
+            PaymentStatus::GoToCheckout => model::license::LicensePaymentStatus::GoToCheckout,
             PaymentStatus::ReadyToCapture => model::license::LicensePaymentStatus::ReadyToCapture,
             PaymentStatus::Paid => model::license::LicensePaymentStatus::Paid,
             PaymentStatus::Canceled => model::license::LicensePaymentStatus::Canceled,
@@ -340,6 +337,8 @@ impl LicenseManager {
         &self,
         app_handle: &AppHandle,
     ) -> Result<LicenseData, String> {
+
+        // do not request, if status is already paid or full
         {
             let status = self.status.lock().await;
             if let Some(data) = status.as_ref() {
@@ -351,9 +350,8 @@ impl LicenseManager {
                     return Ok(data.clone());
                 }
             }
-        } // `status` lock is released here
+        }
 
-        // Make your network request
         match Self::validate(&self.client, &self.device_id).await {
             Ok(license_data) => {
                 // Acquire a *mutable* lock on status again to update it

@@ -15,7 +15,6 @@
     import SelectSipSize from "./SelectSipSize.svelte";
     import {WeightConverter} from "./WeightConverter";
     import SelectReminder from "./SelectReminder.svelte";
-    import {sessionTimes} from "../session-times";
     import SelectPayment from "./SelectPayment.svelte";
     import {onMount} from "svelte";
     import SelectSubscribe from "./SelectSubscribe.svelte";
@@ -26,13 +25,16 @@
     import {DrinkTimeCalculator} from "./DrinkTimeCalculator";
     import LoadingSpinner from "./LoadingSpinner.svelte";
 
-    let {images, welcomeMode, licenseData, settings, currentStep = $bindable()}: {
+    let {images, welcomeMode, licenseDataInitial, settings, currentStep = $bindable()}: {
         images: WelcomeImages,
         welcomeMode: WelcomeWizardMode,
-        licenseData: LicenseData,
+        licenseDataInitial: LicenseData,
         settings: WelcomeLoadSettings,
         currentStep: WelcomeStep | undefined,
     } = $props();
+
+    let licenseData: LicenseData = $state(licenseDataInitial)
+
 
     function getPaymentSteps(paymentStatus: LicensePaymentStatus): WelcomeStep[] {
         if (welcomeMode !== "OnlySipSettings") {
@@ -40,14 +42,13 @@
                 case "Error":
                     return []
                 case "Paid":
-                    return ["Purchase"]
+                    return ["ThankYou"]
                 case "ReadyToCapture":
                     return ["ThankYou"]
-                case "Start":
+                case "GoToCheckout":
+                    return ["Product", "Purchase", "ThankYou"]
                 case "Canceled":
                     return ["Product", "Purchase", "ThankYou"]
-                case "RequireInfo":
-                    return ["Purchase", "ThankYou"]
             }
         } else {
             return []
@@ -60,6 +61,8 @@
                 return ["Start", "GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder", "Subscribe"]
             case "OnlySipSettings":
                 return ["GenderType", "Weight", "DrinkAmount", "SipSize", "Reminder"]
+            case "CancelPayment":
+                return [];
             case "OnlyPayment":
                 return [];
         }
@@ -67,7 +70,7 @@
 
     let loading = $state(false);
 
-    let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(licenseData.payment.payment_status)))
+    let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(licenseDataInitial.payment.payment_status)))
     let lastStep: boolean = $derived(steps.indexOf(getCurrentStep()) === steps.length - 1)
 
     let initialGender: GenderType = settings.user?.gender_type ?? "Female"
@@ -182,11 +185,11 @@
 {:else if getCurrentStep() === "Subscribe"}
     <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
 {:else if getCurrentStep() === "Product"}
-    <SelectProduct backVisible={!firstStep()} licenseData={licenseData} back={back} next={next}/>
+    <SelectProduct backVisible={!firstStep()} licenseData={licenseData} welcomeWizardMode={welcomeMode} back={back} next={next}/>
 {:else if getCurrentStep() === "Purchase"}
-    <SelectPayment backendUrl={settings.backend_url} licenseData={licenseData} email={email}
+    <SelectPayment backendUrl={settings.backend_url} bind:licenseData={licenseData} email={email}
                    deviceId={settings.device_id}
-                   welcomeWizardMode={welcomeMode} back={back}/>
+                   welcomeWizardMode={welcomeMode} back={back} next={next}/>
 {:else if getCurrentStep() === "ThankYou"}
     <ThankYou licenseData={licenseData} backVisible={!lastStep} back={back}/>
 {/if}

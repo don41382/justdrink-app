@@ -34,7 +34,7 @@
             <img alt="Drink Now!" class="size-12" src="{data.iconPath}">
             <p class="text-xl ml-2 text-primary">Drink Now!</p>
         </div>
-        <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-secondary/20 hover:text-white p-1 size-8"
+        <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-secondary/20 hover:text-white p-1 size-8 z-50"
                 onclick={async () => { await close() }}>
             <Xmark/>
         </button>
@@ -43,7 +43,8 @@
     {#await licenseDataPromise}
         <LoadingSpinner fullScreen={true}/>
     {:then licenseData}
-        <Wizard currentStep={currentStep} licenseData={licenseData} welcomeMode={data.welcomeMode} images={data.images}
+        <Wizard currentStep={currentStep} licenseDataInitial={licenseData} welcomeMode={data.welcomeMode}
+                images={data.images}
                 settings={data.settings}/>
     {:catch error}
         <Error error={error} reload={reload}/>

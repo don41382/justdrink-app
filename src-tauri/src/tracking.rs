@@ -20,6 +20,8 @@ pub(crate) struct Tracking {
 pub enum Event {
     Install,
     ResetSettings,
+    OnlyPayment,
+    CancelPayment,
     DrinkReminder,
     WelcomeQuit(String),
 }
@@ -30,6 +32,8 @@ impl Event {
             Event::Install => String::from("install"),
             Event::ResetSettings => String::from("reset_settings"),
             Event::DrinkReminder => String::from("start_session"),
+            Event::OnlyPayment => String::from("only_payment"),
+            Event::CancelPayment => String::from("cancel_payment"),
             Event::WelcomeQuit(state) => String::from(format!("welcome_quit_{}", state)),
         }
     }
@@ -59,7 +63,7 @@ impl Tracking {
             .state::<LicenseManagerState>()
             .get_status(self.app_handle.app_handle(), true, false)
             .await
-            .map(|data | data.status)
+            .map(|data| data.status)
             .unwrap_or_else(|err| LicenseStatus::Invalid(err));
 
         let allow_tracking = self
@@ -81,10 +85,12 @@ impl Tracking {
                     "license_state": license_status.to_license_status_name()
                 }
             }]);
-            Self::send(&event_data, &self.client).await.unwrap_or_else(|e| {
-                warn!("error sending tracking event: {:?}", e);
-                ()
-            })
+            Self::send(&event_data, &self.client)
+                .await
+                .unwrap_or_else(|e| {
+                    warn!("error sending tracking event: {:?}", e);
+                    ()
+                })
         }
     }
 

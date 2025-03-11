@@ -78,4 +78,5 @@
             next={selectedDrinkCharacter === undefined ? (() => {}) : next}
             nextBackground="bg-primary"
             nextDisabled={selectedDrinkCharacter === undefined}
-            nextName={lastStep ? 'Finish' : 'Next'}/>
+            nextName={lastStep ? 'Finish' : 'Next'}
+            nextVisible={true}/>

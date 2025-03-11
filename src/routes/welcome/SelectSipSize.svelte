@@ -1,11 +1,9 @@
 <script lang="ts">
     import type {SipImages} from "./+page";
-    import {toVolumeName, VolumeConverter} from "./VolumeConverter";
     import type {MeasureSystem} from "./MeasureSystem";
     import {Sip} from "./SipSize";
-    import type {GenderType, SipSize} from "../../bindings";
+    import type {SipSize} from "../../bindings";
     import Navigation from "./Navigation.svelte";
-    import {CalculatedDrinkAmount} from "./CalculatedDrinkAmount";
     import {DrinkTimeCalculator} from "./DrinkTimeCalculator";
 
     let {
@@ -79,4 +77,5 @@
             next={next}
             nextBackground="bg-primary"
             nextDisabled={false}
-            nextName="Next"/>
+            nextName="Next"
+            nextVisible={true}/>

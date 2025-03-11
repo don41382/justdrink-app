@@ -23,8 +23,8 @@ export interface WelcomeImages {
 
 function getMode(): WelcomeWizardMode {
     let mode = new URLSearchParams(window.location.search).get("mode");
-    if (mode === "Complete" || mode === "OnlySipSettings" || mode === "OnlyPayment") {
-        return mode;
+    if (mode) {
+        return mode as WelcomeWizardMode;
     } else {
         return "Complete";
     }

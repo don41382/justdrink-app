@@ -58,4 +58,5 @@
             next={next}
             nextBackground="bg-primary"
             nextDisabled={false}
-            nextName="Next"/>
+            nextName="Next"
+            nextVisible={true}/>

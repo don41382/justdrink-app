@@ -12,8 +12,7 @@ pub enum LicenseInfoStatus {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]
 pub(crate) enum LicensePaymentStatus {
-    Start,
-    RequireInfo,
+    GoToCheckout,
     ReadyToCapture,
     Paid,
     Canceled,

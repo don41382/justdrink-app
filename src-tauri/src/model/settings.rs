@@ -9,6 +9,7 @@ pub enum WelcomeWizardMode {
     Complete,
     OnlySipSettings,
     OnlyPayment,
+    CancelPayment,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Type, Event)]

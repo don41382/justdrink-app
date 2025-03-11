@@ -19,4 +19,5 @@
             next={reload}
             nextBackground="bg-primary"
             nextDisabled={false}
-            nextName="Reload"/>
+            nextName="Reload"
+            nextVisible={true}/>

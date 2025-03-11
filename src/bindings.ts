@@ -41,8 +41,8 @@ async updateSettings(settings: SettingsUserDetails) : Promise<null> {
 async openBrowser(url: string, close: boolean) : Promise<null> {
     return await TAURI_INVOKE("open_browser", { url, close });
 },
-async welcomeOnlyPayment() : Promise<void> {
-    await TAURI_INVOKE("welcome_only_payment");
+async welcomeWith(welcomeWizardMode: WelcomeWizardMode) : Promise<void> {
+    await TAURI_INVOKE("welcome_with", { welcomeWizardMode });
 },
 async welcomeLoadSettings() : Promise<WelcomeLoadSettings> {
     return await TAURI_INVOKE("welcome_load_settings");
@@ -55,6 +55,9 @@ async welcomeSave(email: string | null, consent: boolean | null, settings: Welco
 },
 async welcomeClose(state: string) : Promise<null> {
     return await TAURI_INVOKE("welcome_close", { state });
+},
+async openPayment() : Promise<void> {
+    await TAURI_INVOKE("open_payment");
 },
 async closeErrorWindow() : Promise<void> {
     await TAURI_INVOKE("close_error_window");
@@ -104,7 +107,7 @@ export type LicenseData = { payment: LicensePaymentInfo; info: LicenseInfo }
 export type LicenseInfo = { status: LicenseInfoStatus; license_key: string | null; message: string | null }
 export type LicenseInfoStatus = "Trial" | "Paid" | "Full" | "Invalid"
 export type LicensePaymentInfo = { total_trail_days: number; trial_days_left: number; purchase_price: number; payment_status: LicensePaymentStatus }
-export type LicensePaymentStatus = "Start" | "RequireInfo" | "ReadyToCapture" | "Paid" | "Canceled" | "Error"
+export type LicensePaymentStatus = "GoToCheckout" | "ReadyToCapture" | "Paid" | "Canceled" | "Error"
 export type LicenseResult = { status: LicenseResultStatus; error: string | null }
 export type LicenseResultStatus = "Success" | "Error"
 export type PauseOrigin = "Idle" | { PreventSleep: string } | "User"
@@ -116,7 +119,7 @@ export type SipSize = "BigSip" | "HalfCup" | "FullCup"
 export type TimerStatus = { NotStarted: number } | { Active: number } | { Paused: [PauseOrigin, number] } | "Finished"
 export type WelcomeLoadSettings = { user: SettingsUserDetails | null; device_id: string; backend_url: string }
 export type WelcomeUserSettings = { next_break_duration_minutes: number; drink_amount_ml: number; sip_size: SipSize; character: DrinkCharacter; gender_type: GenderType }
-export type WelcomeWizardMode = "Complete" | "OnlySipSettings" | "OnlyPayment"
+export type WelcomeWizardMode = "Complete" | "OnlySipSettings" | "OnlyPayment" | "CancelPayment"
 
 /** tauri-specta globals **/
 

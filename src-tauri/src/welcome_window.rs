@@ -9,6 +9,7 @@ use crate::{
     dashboard_window, tracking, tray, welcome_window, CountdownTimerState, LicenseManagerState,
     SettingsManagerState, SubscriptionManagerState, TrackingState,
 };
+use anyhow::anyhow;
 use log::{info, warn};
 use std::time::Duration;
 #[cfg(target_os = "macos")]
@@ -22,7 +23,6 @@ pub async fn show(
     device_id: &DeviceId,
     welcome_mode: WelcomeWizardMode,
 ) -> Result<(), anyhow::Error> {
-
     #[cfg(target_os = "macos")]
     app.app_handle()
         .set_activation_policy(ActivationPolicy::Regular)
@@ -56,27 +56,27 @@ pub async fn show(
     .visible(false)
     .build()?;
 
-    if welcome_mode == WelcomeWizardMode::Complete {
-        app.state::<TrackingState>()
-            .send_tracking(tracking::Event::Install)
-            .await;
-        open_thank_you(device_id);
-    } else {
-        app.state::<TrackingState>()
-            .send_tracking(tracking::Event::ResetSettings)
-            .await;
-    }
+    let event = match welcome_mode {
+        WelcomeWizardMode::Complete => tracking::Event::Install,
+        WelcomeWizardMode::OnlySipSettings => tracking::Event::ResetSettings,
+        WelcomeWizardMode::OnlyPayment => tracking::Event::OnlyPayment,
+        WelcomeWizardMode::CancelPayment => tracking::Event::CancelPayment,
+    };
+
+    app.state::<TrackingState>()
+        .send_tracking(event)
+        .await;
 
     Ok(())
 }
 
 #[specta::specta]
 #[tauri::command]
-pub async fn welcome_only_payment(app: AppHandle) {
+pub async fn welcome_with(app: AppHandle, welcome_wizard_mode: WelcomeWizardMode) {
     welcome_window::show(
         app.app_handle(),
         &app.state::<TrackingState>().device_id(),
-        WelcomeWizardMode::OnlyPayment,
+        welcome_wizard_mode,
     )
     .await
     .expect("should show welcome window for payment")
@@ -86,7 +86,7 @@ pub async fn welcome_only_payment(app: AppHandle) {
 #[tauri::command]
 pub fn welcome_load_settings(
     settings_manager: State<'_, SettingsManagerState>,
-    tracking: State<'_, TrackingState>
+    tracking: State<'_, TrackingState>,
 ) -> WelcomeLoadSettings {
     WelcomeLoadSettings {
         user: settings_manager.get_settings().map(|s| s.user),
@@ -97,7 +97,10 @@ pub fn welcome_load_settings(
 
 #[specta::specta]
 #[tauri::command]
-pub async fn welcome_redo(app: AppHandle, tracking: State<'_, TrackingState>) -> Result<(), String> {
+pub async fn welcome_redo(
+    app: AppHandle,
+    tracking: State<'_, TrackingState>,
+) -> Result<(), String> {
     info!("start welcome redo");
     show(
         app.app_handle(),
@@ -187,10 +190,6 @@ pub async fn welcome_close(
     tracking: State<'_, TrackingState>,
     state: String,
 ) -> Result<(), String> {
-    let _ = license_manager_state
-        .refresh_license_status(app.app_handle())
-        .await?;
-
     info!("close welcome, state: {}", state);
 
     tracking.send_tracking(Event::WelcomeQuit(state)).await;
@@ -214,20 +213,18 @@ pub async fn welcome_close(
     Ok(())
 }
 
-pub fn open_thank_you(device_id: &DeviceId) {
-    if cfg!(feature = "fullversion") {
-        // apple does not allow cross-reference
-    } else {
-        let url = format!(
-            "{}/thank-you/{}?utm_source=app&utm_medium=install",
-            AppConfig::build().get_url(),
-            device_id.get_hash_hex_id()
-        );
-        match webbrowser::open(url.as_str()) {
-            Ok(_) => {}
-            Err(err) => {
-                warn!("can't open thank you page with browser: {}", err);
-            }
+#[specta::specta]
+#[tauri::command]
+pub fn open_payment(app: AppHandle, tracking: State<'_, TrackingState>) {
+    let url = format!(
+        "{baseUrl}/pricing/checkout/drinknow/{deviceId}",
+        baseUrl = AppConfig::build().get_url(),
+        deviceId = tracking.device_id().get_hash_hex_id()
+    );
+    match webbrowser::open(url.as_str()) {
+        Ok(_) => {}
+        Err(err) => {
+            app.alert("Unable to redirect to payment site", "Please ensure that your default browser is working. We are experience problems, opening the default browser", Some(anyhow!(err)), false);
         }
     }
 }

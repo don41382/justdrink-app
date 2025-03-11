@@ -15,13 +15,13 @@
 
     let dataPromise: Promise<LicenseData> = $state(Promise.reject("failed to load license data"))
 
-    onMount(async() => {
+    onMount(async () => {
         dataPromise = commands.requestLicenseStatus()
     })
 
     async function purchase() {
         await info("get a license")
-        await commands.welcomeOnlyPayment()
+        await commands.welcomeWith("OnlyPayment")
         await getCurrentWindow().destroy()
     }
 
@@ -48,6 +48,7 @@
         await cancelPayment(app.device_id).catch((err) => {
             warn(`unable to cancel payment: ${err}, url: ${app.url}, device-id: ${app.device_id}`)
         })
+        await commands.welcomeWith("CancelPayment")
         await getCurrentWindow().destroy()
     }
 
@@ -72,7 +73,7 @@
             {:else}
                 <div class="flex flex-col mt-8" transition:fade>
                     {#if data.info.status === "Trial"}
-                        {#if data.payment.payment_status === "Start"}
+                        {#if data.payment.payment_status === "GoToCheckout"}
                             <p class="text-gray-700 mb-4">
                                 You can try Drink Now! for a few days for free or buy it now.
                             </p>
@@ -91,14 +92,6 @@
                                         I would like to cancel my trial
                                     </button>
                                 </div>
-                            {:else if data.payment.payment_status === "RequireInfo" }
-                                <p class="text-gray-700">
-                                    Enjoy your trial! You still have a few days left to test it out!
-                                </p>
-                                <button class="bg-primary border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
-                                        onclick={async () => purchase()}>
-                                    Buy Now
-                                </button>
                             {:else if data.payment.payment_status === "Paid"}
                                 <LicensePayMessage/>
                             {:else if data.payment.payment_status === "Canceled"}
