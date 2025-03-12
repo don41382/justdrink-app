@@ -20,14 +20,12 @@
     let paymentCheckerTimer: number = 0
 
     let loading: boolean = $state(true)
-    let retry: boolean = $state(false)
     let message: string = $state("Please wait")
     let error: string | undefined = $state(undefined)
     let retriesCount: number = $state(MAX_RETRIES)
 
     async function startPaymentChecker() {
         loading = true
-        retry = false
         error = undefined
         message = "Please wait"
         retriesCount = MAX_RETRIES
@@ -36,7 +34,6 @@
 
     async function cancel(reason: string, errorMessage: string | undefined = undefined) {
         loading = false
-        retry = true
         message = reason
         error = errorMessage
     }
@@ -64,7 +61,6 @@
                         paymentCheckerTimer = setTimeout(paymentChecker, 1000);
                     } else {
                         loading = false
-                        retry = true
                         message = "Payment timed out"
                     }
                     break;
@@ -126,11 +122,9 @@
         {#if error}
             <p class="text-highlight">{error}</p>
         {/if}
-        {#if retry}
-            <button class="text-secondary/80 py-2 rounded-md mt-1" onclick={startPaymentChecker}>
-                Retry
-            </button>
-        {/if}
+        <button class="text-secondary/80 py-2 rounded-md mt-1" onclick={startPaymentChecker}>
+            Retry
+        </button>
     </div>
 </div>
 <Navigation back={back}

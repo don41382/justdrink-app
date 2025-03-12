@@ -1,8 +1,7 @@
 [package]
 name = "drinknow"
-version = "0.1.4"
+version = "0.1.5"
 description = "Drink Now! is your immerse reminder to take regular, healthy sips at your desk, boosting wellness and productivity."
-authors = ["Felix Eckhardt"]
 edition = "2021"
 default-run = "drinknow"
 
