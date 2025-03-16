@@ -16,8 +16,10 @@
     let selectedDrinkCharacter: DrinkCharacter | undefined = $state(undefined)
     let demoMode: boolean = $state(false)
     let sipSize: SipSize | undefined = $state(undefined)
+
     let sessionListener: UnlistenFn | undefined = $state(undefined);
-    let visible: boolean = $state(false)
+    let startSession: boolean = $state(false)
+    let initFinished: boolean = $state(false)
 
     let endListenerTimer: number;
 
@@ -34,7 +36,8 @@
     onMount(async () => {
         sessionListener = await events.sessionStartEvent.listen(async ({payload}) => {
             await getCurrentWindow().maximize()
-            visible = false
+            initFinished = true
+            startSession = false
             await info(`start session - character: ${payload.selected_drink_character} - sip_size: ${payload.sip_size}`)
             selectedDrinkCharacter = payload.selected_drink_character
             sipSize = payload.sip_size
@@ -42,7 +45,7 @@
             cleanup()
             await getCurrentWindow().show()
             await welcomeToFront()
-            visible = true
+            startSession = true
             await drinkPlayer?.play();
             await videoPlayer?.play()
         })
@@ -56,15 +59,16 @@
     }
 
     function lastPlay() {
-        visible = false
+        startSession = false
         endListenerTimer = setTimeout(() => {
             commands.endSession(demoMode)
         }, 5000)
     }
 
     onDestroy(async () => {
+        initFinished = false
         await info("destroy session window")
-        visible = false
+        startSession = false
         await commands.endSession(demoMode)
         cleanup()
         clearTimeout(endListenerTimer);
@@ -76,20 +80,22 @@
 </script>
 
 
-<div aria-pressed="true"
-     class="{visible ? 'fade-in' : 'not-ready'} bg-accent/20 opacity-80 h-screen w-screen flex flex-col justify-between items-center overflow-hidden cursor-default">
+{#if initFinished}
+    <div aria-pressed="true"
+         class="{startSession ? 'fade-in' : 'not-ready'} opacity-80 h-screen w-screen flex flex-col justify-between items-center overflow-hidden cursor-default">
 
-    <img alt="Background" class="absolute opacity-10 top-0 left-0 w-full h-full object-cover -z-10"
-         src="{data.backgroundImage}"/>
+        <img alt="Background" class="absolute opacity-10 top-0 left-0 w-full h-full object-cover -z-10"
+             src="{data.backgroundImage}"/>
 
-    {#if selectedDrinkCharacter}
-        <CharacterDrinkPlayer bind:this={drinkPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}
-                              selectedDrinkCharacter={selectedDrinkCharacter}/>
-    {/if}
-    <div class="absolute right-20 bottom-20">
-        <VideoPlayer bind:this={videoPlayer} video={data.video}/>
+        {#if selectedDrinkCharacter}
+            <CharacterDrinkPlayer bind:this={drinkPlayer} drinkAudio={data.drinkAudio} lastPlay={lastPlay}
+                                  selectedDrinkCharacter={selectedDrinkCharacter}/>
+        {/if}
+        <div class="absolute right-20 bottom-20">
+            <VideoPlayer bind:this={videoPlayer} video={data.video}/>
+        </div>
     </div>
-</div>
+{/if}
 
 <style>
     .fade-in {

@@ -14,7 +14,12 @@
         if (next_break_duration_minutes) {
             user.next_break_duration_minutes = next_break_duration_minutes;
         }
-        if (await isEnabled() != user.enable_on_startup) {
+
+        const autoStartEnabled = await isEnabled()
+
+        await info(`auto-start: ${autoStartEnabled}, user: ${user.enable_on_startup}`)
+
+        if (autoStartEnabled != user.enable_on_startup) {
             if (user.enable_on_startup) {
                 await enable()
             } else {
