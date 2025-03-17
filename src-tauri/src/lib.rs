@@ -92,7 +92,7 @@ pub fn run() {
             info!("open dashboard - only on windows");
             #[cfg(target_os = "windows")]
             {
-                info!("instance of Drink Now! already open");
+                info!("instance of Just Drink! already open");
                 show_dashboard(_app);
             }
         }))
@@ -128,7 +128,7 @@ pub fn run() {
                     Target::new(tauri_plugin_log::TargetKind::Stdout),
                     Target::new(tauri_plugin_log::TargetKind::Webview),
                     Target::new(tauri_plugin_log::TargetKind::LogDir {
-                        file_name: Some("drinknow".to_string()),
+                        file_name: Some("justdrink".to_string()),
                     }),
                 ])
                 .level_for(
@@ -166,12 +166,12 @@ pub fn run() {
         .run(|app, event| match event {
             #[cfg(target_os = "macos")]
             RunEvent::Reopen { .. } => {
-                info!("Reopen Drink Now - Show Dashboard");
+                info!("Reopen Just Drink - Show Dashboard");
                 // called only on macos
                 show_dashboard(app);
             }
             RunEvent::ExitRequested { .. } => {
-                info!("Closing Drink Now! Stop timer.");
+                info!("Closing Just Drink! Stop timer.");
                 app.track_event("app_quit", None);
                 let timer = app.state::<CountdownTimerState>();
                 timer.stop();

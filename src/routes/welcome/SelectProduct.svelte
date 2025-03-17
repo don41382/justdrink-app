@@ -29,7 +29,7 @@
         {:else}
             <h1 class="flex-none text-4xl text-primary text-left mb-2">Your trial is over</h1>
             <span class="text-secondary/80 font-light">
-                I hope you enjoyed Drink Now! - if you like it, you can continue by purchasing the <span
+                I hope you enjoyed Just Drink! - if you like it, you can continue by purchasing the <span
                     class="text-primary">lifetime license</span> for just <span
                     class="text-primary">{PriceFormatter.format(licenseData.payment.purchase_price)}</span>
             </span>

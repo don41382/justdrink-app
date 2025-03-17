@@ -16,7 +16,7 @@
                     </div>
                     <div>
                         <h2 class="text-2xl text-secondary">Welcome to</h2>
-                        <h1 class="text-4xl text-primary text-left mb-2">Drink Now!</h1>
+                        <h1 class="text-4xl text-primary text-left mb-2">Just Drink!</h1>
                         <p class="text-white/80">
                             Discover the ideal daily water intake tailored just for you.
                         </p>

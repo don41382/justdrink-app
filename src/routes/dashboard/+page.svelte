@@ -137,7 +137,7 @@
     <div class="flex items-center space-x-3" data-tauri-drag-region>
         <div class="flex items-center space-x-2 mr-16 select-none" data-tauri-drag-region>
             <img alt="mm" class="w-8 h-8" data-tauri-drag-region src="{iconPath}">
-            <p class="text-xl text-primary/ font-light text-left whitespace-nowrap text-primary" data-tauri-drag-region>Drink Now!</p>
+            <p class="text-xl text-primary/ font-light text-left whitespace-nowrap text-primary" data-tauri-drag-region>Just Drink!</p>
         </div>
         <div class="flex space-x-2 justify-end">
             <button class="flex items-center cursor-pointer rounded-full hover:bg-gray-600 text-gray-400 hover:text-white p-1 size-8"
@@ -179,7 +179,7 @@
                 <div class="size-8">
                     <GlassEmpty/>
                 </div>
-                <span class="text-lg font-light mt-1 tracking-wide whitespace-nowrap">Drink Now</span>
+                <span class="text-lg font-light mt-1 tracking-wide whitespace-nowrap">Just Drink</span>
             </button>
         </div>
     </div>

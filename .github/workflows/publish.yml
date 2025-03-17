@@ -118,7 +118,7 @@ jobs:
           updaterJsonKeepUniversal: true
           releaseCommitish: ${{ github.ref_name }}
           owner: "don41382"
-          repo: "drinknow-app-releases"
+          repo: "justdrink-app-releases"
           args: ${{ matrix.args }}
 
       - name: bundle & build for app-store mac
@@ -138,9 +138,9 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_SIGNING_IDENTITY: "3rd Party Mac Developer Installer: Felix Eckhardt (LXYUBHT3K4)"
         run: |
-          APP_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/Drink Now.app"
-          xcrun productbuild --sign "$APPLE_SIGNING_IDENTITY" --component "$APP_PATH" /Applications "Drink Now.pkg"
-          xcrun altool --upload-app --type macos --file "Drink Now.pkg" --apiKey "$APPLE_API_KEY_ID" --apiIssuer $APPLE_API_ISSUER
+          APP_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/Just Drink.app"
+          xcrun productbuild --sign "$APPLE_SIGNING_IDENTITY" --component "$APP_PATH" /Applications "Just Drink.pkg"
+          xcrun altool --upload-app --type macos --file "Just Drink.pkg" --apiKey "$APPLE_API_KEY_ID" --apiIssuer $APPLE_API_ISSUER
 
       - name: Cleanup
         if: matrix.os == 'macos' && (success() || failure())

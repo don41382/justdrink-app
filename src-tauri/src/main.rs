@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    drinknow_app_lib::run()
+    justdrink_app_lib::run()
 }

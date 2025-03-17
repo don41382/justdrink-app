@@ -1,17 +1,17 @@
 [package]
-name = "drinknow"
+name = "justdrink"
 version = "0.1.5"
-description = "Drink Now! is your immerse reminder to take regular, healthy sips at your desk, boosting wellness and productivity."
+description = "Just Drink! is your immerse reminder to take regular, healthy sips at your desk, boosting wellness and productivity."
 edition = "2021"
-default-run = "drinknow"
+default-run = "justdrink"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "drinknow"
+name = "justdrink"
 
 [lib]
-name = "drinknow_app_lib"
+name = "justdrink_app_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

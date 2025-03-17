@@ -77,7 +77,7 @@ pub fn update_settings(
         .unwrap_or_else(|err| {
             app_handle.alert(
                 "Failed to update settings",
-                "Drink Now! is unable to update settings.",
+                "Just Drink! is unable to update settings.",
                 Some(err),
                 false,
             );

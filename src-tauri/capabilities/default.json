@@ -14,11 +14,11 @@
   ],
   "remote": {
     "urls": [
-      "https://*.drinknow.app",
+      "https://*.just-drink.app",
       "https://*.tauri.app",
       "https://api.mixpanel.com",
       "https://eu.aptabase.com",
-      "http://drinknow.test:8080"
+      "http://just-drink.test:8080"
     ]
   },
   "permissions": [
@@ -62,10 +62,7 @@
       "identifier": "http:default",
       "allow": [
         {
-          "url": "http://drinknow.test:8080"
-        },
-        {
-          "url": "https://drinknow.app"
+          "url": "https://just-drink.app"
         },
         {
           "url": "https://js.stripe.com/**/*"

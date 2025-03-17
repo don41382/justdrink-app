@@ -68,9 +68,17 @@
         }
     }
 
+    function getAllSteps(): WelcomeStep[] {
+        if (licenseDataInitial.info.status == "Full") {
+            return getSteps()
+        } else {
+            return getSteps().concat(getPaymentSteps(licenseDataInitial.payment.payment_status))
+        }
+    }
+
     let loading = $state(false);
 
-    let steps: WelcomeStep[] = $state(getSteps().concat(getPaymentSteps(licenseDataInitial.payment.payment_status)))
+    let steps: WelcomeStep[] = $state(getAllSteps())
     let lastStep: boolean = $derived(steps.indexOf(getCurrentStep()) === steps.length - 1)
 
     let initialGender: GenderType = settings.user?.gender_type ?? "Female"
@@ -183,9 +191,10 @@
                     reminderImages={images.reminder} back={back}
                     next={nextFinishWelcomeUserSettings} lastStep={lastStep}/>
 {:else if getCurrentStep() === "Subscribe"}
-    <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={next}/>
+    <SelectSubscribe bind:email={email} bind:consent={consent} back={back} next={nextFinishWelcomeUserSettings} lastStep={lastStep}/>
 {:else if getCurrentStep() === "Product"}
-    <SelectProduct backVisible={!firstStep()} licenseData={licenseData} welcomeWizardMode={welcomeMode} back={back} next={next}/>
+    <SelectProduct backVisible={!firstStep()} licenseData={licenseData} welcomeWizardMode={welcomeMode} back={back}
+                   next={next}/>
 {:else if getCurrentStep() === "Purchase"}
     <SelectPayment backendUrl={settings.backend_url} bind:licenseData={licenseData} email={email}
                    deviceId={settings.device_id}

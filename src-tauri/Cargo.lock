@@ -1128,47 +1128,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "drinknow"
-version = "0.1.5"
-dependencies = [
- "anyhow",
- "chrono",
- "cocoa",
- "log",
- "machine-uid",
- "mouse_position",
- "objc",
- "objc_exception",
- "rand 0.9.0",
- "serde",
- "serde_json",
- "sha2",
- "specta",
- "specta-typescript",
- "specta-util",
- "tauri",
- "tauri-build",
- "tauri-plugin-aptabase",
- "tauri-plugin-autostart",
- "tauri-plugin-fs",
- "tauri-plugin-global-shortcut",
- "tauri-plugin-http",
- "tauri-plugin-log",
- "tauri-plugin-os",
- "tauri-plugin-process",
- "tauri-plugin-single-instance",
- "tauri-plugin-store",
- "tauri-plugin-updater",
- "tauri-specta",
- "timer",
- "urlencoding",
- "user-idle",
- "webbrowser",
- "winapi",
- "window-vibrancy 0.5.2 (git+https://github.com/tauri-apps/window-vibrancy)",
-]
-
-[[package]]
 name = "dtoa"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2367,6 +2326,47 @@ checksum = "5dea2b27dd239b2556ed7a25ba842fe47fd602e7fc7433c2a8d6106d4d9edd70"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "justdrink"
+version = "0.1.5"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "cocoa",
+ "log",
+ "machine-uid",
+ "mouse_position",
+ "objc",
+ "objc_exception",
+ "rand 0.9.0",
+ "serde",
+ "serde_json",
+ "sha2",
+ "specta",
+ "specta-typescript",
+ "specta-util",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-aptabase",
+ "tauri-plugin-autostart",
+ "tauri-plugin-fs",
+ "tauri-plugin-global-shortcut",
+ "tauri-plugin-http",
+ "tauri-plugin-log",
+ "tauri-plugin-os",
+ "tauri-plugin-process",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-store",
+ "tauri-plugin-updater",
+ "tauri-specta",
+ "timer",
+ "urlencoding",
+ "user-idle",
+ "webbrowser",
+ "winapi",
+ "window-vibrancy 0.5.2 (git+https://github.com/tauri-apps/window-vibrancy)",
 ]
 
 [[package]]

@@ -23,7 +23,7 @@ where
             WINDOW_LABEL,
             tauri::WebviewUrl::App("/feedback".into()),
         )
-        .title("Drink Now! Feedback")
+        .title("Just Drink! Feedback")
         .center()
         .transparent(true)
         .decorations(false)

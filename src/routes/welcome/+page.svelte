@@ -31,8 +31,8 @@
         ready={true}>
     <div class="flex pt-8 mb-4 justify-between items-center">
         <div class="flex items-center">
-            <img alt="Drink Now!" class="size-12" src="{data.iconPath}">
-            <p class="text-xl ml-2 text-primary">Drink Now!</p>
+            <img alt="Just Drink!" class="size-12" src="{data.iconPath}">
+            <p class="text-xl ml-2 text-primary">Just Drink!</p>
         </div>
         <button class="flex flex-col items-center justify-center cursor-pointer rounded-full hover:bg-gray-600 text-secondary/20 hover:text-white p-1 size-8 z-50"
                 onclick={async () => { await close() }}>

@@ -18,7 +18,7 @@ where
             WINDOW_LABEL,
             tauri::WebviewUrl::App("/dashboard".into()),
         )
-        .title("Drink Now! - Dashboard")
+        .title("Just Drink! - Dashboard")
         .center()
             .focused(true)
         .transparent(true)

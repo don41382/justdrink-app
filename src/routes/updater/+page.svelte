@@ -42,7 +42,7 @@
                 }
             }).catch((err) => {
                 error = true;
-                commands.alertLogClientError("Update Error", `Could not update Drink Now: ${err}`, `Error while updating: ${err}`);
+                commands.alertLogClientError("Update Error", `Could not update Just Drink: ${err}`, `Error while updating: ${err}`);
             })
             setTimeout(async () => {
                 if (!error) {
@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        <p class="text-gray-600 mb-6">A new version of Drink Now! is available. Would you like to update to the
+        <p class="text-gray-600 mb-6">A new version of Just Drink! is available. Would you like to update to the
             latest version?</p>
 
         <!-- Progress bar (visible when download starts) -->

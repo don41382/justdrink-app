@@ -45,7 +45,7 @@ pub async fn show(
         WINDOW_LABEL,
         tauri::WebviewUrl::App(format!("/welcome?mode={:?}", welcome_mode).into()),
     )
-    .title("Welcome to Drink Now!")
+    .title("Welcome to Just Drink!")
     .center()
     .transparent(true)
     .focused(true)
@@ -217,7 +217,7 @@ pub async fn welcome_close(
 #[tauri::command]
 pub fn open_payment(app: AppHandle, tracking: State<'_, TrackingState>) {
     let url = format!(
-        "{baseUrl}/pricing/checkout/drinknow/{deviceId}",
+        "{baseUrl}/pricing/checkout/justdrink/{deviceId}",
         baseUrl = AppConfig::build().get_url(),
         deviceId = tracking.device_id().get_hash_hex_id()
     );

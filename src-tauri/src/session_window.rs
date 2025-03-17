@@ -156,7 +156,7 @@ fn build_session_window(app: &AppHandle) -> Result<(), Error> {
     info!("start session window: create new window");
     let window =
         WebviewWindowBuilder::new(app, WINDOW_LABEL, tauri::WebviewUrl::App("/session".into()))
-            .title("Drink Now! Session")
+            .title("Just Drink! Session")
             .transparent(true)
             .visible(false)
             .always_on_top(true)

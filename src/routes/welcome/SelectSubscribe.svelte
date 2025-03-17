@@ -2,12 +2,12 @@
 
     import {commands} from "../../bindings";
     import {onMount} from "svelte";
-    import {info} from "@tauri-apps/plugin-log";
     import Navigation from "./Navigation.svelte";
 
-    let {email = $bindable(), consent = $bindable(), back, next}: {
+    let {email = $bindable(), consent = $bindable(), lastStep, back, next}: {
         email: string | null,
         consent: boolean,
+        lastStep: boolean,
         back: () => void,
         next: () => void
     } = $props();
@@ -51,11 +51,11 @@
                     class="size-4 mr-2 rounded border-neutral-300 focus:ring-neutral-500"
                     id="consent"
                     type="checkbox">
-            <label class="text-sm text-secondary/50" for="consent">I agree to receive emails from Drink Now! and
+            <label class="text-sm text-secondary/50" for="consent">I agree to receive emails from Just Drink! and
                 understand I can unsubscribe anytime. See our
                 <button
                         class="underline cursor-pointer"
-                        onclick={() => openUrl("https://drinknow.app/privacy?utm_source=app&utm_medium=consent")}>
+                        onclick={() => openUrl("https://just-drink.app/privacy?utm_source=app&utm_medium=consent")}>
                     Privacy
                     Details
                 </button>
@@ -70,5 +70,5 @@
             next={next}
             nextBackground="bg-primary"
             nextDisabled={false}
-            nextName="Next"
+            nextName={lastStep ? "Finish" : "Next"}
             nextVisible={true}/>

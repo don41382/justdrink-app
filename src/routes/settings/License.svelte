@@ -75,7 +75,7 @@
                     {#if data.info.status === "Trial"}
                         {#if data.payment.payment_status === "GoToCheckout"}
                             <p class="text-gray-700 mb-4">
-                                You can try Drink Now! for a few days for free or buy it now.
+                                You can try Just Drink! for a few days for free or buy it now.
                             </p>
                             <button class="bg-primary border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto mt-4"
                                     onclick={async () => purchase()}>
@@ -107,7 +107,7 @@
                         {/if}
                     {:else}
                         <p class="text-gray-700 mb-4">
-                            Your trial has ended. Please purchase the full version to continue using Drink Now!.
+                            Your trial has ended. Please purchase the full version to continue using Just Drink!.
                         </p>
                         <button class="bg-primary border border-gray-300 text-white rounded-lg px-4 py-2 mx-auto"
                                 onclick={async () => purchase()}>
