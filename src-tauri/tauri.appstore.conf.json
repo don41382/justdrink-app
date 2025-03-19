@@ -3,7 +3,7 @@
     "macOS": {
       "entitlements": "./Entitlements.plist",
       "files": {
-        "embedded.provisionprofile": "./Motion_Minute_MacOS_Profile.provisionprofile"
+        "embedded.provisionprofile": "./macos_profile.provisionprofile"
       }
     }
   }
