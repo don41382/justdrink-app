@@ -14,13 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-#          - runs-on: "self-hosted-macos"
-#            os: macos
-#            self-hosted: true
-#            arch: aarch64
-#            args: "--target universal-apple-darwin"
-#            enable: true
-#            appstore: false
+          - runs-on: "self-hosted-macos"
+            os: macos
+            self-hosted: true
+            arch: aarch64
+            args: "--target universal-apple-darwin"
+            enable: true
+            appstore: false
           - runs-on: "self-hosted-macos"
             os: macos
             self-hosted: true
@@ -28,13 +28,13 @@ jobs:
             args: "--target universal-apple-darwin"
             enable: true
             appstore: true
-#          - runs-on: "self-hosted-windows"
-#            os: windows
-#            self-hosted: true
-#            arch: x64-windows
-#            args: "--target x86_64-pc-windows-msvc"
-#            enabled: true
-#            appstore: false
+          - runs-on: "self-hosted-windows"
+            os: windows
+            self-hosted: true
+            arch: x64-windows
+            args: "--target x86_64-pc-windows-msvc"
+            enabled: true
+            appstore: false
     env:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
