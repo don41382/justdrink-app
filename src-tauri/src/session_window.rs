@@ -164,6 +164,7 @@ fn build_session_window(app: &AppHandle) -> Result<(), Error> {
             .maximized(true)
             .skip_taskbar(false)
             .accept_first_mouse(true)
+            .visible_on_all_workspaces(true)
             .focused(false)
             .resizable(false);
 
