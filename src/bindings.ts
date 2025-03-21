@@ -20,6 +20,12 @@ async timerChange(changeTime: ChangeTime) : Promise<void> {
 async feedbackWindowSendFeedback(feedback: string, rating: FeedbackRate) : Promise<null> {
     return await TAURI_INVOKE("feedback_window_send_feedback", { feedback, rating });
 },
+async isFullVersionAndMac() : Promise<boolean> {
+    return await TAURI_INVOKE("is_full_version_and_mac");
+},
+async openAppStoreFeedback() : Promise<null> {
+    return await TAURI_INVOKE("open_app_store_feedback");
+},
 async startSession(drinkSettings: SessionStartEvent | null) : Promise<null> {
     return await TAURI_INVOKE("start_session", { drinkSettings });
 },

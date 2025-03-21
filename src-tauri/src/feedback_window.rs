@@ -1,3 +1,4 @@
+use crate::alert::Alert;
 use crate::app_config::AppConfig;
 use crate::model::device::DeviceId;
 use crate::settings_system::SettingsSystem;
@@ -7,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{AppHandle, Manager, Runtime, State};
 use tauri_plugin_http::reqwest::blocking::Client;
+use webbrowser::Browser;
 
 pub(crate) const WINDOW_LABEL: &'static str = "feedback";
 
@@ -110,6 +112,40 @@ pub fn feedback_window_send_feedback(
         .expect("settings_system lock required")
         .feedback_given(&app);
     Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn open_app_store_feedback(
+    app: AppHandle,
+    settings_system: State<SettingsSystemState>,
+) -> Result<(), String> {
+    settings_system
+        .lock()
+        .as_mut()
+        .expect("settings_system lock required")
+        .feedback_given(&app);
+
+    webbrowser::open_browser(
+        Browser::Safari,
+        "https://itunes.apple.com/app/id6743385214?action=write-review",
+    )
+    .unwrap_or_else(|err| {
+        app.alert(
+            "Can't open Review",
+            "Unable to open review in browser",
+            Some(err.into()),
+            true,
+        )
+    });
+
+    Ok(())
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn is_full_version_and_mac() -> bool {
+    return cfg!(feature = "fullversion") && cfg!(target_os = "macos");
 }
 
 pub trait FeedbackDisplay {

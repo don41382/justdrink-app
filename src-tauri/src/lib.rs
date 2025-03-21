@@ -56,6 +56,8 @@ pub fn run() {
             dashboard_window::toggle_timer,
             dashboard_window::timer_change,
             feedback_window::feedback_window_send_feedback,
+            feedback_window::is_full_version_and_mac,
+            feedback_window::open_app_store_feedback,
             session_window::start_session,
             session_window::end_session,
             settings_window::open_settings,
