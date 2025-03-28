@@ -38,9 +38,12 @@
             <ul class="text-secondary max-w-md space-y-1 list-inside">
                 <li><span class="mr-2">⏰</span> Immersive Reminders — Makes you want to drink</li>
                 <li><span class="mr-2">💦</span> No workflow disruption — Just drink</li>
-                <li><span class="mr-2">🎉</span> {licenseData.payment.total_trail_days}-Day Free Trial — No charge until
-                    your trial ends
-                </li>
+                {#if licenseData.payment.trial_days_left > 0}
+                    <li><span class="mr-2">🎉</span> {licenseData.payment.total_trail_days}-Day Free Trial — No charge
+                        until
+                        your trial ends
+                    </li>
+                {/if}
             </ul>
         </div>
     </div>
